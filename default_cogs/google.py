@@ -25,7 +25,7 @@ class Google(Cog):
         fql = await self.s_google(query, num=2)
         emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title='Search Results')
         emb.description = '\u200b'
-        emb.set_author(icon_url='https://raw.githubusercontent.com/Armored-Dragon/goldmine/master/assets/icon-google.png', name='Google')
+        emb.set_author(icon_url='https://raw.githubusercontent.com/Armored-Dragon/goldmine/master/assets/icon-google.png', name='Google', url='https://google.com/')
         if fql:
             emb.add_field(name='Link', value=fql[0], inline=False)
             if len(fql) > 1:
