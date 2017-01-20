@@ -384,7 +384,7 @@ class Voice(Cog):
             player.resume()
             await self.bot.say('Resumed.')
 
-    @commands.command(pass_context=True, no_pm=True)
+    @commands.command(pass_context=True, no_pm=True, aliases=['disconnect'])
     async def stop(self, ctx):
         """Stops playing audio and leaves the voice channel.
         This also clears the queue.
