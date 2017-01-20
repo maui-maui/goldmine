@@ -14,7 +14,7 @@ import util.dynaimport as di
 from .cog import Cog
 
 for mod in ['asyncio', 'random', 're', 'sys', 'time', 'textwrap', 'unicodedata',
-            'aiohttp', 'async_timeout', 'discord', 'asteval', 'os']:
+            'aiohttp', 'async_timeout', 'discord', 'asteval', 'os', 'elizabeth']:
     globals()[mod] = di.load(mod)
 json = di.load('util.json')
 commands = di.load('util.commands')
@@ -719,6 +719,37 @@ Server Owner\'s ID: `{0.server.owner.id}`
             })
         self.dstore['owner_messages'].append(msg_object)
         await self.bot.say(':thumbsup: Message recorded.')
+
+    @commands.command(pass_context=True, aliases=['randomprofle', 'randomprof', 'rprof', 'rp', 'randp'])
+    async def rprofile(self, ctx):
+        """Get a random profile.
+        Usage: rprofile"""
+        name_overrides = {
+            'cvv': 'CVV',
+            'cid': 'CID'
+        }
+        excluded = ['password', 'sexual_orientation', 'avatar', 'identifier', 'title',
+                    'language', 'paypal', 'worldview', 'views_on', 'political_views',
+                    'surname']
+        if not ctx.message.author.avatar_url:
+            ctx.message.author.avatar_url = ctx.message.author.default_avatar_url
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
+        emb.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
+        p = elizabeth.Personal()
+        traits = {}
+        calls = {d: getattr(p, d) for d in dir(p) if (not d.startswith('_')) and hasattr(getattr(p, d), '__call__')}
+        for call in calls:
+            if call not in excluded:
+                if call in name_overrides:
+                    f_name = name_overrides[call]
+                else:
+                    f_name = call.replace('_', ' ').title()
+                traits[f_name] = calls[call]()
+        emb.set_thumbnail(url=p.avatar())
+        emb.title = traits['Full Name'].split()[0]
+        for trait in traits:
+            emb.add_field(name=trait, value=str(traits[trait]))
+        await self.bot.say(embed=emb)
 
 def setup(bot):
     c = Utility(bot)

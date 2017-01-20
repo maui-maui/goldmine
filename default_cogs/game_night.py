@@ -14,7 +14,7 @@ class GameNight(Cog):
     @commands.group(pass_context=True, aliases=['game_night'])
     async def gamenight(self, ctx):
         """Game night!
-        Syntax: gamenight {stuff}"""
+        Usage: gamenight {stuff}"""
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
