@@ -755,12 +755,19 @@ Server Owner\'s ID: `{0.server.owner.id}`
     @commands.command(pass_context=True, aliases=['qr', 'makeqr', 'qrmake'])
     async def qrcode(self, ctx, *, text: str):
         """Create a QR code.
-        Syntax: qrcode [text to use]"""
+        Usage: qrcode [text to use]"""
         img_bytes = BytesIO()
         image = await self.loop.run_in_executor(None, qrcode.make, text)
         image.save(img_bytes, format='PNG')
         img_bytes.seek(0)
         await self.bot.send_file(ctx.message.channel, img_bytes, filename='qrcode.png')
+
+    @commands.command()
+    async def avatar(self, *, target: discord.User):
+        """Get someone's avatar.
+        Usage: avatar [member]"""
+        au = target.avatar_url
+        await self.bot.say(au if au else target.default_avatar_url)
 
 def setup(bot):
     c = Utility(bot)
