@@ -13,3 +13,4 @@ psutil
 cozmo[camera]
 pillow
 elizabeth
+cleverbot

@@ -13,3 +13,4 @@ ujson
 psutil
 cozmo
 elizabeth
+cleverbot
