@@ -12,4 +12,4 @@ cchardet
 ujson
 psutil
 cozmo
-cleverbot
+elizabeth

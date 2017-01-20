@@ -692,7 +692,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.add_field(name='Server Type', value=server_type)
         await self.bot.say(embed=emb)
 
-    @commands.cooldown(1, 16, type=commands.BucketType.user)
+    @commands.cooldown(1, 20, type=commands.BucketType.user)
     @commands.command(pass_context=True)
     async def contact(self, ctx, *, message: str):
         """Contact the bot owner with a message.

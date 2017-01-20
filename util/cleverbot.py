@@ -1,49 +1,63 @@
-"""An unofficial library to access the Cleverbot API."""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from builtins import str  # pylint: disable=redefined-builtin
-from builtins import object  # pylint: disable=redefined-builtin
-
+"""An unofficial library to access the Cleverbot service."""
 import collections
 import hashlib
+import logging
 import asyncio
 import async_timeout
 import aiohttp
 from urllib.parse import urlencode
-from future.backports.html import parser
+from html import parser
 
 # Only use the instance method `unescape` of entity_parser. (I wish it was a
 # static method or public function; it never uses `self` anyway)
 entity_parser = parser.HTMLParser()
 
-
-class Cleverbot(object):
+class Cleverbot:
     """Handles a conversation with Cleverbot.
+
     Example usage:
+
        >>> from cleverbot import Cleverbot
-       >>> cb = Cleverbot()
+       >>> cb = Cleverbot('my-example-bot')
        >>> cb.ask("Hi. How are you?")
        "I'm good, thanks. How are you?"
     """
+
     HOST = "www.cleverbot.com"
     PROTOCOL = "http://"
-    RESOURCE = "/webservicemin?uc=321&"
-    API_URL = PROTOCOL + HOST + RESOURCE
+    RESOURCE = "/webservicemin"
 
-    headers = {
-        'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)',
-        'Accept': 'text/html,application/xhtml+xml,'
-                  'application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
-        'Accept-Language': 'en-us,en;q=0.8,en-us;q=0.5,en;q=0.3',
-        'Cache-Control': 'no-cache',
-        'Host': HOST,
-        'Referer': PROTOCOL + HOST + '/',
-        'Pragma': 'no-cache'
-    }
+    def __init__(self, botapi, uc='3210', async_init=True):
+        """Cleverbot requests that bots identify themselves when
+        connecting to the service. You must pass an identifying string
+        for your bot when you create the connection.
 
-    def __init__(self, get_cookies=True):
-        """ The data that will get passed to Cleverbot's web API """
+        For example:
+        >> cb = Cleverbot('my-app')
+        and *not*:
+        >> cb = Cleverbot()
+        See: http://www.cleverbot.com/apis
+        """
+
+        self.botapi = botapi
+        self.uc = uc
+
+        self.SERVICE_URL = self.PROTOCOL + self.HOST + self.RESOURCE + \
+                           "?uc=" + self.uc + "&botapi=" + self.botapi
+
+        self.headers = {
+            'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)',
+            'Accept': 'text/html,application/xhtml+xml,'
+                      'application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+            'Accept-Language': 'en-us,en;q=0.8,en-us;q=0.5,en;q=0.3',
+            'Cache-Control': 'no-cache',
+            'Host': self.HOST,
+            'Referer': self.PROTOCOL + self.HOST + '/',
+            'Pragma': 'no-cache'
+        }
+
+        """ The data that will get passed to Cleverbot """
         self.data = collections.OrderedDict(
             (
                 # must be the first pairs
@@ -75,17 +89,29 @@ class Cleverbot(object):
                 ('cleanslate', False),  # Never modified
             )
         )
+
         # the log of our conversation with Cleverbot
         self.conversation = []
-        self.loop = asyncio.get_event_loop()
-        self.cookies = {}
-        # get the main page to get a cookie (see bug #13)
-        if get_cookies:
-            self.loop.create_task(self.get_cookies())
+
+        # get cookie
+        self.session = None
+        if async_init:
+            asyncio.ensure_future(self.async_init())
+        else:
+            self.session = aiohttp.ClientSession()
+
+    async def async_init(self):
+        self.session = aiohttp.ClientSession()
+        with async_timeout.timeout(6):
+            async with self.session.get(self.PROTOCOL + self.HOST) as r:
+                pass # to close properly
+        logging.getLogger('cleverbot').info('Initialized aiohttp with cookie.')
 
     async def ask(self, question):
         """Asks Cleverbot a question.
+
         Maintains message history.
+
         :param question: The question to ask
         :return Cleverbot's answer
         """
@@ -93,13 +119,13 @@ class Cleverbot(object):
         # Set the current question
         self.data['stimulus'] = question
 
-        # Connect to Cleverbot's API and remember the response
+        # Connect to Cleverbot and remember the response
         resp = await self._send()
 
         # Add the current question to the conversation log
         self.conversation.append(question)
 
-        parsed = await self._parse(resp)
+        parsed = self._parse(resp)
 
         # Set data as appropriate
         if self.data['sessionid'] != '':
@@ -112,13 +138,11 @@ class Cleverbot(object):
 
     async def _send(self):
         """POST the user's question and all required information to the
-        Cleverbot API
-        Cleverbot tries to prevent unauthorized access to its API by
-        obfuscating how it generates the 'icognocheck' token. The token is
-        currently the md5 checksum of the 10th through 36th characters of the
+        Cleverbot service
+
+        Cleverbot obfuscates how it generates the 'icognocheck' token. The token
+        is currently the md5 checksum of the 10th through 36th characters of the
         encoded data. This may change in the future.
-        TODO: Order is not guaranteed when urlencoding dicts. This hasn't been
-        a problem yet, but let's look into ordered dicts or tuples instead.
         """
         # Set data as appropriate
         if self.conversation:
@@ -135,20 +159,13 @@ class Cleverbot(object):
         token = hashlib.md5(digest_txt.encode('utf-8')).hexdigest()
         self.data['icognocheck'] = token
 
-        with async_timeout.timeout(8):
-            async with aiohttp.request('POST', Cleverbot.API_URL, data=self.data, headers=Cleverbot.headers, cookies=self.cookies) as response:
-                return await response.text()
-
-    async def get_cookies(self):
-        """Get the cookie to use with Cleverbot."""
-        async with aiohttp.ClientSession(loop=self.loop) as session:
-            with async_timeout.timeout(6):
-                async with session.get(Cleverbot.PROTOCOL + Cleverbot.HOST):
-                    for cookie in session.cookie_jar:
-                        self.cookies[cookie.key] = cookie.value
+        # POST the data to Cleverbot and return
+        with async_timeout.timeout(7):
+            async with self.session.post(self.SERVICE_URL, data=self.data, headers=self.headers) as r:
+                return await r.text()
 
     @staticmethod
-    async def _parse(resp_text):
+    def _parse(resp_text):
         """Parses Cleverbot's response"""
         resp_text = entity_parser.unescape(resp_text)
 
@@ -156,11 +173,8 @@ class Cleverbot(object):
             item.split('\r') for item in resp_text.split('\r\r\r\r\r\r')[:-1]
             ]
 
-        try:
-            if parsed[0][1] == 'DENIED':
-                raise CleverbotAPIError()
-        except IndexError:
-            print('cleverbot error!', parsed)
+        if parsed[0][1] == 'DENIED':
+            raise CleverbotServiceError()
 
         parsed_dict = {
             'answer': parsed[0][0],
@@ -173,6 +187,5 @@ class Cleverbot(object):
         return parsed_dict
 
 
-class CleverbotAPIError(Exception):
-    """Cleverbot returned an error (it probably recognized us as a bot)"""
-    pass
+class CleverbotServiceError(Exception):
+    """The Cleverbot service returned an error"""

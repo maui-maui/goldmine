@@ -2,39 +2,39 @@
 import asyncio
 import random
 from util.cleverbot import Cleverbot as RealCleverbot
-try:
-    from cleverbot import Cleverbot as RealRealCleverbot
-except ImportError:
-    class RealRealCleverbot:
-        """Bogus cleverbot."""
-        def ask(self, q):
-            return 'The bot owner hasn\'t set up Cleverbot.'
 import util.commands as commands
 from util.func import bdel
 from .cog import Cog
+try:
+    from d_props import cleverbot_name as BOT_API
+except ImportError:
+    BOT_API = 'Goldmine'
 
 class Cleverbot(Cog):
     """Good ol' Cleverbot."""
+    BOTNAME = BOT_API
 
     def __init__(self, bot):
-        self.cb = RealCleverbot(get_cookies=False) # broken?
-        self.real_cb = RealRealCleverbot()
+        self.cb = RealCleverbot(self.BOTNAME, async_init=False)
         self.cleverbutt_timers = set()
         self.cleverbutt_latest = {}
         self.cleverbutt_replied_to = set()
         super().__init__(bot)
 
+    def __unload(self):
+        self.cb.session.close()
+
     async def on_ready(self):
         try:
-            await self.cb.get_cookies()
+            await self.cb.async_init()
         except asyncio.TimeoutError:
             self.logger.warning('Couldn\'t get cookies for Cleverbot, so it probably won\'t work.')
 
     async def askcb(self, query):
         """A method of querying Cleverbot safe for async."""
         try:
-            #return await self.cb.ask(query)
-            return await self.loop.run_in_executor(None, self.real_cb.ask, query)
+            return await self.cb.ask(query)
+            #return await self.loop.run_in_executor(None, self.real_cb.ask, query)
         except IndexError:
             return 'Couldn\'t get a response from Cleverbot.'
 
