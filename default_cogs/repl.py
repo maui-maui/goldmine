@@ -67,6 +67,16 @@ class REPL(Cog):
         else:
             del byte_size
         return m_result
+    
+    async def emerg_quit_task(self, ctx):
+        while True:
+            msg = await self.bot.wait_for_message(channel=ctx.message.channel, check=lambda m: m.content.startswith('`'))
+            if msg.content.replace('`', '').replace('\n', '').strip('py') in ('quit', 'exit', 'exit()', 'sys.exit()'):
+                await asyncio.sleep(0.6)
+                if msg.channel.id in self.sessions:
+                    await self.bot.say('Exiting.')
+                    self.sessions.remove(msg.channel.id)
+                    raise commands.PassException()
 
     @commands.command(pass_context=True, hidden=True)
     async def repl(self, ctx, *flags: str):
@@ -147,15 +157,17 @@ class REPL(Cog):
         if flags:
             flags_imsg = ' Using flag(s) `' + ' '.join(flags) + '`.'
         await self.bot.say(f'Enter code to execute or evaluate. `exit()` or `quit` to exit.{flags_imsg} Prefix is: ```{prefix}```')
+        quit_task = self.loop.create_task(self.emerg_quit_task(ctx))
         while True:
             response = await self.bot.wait_for_message(channel=msg.channel, check=lambda m: m.content.startswith(prefix) and ex_check(m), **checks)
             variables['message'] = response
             variables['msg'] = response
             cleaned = self.cleanup_code(response.content)
 
-            if cleaned in ('quit', 'exit', 'exit()'):
+            if cleaned in ('quit', 'exit', 'exit()', 'sys.exit()'):
                 await self.bot.say('Exiting.')
                 self.sessions.remove(msg.channel.id)
+                quit_task.cancel()
                 return
 
             if use_asteval:
@@ -169,7 +181,6 @@ class REPL(Cog):
             else:
                 executor = exec
                 if cleaned.count('\n') == 0:
-                    # single statement, potentially 'eval'
                     try:
                         code = compile(cleaned, '<repl session>', 'eval')
                     except SyntaxError:
@@ -214,6 +225,7 @@ class REPL(Cog):
                 pass
             except discord.HTTPException as e:
                 await self.bot.send_message(msg.channel, f'Unexpected error: `{e}`')
+        quit_task.cancel()
 
 def setup(bot):
     bot.add_cog(REPL(bot))
