@@ -14,7 +14,8 @@ import util.dynaimport as di
 from .cog import Cog
 
 for mod in ['asyncio', 'random', 're', 'sys', 'time', 'textwrap', 'unicodedata',
-            'aiohttp', 'async_timeout', 'discord', 'asteval', 'os', 'elizabeth']:
+            'aiohttp', 'async_timeout', 'discord', 'asteval', 'os', 'elizabeth',
+            'qrcode']:
     globals()[mod] = di.load(mod)
 json = di.load('util.json')
 commands = di.load('util.commands')
@@ -56,7 +57,7 @@ class Utility(Cog):
             await self.bot.delete_message(ctx.message)
         except discord.Forbidden:
             pass
-        await self.bot.say(stuffs)
+        await self.bot.say(stuffs)#.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere'))
 
     async def math_task(self, code: str):
         eval_exc = self.loop.run_in_executor(None, self.bot.asteval.eval, code)
@@ -498,7 +499,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         if 'cleverbutts' in c_map:
             ch = c_map['cleverbutts']
             if msg:
-                await self.bot.send_message(ch, ctx.raw_args)
+                await self.bot.send_message(ch, ctx.raw_args.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere'))
             else:
                 await self.bot.send_message(ch, 'Hello, what\'re you up to?')
             await self.bot.say('**Message sent in <#%s>!**' % str(ch.id))
@@ -750,6 +751,16 @@ Server Owner\'s ID: `{0.server.owner.id}`
         for trait in traits:
             emb.add_field(name=trait, value=str(traits[trait]))
         await self.bot.say(embed=emb)
+
+    @commands.command(pass_context=True, aliases=['qr', 'makeqr', 'qrmake'])
+    async def qrcode(self, ctx, *, text: str):
+        """Create a QR code.
+        Syntax: qrcode [text to use]"""
+        img_bytes = BytesIO()
+        image = await self.loop.run_in_executor(None, qrcode.make, text)
+        image.save(img_bytes, format='PNG')
+        img_bytes.seek(0)
+        await self.bot.send_file(ctx.message.channel, img_bytes, filename='qrcode.png')
 
 def setup(bot):
     c = Utility(bot)

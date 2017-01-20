@@ -14,3 +14,4 @@ psutil
 cozmo
 elizabeth
 cleverbot
+qrcode
