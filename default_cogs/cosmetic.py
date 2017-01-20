@@ -175,7 +175,10 @@ Testing multi line
                     await self.bot.say(f'**Failed to get a cat, maybe random.cat is down?**')
                     return
         img_bytes = io.BytesIO(img)
-        await self.bot.send_file(ctx.message.channel, img_bytes, filename='random-cat.' + imghdr.what(img_bytes))
+        try:
+            await self.bot.send_file(ctx.message.channel, img_bytes, filename='random-cat.' + imghdr.what(img_bytes))
+        except TypeError:
+            await self.bot.say('Hmm, something went wrong with random.cat. Maybe try again?')
     @commands.command(pass_context=True, aliases=['random.dog', 'randomdog', 'rdog', 'dogs', 'dograndom', 'random_dog'])
     async def dog(self, ctx):
         """Get a random dog! Because why not.
