@@ -1,4 +1,6 @@
 """Google!"""
+import random
+import discord
 import util.commands as commands
 from util.google import search
 from .cog import Cog
@@ -21,13 +23,16 @@ class Google(Cog):
             return
         m = ''
         fql = await self.s_google(query, num=2)
-        try:
-            m = 'Google returned: ' + fql[0]
-        except IndexError:
-            m = '**There were no results!**'
-        if len(fql) >= 2:
-            m += ' and ' + fql[1]
-        await self.bot.say(m)
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title='Search Results')
+        emb.description = '\u200b'
+        emb.set_author(icon_url='https://raw.githubusercontent.com/Armored-Dragon/goldmine/master/assets/google.png', name='Google')
+        if fql:
+            emb.add_field(name='Link', value=fql[0], inline=False)
+            if len(fql) > 1:
+                emb.add_field(name='Another Link', value=fql[1], inline=False)
+        else:
+            emb.description += 'Nothing was found.'
+        await self.bot.say(embed=emb)
 
 def setup(bot):
     bot.add_cog(Google(bot))
