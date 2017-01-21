@@ -11,7 +11,7 @@ import util.dynaimport as di
 from .cog import Cog
 
 for mod in ['asyncio', 'random', 'functools', 'zipfile', 'io', 'copy', 'subprocess',
-            'aiohttp', 'async_timeout', 'discord', 'os']:
+            'aiohttp', 'async_timeout', 'discord', 'os', 'shutil']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
@@ -138,6 +138,7 @@ class Admin(Cog):
         with zipfile.ZipFile(io.BytesIO(tarball)) as z:
             z.extractall(os.path.join(self.bot.dir, 'data'))
         distutils.dir_util.copytree(os.path.join(self.bot.dir, 'data', 'goldmine-master'), self.bot.dir)
+        shutil.rmtree(os.path.join(self.bot.dir, 'data', 'goldmine-master'))
         if gitout != False:
             await self.bot.send_message(dest, 'Update Output:\n```' + gitout + '```')
         if not gitout:
