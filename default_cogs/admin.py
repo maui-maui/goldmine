@@ -596,7 +596,7 @@ class Admin(Cog):
     @commands.command(pass_context=True)
     async def messages(self, ctx, *number: int):
         await echeck_perms(ctx, ['bot_owner'])
-        def chan(msg, cid):
+        def chan(msg):
             if 'server' in msg:
                 try:
                     server = {s.id: s for s in self.bot.servers}[msg['server_id']]
