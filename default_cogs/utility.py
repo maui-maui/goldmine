@@ -716,7 +716,8 @@ Server Owner\'s ID: `{0.server.owner.id}`
             msg_object.update({
                 'server': ctx.message.server.name,
                 'server_id': ctx.message.server.id,
-                'server_members': len(ctx.message.server.members)
+                'server_members': len(ctx.message.server.members),
+                'channel': ctx.message.channel.name
             })
         self.dstore['owner_messages'].append(msg_object)
         await self.bot.say(':thumbsup: Message recorded.')

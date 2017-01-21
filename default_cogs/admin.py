@@ -593,6 +593,62 @@ class Admin(Cog):
         await self.loop.run_in_executor(None, console_task, ctx.message.channel)
         await self.bot.say('Exited console message mode')
 
+    @commands.command(pass_context=True)
+    async def messages(self, ctx, *number: int):
+        await echeck_perms(ctx, ['bot_owner'])
+        def chan(msg, cid):
+            if 'server' in msg:
+                try:
+                    server = {s.id: s for s in self.bot.servers}[msg['server_id']]
+                except KeyError:
+                    return 'server-removed'
+                try:
+                    channel = {c.id: c for c in server.channels}[msg['channel_id']].name
+                except KeyError:
+                    return 'deleted-channel'
+                msg['channel'] = channel
+            else:
+                return 'was-pm'
+        if number:
+            nums = number
+        else:
+            nums = range(len(self.bot.store.store['owner_messages']))
+        for num in nums:
+            msg = self.bot.store.store['owner_messages'][num]
+            emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
+            author = await self.bot.get_user_info(msg['id'])
+            emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
+            emb.description = msg['message']
+            emb.add_field(name='User Tag', value=msg['user'])
+            emb.add_field(name='Nickname', value=msg['nick'])
+            emb.add_field(name='Message ID', value=msg['message_id'])
+            emb.add_field(name='User ID', value=msg['user_id'])
+            emb.add_field(name='Channel', value='#' + chan(msg) + '\nID: `' + msg['channel_id'] + '`')
+            emb.add_field(name='PM?', value=('Yes' if msg['pm'] else 'No'))
+            emb.add_field(name='Date and Time', value=msg['time'])
+            emb.add_field(name='Timestamp', value=msg['timestamp'])
+            emb.add_field(name='Contains Mention?', value=('Yes' if msg['contains_mention'] else 'No'))
+            if 'server' in msg:
+                emb.add_field(name='Server', value='**' + msg['server'] + '**\nID: `' + msg['server_id'] +
+                                                '`\nMembers at the time: ' + str(msg['server_members']) +
+                                                '\nMembers now: ' + str(len({s.id: s for s in self.bot.servers}[msg['server_id']].members)))
+            await self.bot.say(embed=emb)
+
+'''{
+  "message": "[good job on getting 100 severs]",
+  "user": "DoorKnobbel#5850",
+  "nick": "DoorKnobbel",
+  "message_id": "271430808571609089",
+  "user_id": "266445092477206529",
+  "channel_id": "268623320633573376",
+  "pm": false,
+  "time": "2017-01-19 00:09:07.704000",
+  "timestamp": 1484802547.704,
+  "contains_mention": false,
+  "server": "Bot Nation",
+  "server_id": "268623320633573376",
+  "server_members": 18
+}'''
 def setup(bot):
     c = Admin(bot)
     bot.add_cog(c)
