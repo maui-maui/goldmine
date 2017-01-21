@@ -506,11 +506,13 @@ default_cogs = [
     'google',
     'errors',
     'ranks',
-    'moderation'
+    'moderation',
+    'owner'
 ]
 essential_cogs = [
     'cogs',
-    'errors'
+    'errors',
+    'owner'
 ]
 
 join_msg = '''**Thanks for inviting me!** :heart:

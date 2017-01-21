@@ -132,6 +132,29 @@ class Cleverbot(Cog):
             reply_bot = '**Couldn\'t get a response from Cleverbot!**'
         await self.bot.say(reply_bot)
 
+    @commands.group(pass_context=True, no_pm=True, aliases=['cleverbutts', 'cbs'])
+    async def cleverbutt(self, ctx):
+        """Manage Cleverbutt stuff.
+        Usage: cleverbutt [subcommand] {arguments}"""
+        if ctx.invoked_subcommand is None:
+            await self.bot.send_cmd_help(ctx)
+
+    @cleverbutt.command(pass_context=True, no_pm=True, name='start', aliases=['kickstart'])
+    async def cleverbutt_kickstart(self, ctx, *msg: str):
+        """Kickstart / start cleverbutts conversation
+        Usage: cleverbutt start {optional: message}"""
+        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
+        c_map = {c.name: c for c in ctx.message.server.channels}
+        if 'cleverbutts' in c_map:
+            ch = c_map['cleverbutts']
+            if msg:
+                await self.bot.send_message(ch, ctx.raw_args.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere'))
+            else:
+                await self.bot.send_message(ch, 'Hello, what\'re you up to?')
+            await self.bot.say('**Message sent in <#%s>!**' % str(ch.id))
+        else:
+            await self.bot.say('**There\'s no** `#cleverbutts` **channel in this server!**')
+
 def setup(bot):
     """Set up the cog."""
     bot.add_cog(Cleverbot(bot))
