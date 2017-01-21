@@ -636,21 +636,6 @@ class Admin(Cog):
             await self.bot.say(embed=emb)
         await self.bot.say('Finished!')
 
-'''{
-  "message": "[good job on getting 100 severs]",
-  "user": "DoorKnobbel#5850",
-  "nick": "DoorKnobbel",
-  "message_id": "271430808571609089",
-  "user_id": "266445092477206529",
-  "channel_id": "268623320633573376",
-  "pm": false,
-  "time": "2017-01-19 00:09:07.704000",
-  "timestamp": 1484802547.704,
-  "contains_mention": false,
-  "server": "Bot Nation",
-  "server_id": "268623320633573376",
-  "server_members": 18
-}'''
 def setup(bot):
     c = Admin(bot)
     bot.add_cog(c)
