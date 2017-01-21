@@ -128,17 +128,20 @@ class Admin(Cog):
             gitout = await self.loop.run_in_executor(None, functools.partial(subprocess.check_output, ['git', 'pull'], stderr=subprocess.STDOUT))
             gitout = gitout.decode('utf-8')
         except subprocess.CalledProcessError as exp:
-            await self.bot.edit_message(msg, 'An error occured while attempting to update!')
-            await self.bot.send_message(dest, '```' + str(exp) + '```')
-            gitout = False
-        async with aiohttp.ClientSession() as session:
-            with async_timeout.timeout(15): # for streaming
-                async with session.get('https://github.com/Armored-Dragon/goldmine/archive/master.zip') as r:
-                    tarball = await r.read()
-        with zipfile.ZipFile(io.BytesIO(tarball)) as z:
-            z.extractall(os.path.join(self.bot.dir, 'data'))
-        distutils.dir_util.copytree(os.path.join(self.bot.dir, 'data', 'goldmine-master'), self.bot.dir)
-        shutil.rmtree(os.path.join(self.bot.dir, 'data', 'goldmine-master'))
+            if 'status 128' in str(exp):
+                async with aiohttp.ClientSession() as session:
+                    with async_timeout.timeout(16): # for streaming
+                        async with session.get('https://github.com/Armored-Dragon/goldmine/archive/master.zip') as r:
+                            tarball = await r.read()
+                with zipfile.ZipFile(io.BytesIO(tarball)) as z:
+                    z.extractall(os.path.join(self.bot.dir, 'data'))
+                distutils.dir_util.copy_tree(os.path.join(self.bot.dir, 'data', 'goldmine-master'), self.bot.dir)
+                shutil.rmtree(os.path.join(self.bot.dir, 'data', 'goldmine-master'))
+                gitout = 'Successfully updated via zip.'
+            else:
+                await self.bot.edit_message(msg, 'An error occured while attempting to update!')
+                await self.bot.send_message(dest, '```' + str(exp) + '```')
+                gitout = False
         if gitout != False:
             await self.bot.send_message(dest, 'Update Output:\n```' + gitout + '```')
         if not gitout:
@@ -164,7 +167,7 @@ class Admin(Cog):
         self.logger.info('The bot is now restarting!')
         self.bot.is_restart = True
 #        await self.bot.logout() # Comment for people to not see that the bot restarted (to trick uptime)
-        self.loop.stop()
+        self.loop.call_soon_threadsafe(self.loop.stop)
 
     @commands.command(pass_context=True, aliases=['dwrite', 'storecommit', 'commitstore', 'commit_store', 'write_store'], hidden=True)
     async def dcommit(self, ctx):
