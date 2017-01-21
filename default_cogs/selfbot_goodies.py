@@ -1,8 +1,11 @@
 """Nice selfbot goodies."""
 import asyncio
+import io
 from datetime import datetime
 import util.commands as commands
 from util.perms import echeck_perms
+import util.dynaimport as di
+ImageGrab = di.load('pyscreenshot')
 from .cog import Cog
 
 class SelfbotGoodies(Cog):
@@ -14,11 +17,19 @@ class SelfbotGoodies(Cog):
 
     @commands.command(pass_context=True)
     async def screenshot(self, ctx):
+        """Take a screenshot.
+        Usage: screenshot"""
         await echeck_perms(ctx, ['bot_owner'])
-        await self.bot.upload(fp='ugh')
+        image = ImageGrab.grab()
+        img_bytes = io.BytesIO()
+        image.save(img_bytes, format='PNG')
+        img_bytes.seek(0)
+        await self.bot.upload(img_bytes, filename='screenshot.png', content='This is *probably* what my screen looks like right now.')
 
     @commands.command(pass_context=True)
     async def msg_rate(self, ctx):
+        """Get the message rate.
+        Usage: msg_rate"""
         await echeck_perms(ctx, ['bot_owner'])
         msg = await self.bot.say('Please wait...')
         start_time = datetime.now()
