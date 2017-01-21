@@ -616,7 +616,7 @@ class Admin(Cog):
         for num in nums:
             msg = self.bot.store.store['owner_messages'][num]
             emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
-            author = await self.bot.get_user_info(msg['id'])
+            author = await self.bot.get_user_info(msg['user_id'])
             emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
             emb.description = msg['message']
             emb.add_field(name='User Tag', value=msg['user'])
