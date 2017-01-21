@@ -634,6 +634,7 @@ class Admin(Cog):
                                                 '`\nMembers at the time: ' + str(msg['server_members']) +
                                                 '\nMembers now: ' + str(len({s.id: s for s in self.bot.servers}[msg['server_id']].members)))
             await self.bot.say(embed=emb)
+        await self.bot.say('Finished!')
 
 '''{
   "message": "[good job on getting 100 severs]",
