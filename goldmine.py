@@ -41,7 +41,7 @@ else:
     use_uvloop = True
 while True:
     print(' - Loading bot code')
-    core = __import__('core')
+    import core
     print(' - Ready to start bot!')
     retval = core.main(use_uvloop)
     print(' - Bot stopped.')
