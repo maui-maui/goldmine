@@ -15,7 +15,7 @@ from .cog import Cog
 
 for mod in ['asyncio', 'random', 're', 'sys', 'time', 'textwrap', 'unicodedata',
             'aiohttp', 'async_timeout', 'discord', 'asteval', 'os', 'elizabeth',
-            'qrcode']:
+            'qrcode', 'warnings', 'tesserocr']:
     globals()[mod] = di.load(mod)
 json = di.load('util.json')
 commands = di.load('util.commands')
@@ -769,6 +769,24 @@ Server Owner\'s ID: `{0.server.owner.id}`
         Usage: avatar [member]"""
         au = target.avatar_url
         await self.bot.say(au if au else target.default_avatar_url)
+    
+    @commands.command(pass_context=True)
+    async def ocr(self, ctx):
+        """OCR an image.
+        Usage: ocr [attach an image]"""
+        await or_check_perms(ctx, ['bot_owner'])
+        if not have_pil:
+            await self.bot.say('The bot owner hasn\'t set up this feature!')
+            return False
+        warnings.simplefilter('error', Image.DecompressionBombWarning)
+        img_bytes = BytesIO()
+        img_byte.seek(0)
+        image = Image.open(img_bytes)
+        text = tesserocr.image_to_text(image)
+        if text:
+            await self.bot.say(text)
+        else:
+            await self.bot.say('No results.')
 
 def setup(bot):
     c = Utility(bot)
