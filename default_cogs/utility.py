@@ -779,8 +779,14 @@ Server Owner\'s ID: `{0.server.owner.id}`
             await self.bot.say('The bot owner hasn\'t set up this feature!')
             return False
         warnings.simplefilter('error', Image.DecompressionBombWarning)
-        img_bytes = BytesIO()
-        img_byte.seek(0)
+        if ctx.message.attachments:
+            with async_timeout.timeout(5):
+                async with aiohttp.request('GET', ctx.message.attachments[0]['url']) as r:
+                    raw_image = await r.read()
+        else:
+            await self.bot.say(':warning: No attachment found.')
+            return
+        img_bytes = BytesIO(raw_image)
         image = Image.open(img_bytes)
         text = tesserocr.image_to_text(image)
         if text:
