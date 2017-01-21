@@ -3,6 +3,7 @@ from __future__ import print_function
 from contextlib import suppress
 from importlib import import_module as imp
 from datetime import datetime, timedelta
+import distutils.dir_util
 from util.perms import or_check_perms, echeck_perms, check_perms
 from util.func import bdel, DiscordFuncs, _set_var, _import, _del_var, snowtime, assert_msg, check
 from util.const import muted_perms
@@ -10,7 +11,7 @@ import util.dynaimport as di
 from .cog import Cog
 
 for mod in ['asyncio', 'random', 'functools', 'zipfile', 'io', 'copy', 'subprocess',
-            'aiohttp', 'async_timeout', 'discord']:
+            'aiohttp', 'async_timeout', 'discord', 'os']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
@@ -130,12 +131,13 @@ class Admin(Cog):
             await self.bot.edit_message(msg, 'An error occured while attempting to update!')
             await self.bot.send_message(dest, '```' + str(exp) + '```')
             gitout = False
-        '''async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as session:
             with async_timeout.timeout(15): # for streaming
                 async with session.get('https://github.com/Armored-Dragon/goldmine/archive/master.zip') as r:
                     tarball = await r.read()
         with zipfile.ZipFile(io.BytesIO(tarball)) as z:
-            z.extractall(self.bot.dir)'''
+            z.extractall(os.path.join(self.bot.dir, 'data'))
+        distutils.dir_util.copytree(os.path.join(self.bot.dir, 'data', 'goldmine-master'), self.bot.dir)
         if gitout != False:
             await self.bot.send_message(dest, 'Update Output:\n```' + gitout + '```')
         if not gitout:
