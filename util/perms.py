@@ -19,6 +19,10 @@ async def check_perms(ctx, perms_required):
         except AttributeError: # if in a non-group DM (PrivateChannel)
             sowner = sender
             sowner_id = sender_id
+    if sender_id == bot_owner:
+        return True
+    elif sender_id == ctx.bot.user.id:
+        return True
     for i in perms_required:
         if i == 'bot_owner':
             pass
@@ -28,8 +32,6 @@ async def check_perms(ctx, perms_required):
             perms_satisfied += 1
         elif i.lower() in dc_perms:
             perms_satisfied += 1
-    if sender_id == bot_owner:
-        return True
     return len(perms_required) == perms_satisfied
 
 async def echeck_perms(ctx, perms_required):
