@@ -22,7 +22,7 @@ class Cleverbot(Cog):
     BOTNAME = BOT_API
 
     def __init__(self, bot):
-        self.cb = RealCleverbot(self.BOTNAME)#, async_init=False)
+        self.cb = RealCleverbot(self.BOTNAME)
         self.cleverbutt_timers = set()
         self.cleverbutt_latest = {}
         self.cleverbutt_replied_to = set()
@@ -39,7 +39,7 @@ class Cleverbot(Cog):
             self.logger.warning('Couldn\'t get cookies for Cleverbot, so it probably won\'t work.')
 
     async def askcb(self, query):
-        """A method of querying Cleverbot safe for async."""
+        """Cleverbot query helper."""
         try:
             #return await self.cb.ask(query)
             return await self.loop.run_in_executor(None, self.cb.ask, query)
@@ -59,6 +59,7 @@ class Cleverbot(Cog):
         await self.bot.msend(msg, msg.author.mention + ' ' + reply_bot)
 
     async def clever_reply(self, msg):
+        """Cleverbutts handler."""
         self.cleverbutt_timers.add(msg.server.id)
         await asyncio.sleep(random.random() * 1.8)
         await self.bot.send_typing(msg.channel)
