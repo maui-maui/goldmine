@@ -671,9 +671,8 @@ Server Owner\'s ID: `{0.server.owner.id}`
         avatar_link = (au if au else target.default_avatar_url)
         emb.set_footer(text=target.name, icon_url=avatar_link)
         emb.add_field(name='Players', value=str(data['players']['online']) + '/' + str(data['players']['max']))
-        if 'sample' in data['players']:
-            if data['players']['sample']:
-                emb.add_field(name='Players Online', value=smartjoin([p['name'] for p in data['players']['sample']]))
+        if data['players'].get('sample', False):
+            emb.add_field(name='Players Online', value=smartjoin([p['name'] for p in data['players']['sample']]))
         emb.add_field(name='Version', value=re.sub(r'\u00a7[4c6e2ab319d5f78lnokmr]', '', data['version']['name']))
         emb.add_field(name='Protocol Version', value=data['version']['protocol'])
         if 'modinfo' in data:
@@ -683,13 +682,12 @@ Server Owner\'s ID: `{0.server.owner.id}`
                                   m['version'] for m in data['modinfo']['modList']]))
                 else:
                     emb.add_field(name='Use of Mods', value='This server appears to fake its identity, so Forge clients will send their mod list.')
-            if 'type' in data['modinfo']:
-                if data['modinfo']['type']:
-                    t = data['modinfo']['type']
-                    if t.lower() == 'fml':
-                        server_type = 'Forge / FML'
-                    else:
-                        server_type = t.title()
+            if data['modinfo'].get('type', False):
+                t = data['modinfo']['type']
+                if t.lower() == 'fml':
+                    server_type = 'Forge / FML'
+                else:
+                    server_type = t.title()
         emb.add_field(name='Server Type', value=server_type)
         await self.bot.say(embed=emb)
 
