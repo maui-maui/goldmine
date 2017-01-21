@@ -607,6 +607,7 @@ class Admin(Cog):
                 except KeyError:
                     return 'deleted-channel'
                 msg['channel'] = channel
+                return channel
             else:
                 return 'was-pm'
         if number:
