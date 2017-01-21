@@ -6,6 +6,8 @@ try:
     from cleverbot import Cleverbot as RealCleverbot
 except ImportError:
     class RealCleverbot:
+        def __init__(self, *a, **b):
+            pass
         @staticmethod
         def ask(m):
             return 'The bot owner hasn\'t set up Cleverbot.'
