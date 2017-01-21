@@ -11,9 +11,9 @@ from core import set_cog
 from convert_to_old_syntax import cur_dir
 from util.perms import or_check_perms
 from util.const import default_cogs, essential_cogs
-from cogs.utils.dataIO import dataIO
-from cogs.utils import checks
-from cogs.utils.chat_formatting import pagify, box
+from default_cogs.utils.dataIO import dataIO
+from default_cogs.utils import checks
+from default_cogs.utils.chat_formatting import pagify, box
 import util.dynaimport as di
 from .cog import Cog
 
