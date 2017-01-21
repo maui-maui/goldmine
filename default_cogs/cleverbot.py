@@ -22,7 +22,15 @@ class Cleverbot(Cog):
     BOTNAME = BOT_API
 
     def __init__(self, bot):
-        self.cb = RealCleverbot(self.BOTNAME)
+        try:
+            self.cb = RealCleverbot(self.BOTNAME)
+        except Exception as e:
+            bot.logger.error('Couldn\'t initialize Cleverbot! Got ' + type(e).__name__ + ': ' + str(e))
+            class PlaceholderCleverbot:
+                @staticmethod
+                def ask(m):
+                    return 'The Cleverbot system failed to start.'
+            self.cb = PlaceholderCleverbot()
         self.cleverbutt_timers = set()
         self.cleverbutt_latest = {}
         self.cleverbutt_replied_to = set()
