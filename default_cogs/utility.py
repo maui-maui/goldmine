@@ -127,7 +127,8 @@ class Utility(Cog):
 
     @commands.command(pass_context=True, aliases=['whois', 'who'])
     async def user(self, ctx, *users: str):
-        """Get tons of info on an user or some users. Spaces, multiuser, and cross-server IDs work.
+        """Get tons of info on an user or some users.
+        Spaces, multiuser, and cross-server IDs work.
         Usage: user {user(s)}"""
         targets = []
         s = ctx.message.server
@@ -302,9 +303,10 @@ class Utility(Cog):
         await self.bot.say(home_broadcast, embed=emb)
 
     @commands.command(pass_context=True, aliases=['halp', 'phelp', 'phalp'])
-    async def help(self, ctx, *commands: str):
+    async def help(self, ctx, *commands_or_cogs: str):
         """Show the bot's help.
         Usage: help"""
+        self.bot.he = []
         if ctx.invoked_with.startswith('p'):
             await or_check_perms(ctx, ['bot_admin', 'manage_server', 'manage_messages', 'manage_channels'])
         if ctx.message.server.me:
@@ -341,6 +343,8 @@ class Utility(Cog):
         for cog in fields:
             field = fields[cog]
             content = '\n'.join(field)
+            if not content:
+                content = 'No visible commands.'
             pre_len = sum([len(i) for i in field])
             #chars += int(sum([len(i) for i in field]))
             #chars += int(len(content) * 1.7)
@@ -348,16 +352,32 @@ class Utility(Cog):
             print('CHARS', chars)
             print('PRE LEN', pre_len)
             print('-----------')
-            if chars + pre_len < 1400:
-                emb.add_field(name=cog, value=content)
+            if chars + pre_len < 6000:
+                if len(content) <= 1024:
+                    emb.add_field(name=cog, value=content)
+                else:
+                    pager = commands.Paginator(prefix='', suffix='', max_size=1024)
+                    for ln in field:
+                        pager.add_line(ln)
+                    for page in pager.pages:
+                        emb.add_field(name=cog, value=page)
             else:
                 pages.append(emb)
                 emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
                 emb.title = 'Bot Help'
                 emb.set_author(name=target.display_name, icon_url=avatar_link)
                 chars = 0
-                emb.add_field(name=cog, value=content)
+                if len(content) <= 1024:
+                    emb.add_field(name=cog, value=content)
+                else:
+                    pager = commands.Paginator(prefix='', suffix='', max_size=1024)
+                    for ln in field:
+                        pager.add_line(ln)
+                    for page in pager.pages:
+                        emb.add_field(name=cog, value=page)
             chars += pre_len
+        pages.append(emb)
+        self.bot.pages = pages
         pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
         if len(pages) > 1:
             destination = ctx.message.author
@@ -371,13 +391,15 @@ class Utility(Cog):
             try:
                 print(', '.join([f['name'] for f in page.to_dict()['fields']]) + ': total ' + str(sum([len(i['value']) for i in page.to_dict()['fields']])))
                 await self.bot.send_message(destination, embed=page)
-            except discord.HTTPException:
+            except discord.HTTPException as e:
+                self.bot.he.append(e)
                 await self.bot.send_message(destination, 'Error sending embed. Cogs: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
                 print(page.to_dict()['fields'])
                 print('totalLen', sum([len(i) for i in [f['value'] for f in page.to_dict()['fields']]]))
             await asyncio.sleep(0.16)
         if destination == ctx.message.author:
             await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
+        return pages
 
     @commands.cooldown(1, 9.5, type=commands.BucketType.server)
     @commands.command(pass_context=True, aliases=['ping', 'pong', 'delay', 'net', 'network', 'lag', 'netlag'])

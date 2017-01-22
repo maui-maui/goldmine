@@ -78,8 +78,10 @@ class REPL(Cog):
                     self.sessions.remove(msg.channel.id)
                     raise commands.PassException()
 
-    @commands.command(pass_context=True, hidden=True)
+    @commands.command(pass_context=True)
     async def repl(self, ctx, *flags: str):
+        """A REPL, in Discord.
+        Usage: repl {flags}"""
         await echeck_perms(ctx, ['bot_owner'])
         msg = ctx.message
 
