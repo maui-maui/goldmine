@@ -48,7 +48,7 @@ class Owner(Cog):
                     z.extractall(os.path.join(self.bot.dir, 'data'))
                 distutils.dir_util.copy_tree(os.path.join(self.bot.dir, 'data', 'goldmine-master'), self.bot.dir)
                 shutil.rmtree(os.path.join(self.bot.dir, 'data', 'goldmine-master'))
-                gitout = 'Successfully updated via zip.'
+                gitout = 'Successfully updated via zip.\nZip size: ' + str(sys.getsizeof(tarball) / 1048576) + ' MB'
             else:
                 await self.bot.edit_message(msg, 'An error occured while attempting to update!')
                 await self.bot.send_message(dest, '```' + str(exp) + '```')
