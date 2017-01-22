@@ -274,7 +274,7 @@ class GoldBot(commands.Bot):
         await self.update_presence()
 
     def dispatch(self, event, *args, **kwargs):
-        super().dispatch(event, *args, **kwargs)
+        super(GoldBot, self).dispatch(event, *args, **kwargs)
         if event in self.event_calls:
             self.event_calls[event] += 1
         else:
