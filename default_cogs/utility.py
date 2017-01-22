@@ -306,7 +306,6 @@ class Utility(Cog):
     async def help(self, ctx, *commands_or_cogs: str):
         """Show the bot's help.
         Usage: help"""
-        self.bot.he = []
         if ctx.invoked_with.startswith('p'):
             await or_check_perms(ctx, ['bot_admin', 'manage_server', 'manage_messages', 'manage_channels'])
         if ctx.message.server.me:
@@ -376,8 +375,8 @@ class Utility(Cog):
                     for page in pager.pages:
                         emb.add_field(name=cog, value=page)
             chars += pre_len
-        pages.append(emb)
-        self.bot.pages = pages
+        if not pages:
+            pages.append(emb)
         pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
         if len(pages) > 1:
             destination = ctx.message.author
@@ -391,15 +390,12 @@ class Utility(Cog):
             try:
                 print(', '.join([f['name'] for f in page.to_dict()['fields']]) + ': total ' + str(sum([len(i['value']) for i in page.to_dict()['fields']])))
                 await self.bot.send_message(destination, embed=page)
-            except discord.HTTPException as e:
-                self.bot.he.append(e)
+            except discord.HTTPException:
                 await self.bot.send_message(destination, 'Error sending embed. Cogs: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
                 print(page.to_dict()['fields'])
                 print('totalLen', sum([len(i) for i in [f['value'] for f in page.to_dict()['fields']]]))
-            await asyncio.sleep(0.16)
         if destination == ctx.message.author:
             await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
-        return pages
 
     @commands.cooldown(1, 9.5, type=commands.BucketType.server)
     @commands.command(pass_context=True, aliases=['ping', 'pong', 'delay', 'net', 'network', 'lag', 'netlag'])
