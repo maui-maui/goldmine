@@ -296,9 +296,6 @@ class GoldBot(commands.Bot):
             self.dispatch('command', command, ctx)
             try:
                 await command.invoke(ctx)
-                if message.content.lower() == prefix + 'help':
-                    if not self.selfbot:
-                        await self.send_message(message.channel, message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
             except CommandError as exp:
                 ctx.command.dispatch_error(exp, ctx)
             else:
