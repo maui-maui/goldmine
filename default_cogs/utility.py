@@ -375,7 +375,7 @@ class Utility(Cog):
                 await self.bot.send_message(destination, 'Error sending embed. Cogs: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
                 print(page.to_dict()['fields'])
                 print('totalLen', sum([len(i) for i in [f['value'] for f in page.to_dict()['fields']]]))
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.16)
         if destination == ctx.message.author:
             await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
 
