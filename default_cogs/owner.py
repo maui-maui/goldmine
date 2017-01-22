@@ -28,7 +28,7 @@ class Owner(Cog):
     async def update(self, ctx):
         """Auto-updates this bot and restarts if any code was updated.
         Usage: update"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         restart = not ctx.invoked_with.startswith('r')
         msg = await self.bot.say('Trying to update...')
         r_key = ', now restarting' if restart else ''
@@ -68,7 +68,7 @@ class Owner(Cog):
     async def restart(self, ctx):
         """Restarts this bot.
         Usage: restart"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
 #        for i in self.bot.servers:
 #            await self.bot.send_message(i.default_channel, 'This bot (' + self.bname + ') is now restarting!')
         self.bot.store_writer.cancel()
@@ -85,7 +85,7 @@ class Owner(Cog):
     async def dcommit(self, ctx):
         """Commit the current datastore.
         Usage: dcommit"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         await self.store.commit()
         await self.bot.say('**Commited the current copy of the datastore!**')
 
@@ -93,7 +93,7 @@ class Owner(Cog):
     async def dload(self, ctx):
         """Load the datastore from disk.
         Usage: dload"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         await self.bot.say('**ARE YOU SURE YOU WANT TO LOAD THE DATASTORE?** *yes, no*')
         resp = await self.bot.wait_for_message(author=ctx.message.author)
         if resp.content.lower() == 'yes':
@@ -107,7 +107,7 @@ class Owner(Cog):
     async def broadcast(self, ctx, *, broadcast_text: str):
         """Broadcast a message to all servers.
         Usage: broadcast [message]"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         err = ''
         def get_prefix(s):
             props = self.dstore['properties']
@@ -146,7 +146,7 @@ class Owner(Cog):
     async def eref(self, ctx, *, code: str):
         """Evaluate some code in command scope.
         Usage: eref [code to execute]"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         dc = self.dc_funcs
         def print(*ina: str):
             self.loop.create_task(self.bot.say(' '.join(ina)))
@@ -167,7 +167,7 @@ class Owner(Cog):
     async def seref(self, ctx, *, code: str):
         """Evaluate some code (multi-statement) in command scope.
         Usage: seref [code to execute]"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         dc = self.dc_funcs
         def print(*ina: str):
             self.loop.create_task(self.bot.say(' '.join(ina)))
@@ -201,14 +201,14 @@ class Owner(Cog):
     async def suspend(self, ctx):
         """Bring the bot offline (in a resumable state).
         Usage: suspend'"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         await self.bot.suspend()
         await self.bot.say('Successfully **suspended** me! (I should now be offline.)\nI will still count experience points.')
     @commands.command(pass_context=True, aliases=['ssuspend'])
     async def ususpend(self, ctx):
         """Temporarily suspend the bot's command and conversation features.
         Usage: suspend'"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         self.bot.status = 'invisible'
         await self.bot.say('Successfully **suspended** my message processing! (I should stay online.)\nI will still count experience points.')
 
@@ -216,7 +216,7 @@ class Owner(Cog):
     async def serverlist(self, ctx):
         """List the servers I am in.
         Usage: serverlist"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         pager = commands.Paginator()
         for server in self.bot.servers:
             pager.add_line(server.name)
@@ -227,7 +227,7 @@ class Owner(Cog):
     async def servertree(self, ctx, *ids: str):
         """List the servers I am in (tree version).
         Usage: servertree"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         pager = commands.Paginator(prefix='```diff')
         servers: List[discord.Server]
         if ids:
@@ -256,7 +256,7 @@ class Owner(Cog):
     async def memberlist(self, ctx, *server_ids: str):
         """List the members of a server.
         Usage: memberlist [server ids]"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         if not server_ids:
             await self.bot.say('**You need to specify at least 1 server ID!**')
             return False
@@ -281,7 +281,7 @@ class Owner(Cog):
     async def sendfile(self, ctx, path: str = 'assets/soon.gif', msg: str = '📧 File incoming! 📧'):
         """Send a file to Discord.
         Usage: sendfile [file path] {message}"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         with open(path, 'rb') as f:
             await self.bot.send_file(ctx.message.channel, fp=f, content=msg)
 
@@ -297,7 +297,7 @@ class Owner(Cog):
 
     @commands.command(pass_context=True)
     async def console_msg(self, ctx):
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         def console_task(ch):
             while True:
                 text_in = input('Message> ')
@@ -312,7 +312,7 @@ class Owner(Cog):
 
     @commands.command(pass_context=True)
     async def messages(self, ctx, *number: int):
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         def chan(msg):
             if 'server' in msg:
                 try:
@@ -352,6 +352,34 @@ class Owner(Cog):
                                                 '\nMembers now: ' + str(len({s.id: s for s in self.bot.servers}[msg['server_id']].members)))
             await self.bot.say(embed=emb)
         await self.bot.say('Finished!')
+    
+    @commands.command(pass_context=True)
+    async def event_calls(self, ctx):
+        """Get the specific event calls.
+        Usage: event_calls"""
+        await echeck_perms(ctx, ('bot_owner',))
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title='Event Calls')
+        emb.description = 'Here are all the event calls made.'
+        author = self.bot.user
+        emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
+        emb.add_field(name='Total', value=sum(self.bot.event_calls.values()))
+        for ev in self.bot.event_calls:
+            emb.add_field(name=ev, value=self.bot.event_calls[ev])
+        await self.bot.say(embed=emb)
+
+    @commands.command(pass_context=True)
+    async def command_calls(self, ctx):
+        """Get the specific command calls.
+        Usage: command_calls"""
+        await echeck_perms(ctx, ('bot_owner',))
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title='Command Calls')
+        emb.description = 'Here are all the command calls made.'
+        author = self.bot.user
+        emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
+        emb.add_field(name='Total', value=sum(self.bot.command_calls.values()))
+        for cmd in self.bot.command_calls:
+            emb.add_field(name=cmd, value=self.bot.command_calls[cmd])
+        await self.bot.say(embed=emb)
 
 def setup(bot):
     c = Owner(bot)
