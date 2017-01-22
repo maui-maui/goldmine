@@ -170,7 +170,6 @@ class GoldBot(commands.Bot):
     async def on_ready(self):
         """On_ready event for when the bot logs into Discord."""
         self.logger.info('Bot has logged into Discord, ID ' + self.user.id)
-        self.del_command('DEFAULT_HELP')
         await self.update_presence()
 
     async def on_message(self, msg):
