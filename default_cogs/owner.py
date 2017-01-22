@@ -77,8 +77,9 @@ class Owner(Cog):
             await self.bot.say('I\'ll try to restart. Hopefully I come back alive :stuck_out_tongue:')
         self.logger.info('The bot is now restarting!')
         self.bot.is_restart = True
+        os.execl(sys.executable, sys.executable, *sys.argv)
 #        await self.bot.logout() # Comment for people to not see that the bot restarted (to trick uptime)
-        self.loop.call_soon_threadsafe(self.loop.stop)
+#        self.loop.call_soon_threadsafe(self.loop.stop)
 
     @commands.command(pass_context=True, aliases=['dwrite', 'storecommit', 'commitstore', 'commit_store', 'write_store'], hidden=True)
     async def dcommit(self, ctx):
