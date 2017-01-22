@@ -295,6 +295,8 @@ class Utility(Cog):
         emb.add_field(name='Code Stats', value=code_stats.format(files=self.bot.lines, chars=self.bot.chars, lines=self.bot.lines, words=self.bot.words))
         emb.add_field(name='Code Size', value=str(round(self.bot.size_kb, 1)) + ' KB\nAverage: ' + str(round(self.bot.avg_size_kb, 1)) + ' KB')
         emb.add_field(name='Cogs Loaded', value=len(self.bot.cogs))
+        emb.add_field(name='Command Calls', value=sum(self.bot.command_calls.values()))
+        emb.add_field(name='Event Calls', value=sum(self.bot.event_calls.values()))
         emb.add_field(name='Memory Used', value=(str(round(ram[1], 1)) + ' MB (%s MiB)' % str(round(ram[2], 1))) if got_conversion else 'Couldn\'t fetch')
         emb.add_field(name='Modules Loaded', value=len(self.bot.modules))
         emb.add_field(name='Members Seen', value=len(list(self.bot.get_all_members())))

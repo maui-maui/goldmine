@@ -52,10 +52,9 @@ while True:
         if sys.platform in ['linux', 'linux2', 'darwin']:
             os.execl(sys.executable, sys.executable, *sys.argv)
         else:
-            exit(0)
             print(' - Unloading old code')
             del core
-            del sys.modules['core']
+            sys.modules = {}
             print(' - Discarding old event loop')
             loop_old = asyncio.get_event_loop()
             loop_old.close()

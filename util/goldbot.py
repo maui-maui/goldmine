@@ -150,6 +150,8 @@ class GoldBot(commands.Bot):
             self.store.store['nobroadcast'] = ['110373943822540800']
         if 'owner_messages' not in self.store.store:
             self.store.store['owner_messages'] = []
+        self.command_calls = {}
+        self.event_calls = {}
         super().__init__(**options)
         self.commands = {}
 
@@ -271,6 +273,13 @@ class GoldBot(commands.Bot):
         self.status = 'invisible'
         await self.update_presence()
 
+    def dispatch(self, event, *args, **kwargs):
+        commands.Bot.dispatch(self, event, *args, **kwargs)
+        if event in self.event_calls:
+            self.event_calls[event] += 1
+        else:
+            self.event_calls[event] = 1
+
     async def process_commands(self, message, prefix):
         """This function processes the commands that have been registered."""
         if self.status == 'invisible': return
@@ -291,10 +300,15 @@ class GoldBot(commands.Bot):
         cl = cmd.lower().replace('é', 'e').replace('è', 'e') # TODO: Real accent parsing
 
         if cl in self.commands:
-            await self.send_typing(message.channel)
+            if not self.selfbot:
+                await self.send_typing(message.channel)
             command = self.commands[cl]
             self.dispatch('command', command, ctx)
             try:
+                if command.name in self.command_calls:
+                    self.command_calls[command.name] += 1
+                else:
+                    self.command_calls[command.name] = 1
                 await command.invoke(ctx)
             except CommandError as exp:
                 ctx.command.dispatch_error(exp, ctx)
@@ -415,7 +429,7 @@ class GoldBot(commands.Bot):
             if got_conversion:
                 return (got_conversion, musage_dec, musage_hex)
             else:
-                return (got_conversion, 0) # to force tuple
+                return (got_conversion,)
 
     async def update_emote_data(self):
         """Fetch Twitch and FrakerFaceZ emote mappings."""
