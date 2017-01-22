@@ -48,11 +48,10 @@ class Utility(Cog):
         else:
             await self.bot.say('The current server, ' + sname + ', does not have an icon set! :slight_frown:')
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, aliases=['echo'])
     async def say(self, ctx, *, stuffs: str):
-        """Simply sends the input as a message. For testing.
+        """Repeat your message.
         Usage: say [message]"""
-        await or_check_perms(ctx, ['bot_admin'])
         try:
             await self.bot.delete_message(ctx.message)
         except discord.Forbidden:
@@ -302,24 +301,81 @@ class Utility(Cog):
         emb.add_field(name='Invite Link', value='https://tiny.cc/goldbot')
         await self.bot.say(home_broadcast, embed=emb)
 
-    @commands.command(pass_context=True, aliases=['embedhelp', 'embedshelp', 'emhelp', 'ebhelp', 'embhelp', 'pembedhelp', 'pembedshelp', 'pemhelp', 'pebhelp', 'pembhelp', 'pehelp'])
-    async def ehelp(self, ctx, *commands: str):
-        """Shows an experimental embed-based help.
-        Usage: ehelp"""
+    @commands.command(pass_context=True, aliases=['halp', 'phelp', 'phalp'])
+    async def help(self, ctx, *commands: str):
+        """Show the bot's help.
+        Usage: help"""
         if ctx.invoked_with.startswith('p'):
             await or_check_perms(ctx, ['bot_admin', 'manage_server', 'manage_messages', 'manage_channels'])
-        pages = self.bot.formatter.eformat_help_for(ctx, self.bot)
-        target = self.bot.user
+        if ctx.message.server.me:
+            target = ctx.message.server.me
+        else:
+            target = self.bot.user
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
+        pages = []
+        cog_assign = {}
+        fields = {}
+        chars = 0
+        emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
+        emb.title = 'Bot Help'
+        emb.set_author(name=target.display_name, icon_url=avatar_link)
+        for name, cmd in self.bot.commands.items():
+            if cmd.cog_name:
+                cog = cmd.cog_name
+            else:
+                cog = 'No Category'
+            if cog not in cog_assign:
+                cog_assign[cog] = []
+            cog_assign[cog].append(cmd)
+        for group, cmds in cog_assign.items():
+            field = []
+            did_names = []
+            for cmd in cmds:
+                if cmd.name not in did_names:
+                    if not cmd.hidden:
+                        field.append('\u2022 **' + cmd.name + '**: *' + (cmd.short_doc if cmd.short_doc else 'I\'m a command.') + '*')
+                        did_names.append(cmd.name)
+            fields[group] = field
+        chars = 0
+        for cog in fields:
+            field = fields[cog]
+            content = '\n'.join(field)
+            pre_len = sum([len(i) for i in field])
+            #chars += int(sum([len(i) for i in field]))
+            #chars += int(len(content) * 1.7)
+            print('CUR COG', cog)
+            print('CHARS', chars)
+            print('PRE LEN', pre_len)
+            print('-----------')
+            if chars + pre_len < 1400:
+                emb.add_field(name=cog, value=content)
+            else:
+                pages.append(emb)
+                emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
+                emb.title = 'Bot Help'
+                emb.set_author(name=target.display_name, icon_url=avatar_link)
+                chars = 0
+                emb.add_field(name=cog, value=content)
+            chars += pre_len
+        pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
         if len(pages) > 1:
             destination = ctx.message.author
         else:
             destination = ctx.message.channel
         if ctx.invoked_with.startswith('p'):
             destination = ctx.message.channel
+        if self.bot.selfbot:
+            destination = ctx.message.channel
         for page in pages:
-            await self.bot.send_message(destination, embed=page)
+            try:
+                print(', '.join([f['name'] for f in page.to_dict()['fields']]) + ': total ' + str(sum([len(i['value']) for i in page.to_dict()['fields']])))
+                await self.bot.send_message(destination, embed=page)
+            except discord.HTTPException:
+                await self.bot.send_message(destination, 'Error sending embed. Cogs: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
+                print(page.to_dict()['fields'])
+                print('totalLen', sum([len(i) for i in [f['value'] for f in page.to_dict()['fields']]]))
+            await asyncio.sleep(0.1)
         if destination == ctx.message.author:
             await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
 
@@ -483,30 +539,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
 **You can also look up the ID of other people with** `{1.prefix}user [name / id / mention]`**.**'''
         await self.bot.say(fmt.format(ctx.message, ctx))
 
-    @commands.group(pass_context=True, no_pm=True, aliases=['cleverbutts', 'cbs'])
-    async def cleverbutt(self, ctx):
-        """Manage Cleverbutt stuff.
-        Usage: cleverbutt [subcommand] {arguments}"""
-        if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
-
-    @cleverbutt.command(pass_context=True, no_pm=True, name='start', aliases=['kickstart'])
-    async def cleverbutt_kickstart(self, ctx, *msg: str):
-        """Kickstart / start cleverbutts conversation
-        Usage: cleverbutt start {optional: message}"""
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
-        c_map = {c.name: c for c in ctx.message.server.channels}
-        if 'cleverbutts' in c_map:
-            ch = c_map['cleverbutts']
-            if msg:
-                await self.bot.send_message(ch, ctx.raw_args.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere'))
-            else:
-                await self.bot.send_message(ch, 'Hello, what\'re you up to?')
-            await self.bot.say('**Message sent in <#%s>!**' % str(ch.id))
-        else:
-            await self.bot.say('**There\'s no** `#cleverbutts` **channel in this server!**')
-
-    @commands.command(pass_context=True, aliases=['memegen'])
+    @commands.command(pass_context=True, aliases=['memegen'], hidden=True)
     async def meme(self, ctx, *, pre_text: str):
         """Generate a meme!
         Usage: meme [top text] [bottom text]"""
@@ -588,11 +621,6 @@ Server Owner\'s ID: `{0.server.owner.id}`
         """Decode your text from Goldmine's encoding!
         Usage: decode [encoded text]"""
         await self.bot.say('```' + (await b_decode(content)) + '```')
-    @commands.command()
-    async def fakecode(self, *, content: str):
-        """Fake encoding for Goldmine's encoding. Not secure at all.
-        Usage: fakecode [text]"""
-        await self.bot.say('```' + ('d1;g4.4689257;l0&' + ('@'.join([str(ord(c)) for c in content])) + '~51@77@97@105@110@83@104@105@102@116@67@111@114@114@101@99@116') + '```')
 
     @commands.cooldown(1, 4, type=commands.BucketType.user)
     @commands.command(pass_context=True, aliases=['mc'])

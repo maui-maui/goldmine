@@ -151,6 +151,7 @@ class GoldBot(commands.Bot):
         if 'owner_messages' not in self.store.store:
             self.store.store['owner_messages'] = []
         super().__init__(**options)
+        self.commands = {}
 
     async def update_presence(self):
         """Generate an updated presence and change it."""
@@ -169,6 +170,7 @@ class GoldBot(commands.Bot):
     async def on_ready(self):
         """On_ready event for when the bot logs into Discord."""
         self.logger.info('Bot has logged into Discord, ID ' + self.user.id)
+        self.del_command('DEFAULT_HELP')
         await self.update_presence()
 
     async def on_message(self, msg):
@@ -454,4 +456,4 @@ class GoldBot(commands.Bot):
         for name in names:
             for a in self.commands[name].aliases:
                 del self.commands[a]
-                del self.commands[name]
+            del self.commands[name]
