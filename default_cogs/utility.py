@@ -378,10 +378,7 @@ class Utility(Cog):
         if not pages:
             pages.append(emb)
         pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
-        if len(pages) > 1:
-            destination = ctx.message.author
-        else:
-            destination = ctx.message.channel
+        destination = ctx.message.author
         if ctx.invoked_with.startswith('p'):
             destination = ctx.message.channel
         if self.bot.selfbot:
