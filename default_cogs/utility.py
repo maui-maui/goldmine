@@ -600,7 +600,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         up = await self.bot.format_uptime()
         await self.bot.say(fmt.format(ctx.message, ctx.prefix, str(len(self.bot.servers)), str(len(list(self.bot.get_all_channels()))), str(len(list(self.bot.get_all_members()))), up, str(self.bot.lines)))
 
-    @commands.command(aliases=['randcolor', 'randc', 'rc', 'randomcolor', 'colorgen', 'gcolor', 'gencolor'])
+    @commands.command(aliases=['randcolor', 'randc', 'rc', 'randomcolor', 'colorgen', 'gcolor', 'gencolor', 'randcolour', 'randomcolour', 'colourgen', 'gcolour', 'gencolour'])
     async def rcolor(self):
         """Generate a random color.
         Usage: rcolor"""
