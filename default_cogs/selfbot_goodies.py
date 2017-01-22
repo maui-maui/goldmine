@@ -1,11 +1,17 @@
 """Nice selfbot goodies."""
 import asyncio
 import io
+import sys
 from datetime import datetime
 import util.commands as commands
 from util.perms import echeck_perms
 import util.dynaimport as di
-ImageGrab = di.load('pyscreenshot')
+pyscreenshot = di.load('pyscreenshot')
+have_pil = True
+try:
+    from PIL import ImageGrab
+except ImportError:
+    have_pil = False
 from .cog import Cog
 
 class SelfbotGoodies(Cog):
@@ -20,7 +26,11 @@ class SelfbotGoodies(Cog):
         """Take a screenshot.
         Usage: screenshot"""
         await echeck_perms(ctx, ['bot_owner'])
-        image = ImageGrab.grab()
+        if have_pil and (sys.platform not in ['linux', 'linux2']):
+            grabber = ImageGrab
+        else:
+            grabber = pyscreenshot
+        image = grabber.grab()
         img_bytes = io.BytesIO()
         image.save(img_bytes, format='PNG')
         img_bytes.seek(0)
