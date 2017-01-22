@@ -223,7 +223,10 @@ class Utility(Cog):
             r_embed.add_field(name='Server Roles', value=', '.join([str(i) for i in t_roles]) if t_roles else 'User has no server roles 😦')
             r_embed.add_field(name='Bot Roles', value=', '.join(b_roles) if b_roles else 'User has no bot roles 😦')
             r_embed.add_field(name='Status', value=status_map[str(target.status)] if is_server else 'Couldn\'t fetch')
-            r_embed.add_field(name='Currently Playing', value=(str(t_game) if t_game else 'Nothing 😦'))
+            try:
+                r_embed.add_field(name='Currently Playing', value=(str(t_game) if t_game else 'Nothing 😦'))
+            except TypeError:
+                r_embed.add_field(name='Currently Playing', value='Nothing 😦')
             await self.bot.say(embed=r_embed)
 
     @commands.command(pass_context=True, aliases=['server', 's', 'sinfo', 'infos', 'guildinfo', 'guild', 'ginfo', 'infog'], no_pm=True)
