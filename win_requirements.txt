@@ -15,3 +15,4 @@ pillow
 elizabeth
 cleverbot
 qrcode
+pyscreenshot

@@ -465,7 +465,7 @@ spinners = [
 home_broadcast = '''**Author\'s Blog**: <https://blog.khronodragon.com>
 **GitHub**: <https://github.com/Armored-Dragon/goldmine>
 **Invite Link**: <https://tiny.cc/goldbot>
-**Support Guild**: <https://discord.gg/PQ9qWWr>'''
+**Support Guild**: <https://discord.gg/dwykTHc>'''
 
 lvl_base = 100
 

@@ -171,7 +171,7 @@ class Cogs(Cog):
 
     @cog.command(name='unload', pass_context=True, aliases=['deactivate', 'unactivate'])
     async def cog_unload(self, ctx, *, cog_name: str):
-        """Unload a cog... I don't want to lose gears 😢
+        """Unload a cog.
         Usage: cog unload [cog name]"""
         def_cogs = [c.replace('.py', '') for c in filter(os.listdir(os.path.join(cur_dir, 'default_cogs')), '*.py') if c not in ['__init__.py', 'cog.py']]
         dl_cogs = [c.replace('.py', '') for c in filter(os.listdir(os.path.join(cur_dir, 'cogs')), '*.py') if c not in ['__init__.py', 'cog.py']]

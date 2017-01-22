@@ -17,3 +17,4 @@ cleverbot
 qrcode
 cython
 tesserocr
+pyscreenshot
