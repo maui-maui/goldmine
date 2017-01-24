@@ -20,7 +20,7 @@ class SelfbotGoodies(Cog):
 
     def __init__(self, bot):
         self.start_time = datetime.now()
-        self.screenshot = None
+        self.web_render = None
         super().__init__(bot)
 
     @commands.command(pass_context=True)
@@ -63,11 +63,11 @@ class SelfbotGoodies(Cog):
         Usage: render [url]"""
         await echeck_perms(ctx, ('bot_owner',))
         try:
-            self.screenshot = scr.Screenshot()
+            self.web_render = scr.Screenshot()
         except ImportError:
             await self.bot.say('The bot owner hasn\'t enabled this feature!')
             return
-        bio = self.screenshot.capture(webpage)
+        bio = self.web_render.capture(webpage)
         bio.seek(0)
         await self.bot.upload(bio, filename='webpage.png')
 
