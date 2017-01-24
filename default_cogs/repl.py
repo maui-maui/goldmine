@@ -82,7 +82,7 @@ class REPL(Cog):
     async def repl(self, ctx, *flags: str):
         """A REPL, in Discord.
         Usage: repl {flags}"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         msg = ctx.message
 
         def import_by_path(name: str, path: str) -> None:

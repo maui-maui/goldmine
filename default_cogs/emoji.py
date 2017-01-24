@@ -64,7 +64,7 @@ class Emoji(Cog):
         Warning: Instant crash for desktop users.
         Only fixable on web or mobile apps.
         Usage: emotispam"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         _em = emojis
         r = list(range(0, math.ceil(len(emojis) / 2000)))
         print('r ' + str(r))

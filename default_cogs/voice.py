@@ -450,7 +450,7 @@ class Voice(Cog):
     async def picospeak(self, ctx, *, tospeak: str):
         """Uses the SVOX pico TTS engine to speak a message.
         Usage: picospeak [message]"""
-        await or_check_perms(ctx, ['bot_owner'])
+        await or_check_perms(ctx, ('bot_owner',))
         state = self.get_voice_state(ctx.message.server)
 
         if state.voice is None:
@@ -523,7 +523,7 @@ class Voice(Cog):
     async def recording(self, ctx):
         """Manage voice recording, recognition, and playback.
         Usage: recording"""
-        await or_check_perms(ctx, ['bot_owner'])
+        await or_check_perms(ctx, ('bot_owner',))
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 

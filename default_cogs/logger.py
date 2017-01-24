@@ -49,7 +49,7 @@ class Logger(Cog):
     async def logger(self, ctx):
         """Control panel for the logger.
         Usage: logger {stuff}"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 

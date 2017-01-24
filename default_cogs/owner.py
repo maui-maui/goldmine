@@ -189,7 +189,7 @@ class Owner(Cog):
     async def rawsetprop(self, ctx, scope: str, pname: str, value: str):
         """Set the value of a property on any level.
         Usage: rawsetprop [scope] [property name] [value]"""
-        await echeck_perms(ctx, ['bot_admin'])
+        await echeck_perms(ctx, ('bot_admin',))
         try:
             await self.store.set_prop(ctx.message, scope, pname, value)
         except Exception:
@@ -289,7 +289,7 @@ class Owner(Cog):
     async def repeat(self, ctx, times : int, *, command: str):
         """Repeats a command a specified number of times.
         Usage: repeat [times] [command]"""
-        await echeck_perms(ctx, ['bot_admin'])
+        await echeck_perms(ctx, ('bot_admin',))
         msg = copy.copy(ctx.message)
         msg.content = command
         for i in range(times):
@@ -352,8 +352,9 @@ class Owner(Cog):
                                                 '\nMembers now: ' + str(len({s.id: s for s in self.bot.servers}[msg['server_id']].members)))
             await self.bot.say(embed=emb)
         await self.bot.say('Finished!')
+        self.bot.store.store['msgs_read_index'] = nums[-1]
     
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, aliases=['events', 'ecalls', 'evcalls', 'eventcalls'])
     async def event_calls(self, ctx):
         """Get the specific event calls.
         Usage: event_calls"""
@@ -367,7 +368,7 @@ class Owner(Cog):
             emb.add_field(name=ev, value=self.bot.event_calls[ev])
         await self.bot.say(embed=emb)
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, aliases=['ccalls', 'cmdcalls', 'commandcalls'])
     async def command_calls(self, ctx):
         """Get the specific command calls.
         Usage: command_calls"""

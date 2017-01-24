@@ -1,11 +1,10 @@
 """The bot's Cozmo module. Only works with Cozmo!"""
 import asyncio
 import functools
-import cozmo
-from cozmo.run import FirstAvailableConnector
 import util.commands as commands
+import util.dynaimport as di
+cozmo = di.load('cozmo')
 from .cog import Cog
-conn = cozmo.conn
 
 class Cozmo(Cog):
     """Some commands to interface with Cozmo robots.
@@ -15,7 +14,10 @@ class Cozmo(Cog):
     def __init__(self, bot):
         self.sdk_conn = None
         self.robot = None
-        self.default_connector = FirstAvailableConnector()
+        try:
+            self.default_connector = cozmo.run.FirstAvailableConnector()
+        except ImportError:
+            self.default_connector = None
         super().__init__(bot)
 
     async def check_conn(self, ctx=None):
