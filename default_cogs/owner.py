@@ -330,7 +330,7 @@ class Owner(Cog):
         if number:
             nums = number
         else:
-            nums = range(len(self.bot.store.store['owner_messages']))
+            nums = range(self.dstore.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
         for num in nums:
             msg = self.bot.store.store['owner_messages'][num]
             emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
@@ -351,8 +351,8 @@ class Owner(Cog):
                                                 '`\nMembers at the time: ' + str(msg['server_members']) +
                                                 '\nMembers now: ' + str(len({s.id: s for s in self.bot.servers}[msg['server_id']].members)))
             await self.bot.say(embed=emb)
-        await self.bot.say('Finished!')
         self.bot.store.store['msgs_read_index'] = nums[-1]
+        await self.bot.say('Finished!')
     
     @commands.command(pass_context=True, aliases=['events', 'ecalls', 'evcalls', 'eventcalls'])
     async def event_calls(self, ctx):
