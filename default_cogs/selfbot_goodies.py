@@ -80,6 +80,14 @@ class SelfbotGoodies(Cog):
         image = self.web_render.capture(webpage)
         await self.bot.upload(io.BytesIO(image), filename='webpage.png')
 
+    @commands.group(pass_context=True)
+    async def sub(self, ctx):
+        """Message substitution manager.
+        Usage: sub {stuff}"""
+        await echeck_perms(ctx, ('bot_owner',))
+        if ctx.invoked_subcommand is None:
+            await self.bot.send_cmd_help(ctx)
+
 def setup(bot):
     bot.add_cog(SelfbotGoodies(bot))
 

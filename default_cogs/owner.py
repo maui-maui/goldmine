@@ -354,7 +354,7 @@ class Owner(Cog):
         self.bot.store.store['msgs_read_index'] = nums[-1]
         await self.bot.say('Finished!')
     
-    @commands.command(pass_context=True, aliases=['events', 'ecalls', 'evcalls', 'eventcalls'])
+    @commands.command(pass_context=True, aliases=['events', 'ecalls', 'evcalls', 'eventcalls', 'ev_calls'])
     async def event_calls(self, ctx):
         """Get the specific event calls.
         Usage: event_calls"""
@@ -364,11 +364,11 @@ class Owner(Cog):
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
         emb.add_field(name='Total', value=sum(self.bot.event_calls.values()))
-        for ev in self.bot.event_calls:
-            emb.add_field(name=ev, value=self.bot.event_calls[ev])
+        for ev, count in reversed(sorted(bot.event_calls.items(), key=lambda i: i[1])):
+            emb.add_field(name=ev, value=count)
         await self.bot.say(embed=emb)
 
-    @commands.command(pass_context=True, aliases=['ccalls', 'cmdcalls', 'commandcalls'])
+    @commands.command(pass_context=True, aliases=['ccalls', 'cmdcalls', 'commandcalls', 'cmd_calls'])
     async def command_calls(self, ctx):
         """Get the specific command calls.
         Usage: command_calls"""
@@ -378,8 +378,8 @@ class Owner(Cog):
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
         emb.add_field(name='Total', value=sum(self.bot.command_calls.values()))
-        for cmd in self.bot.command_calls:
-            emb.add_field(name=cmd, value=self.bot.command_calls[cmd])
+        for cmd, count in reversed(sorted(bot.command_calls.items(), key=lambda i: i[1])):
+            emb.add_field(name=cmd, value=count)
         await self.bot.say(embed=emb)
 
 def setup(bot):

@@ -5,5 +5,5 @@ __all__ = ['voice', 'admin', 'cosmetic', 'luck', 'roleplay',
            'pokemon',
            'custom_commands',
            'cleverbot',
-           'emoji'
+           'emoji', 'help', 'selfbot_goodies', 'welcome', 'discord_bots'
 ]

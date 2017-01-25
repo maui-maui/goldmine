@@ -507,12 +507,14 @@ default_cogs = [
     'errors',
     'ranks',
     'moderation',
-    'owner'
+    'owner',
+    'help'
 ]
 essential_cogs = [
     'cogs',
     'errors',
-    'owner'
+    'owner',
+    'help'
 ]
 
 join_msg = '''**Thanks for inviting me!** :heart:
