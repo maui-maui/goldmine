@@ -1,7 +1,8 @@
 """Small Minecraft protocol library."""
 import socket
 import struct
-import json
+from datetime import datetime
+from .json import loads as jloads
 
 def pop_int(conn):
     """Decode bytes from protocol."""
@@ -27,13 +28,19 @@ def get_info(host, port):
     """Get server info in JSON format."""
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     conn.connect((host, port))
-    conn.send(pack_data(bytes(2) + pack_data(bytes(host, 'utf8')) +
+    pinged = False
+    time_before = datetime.now()
+    conn.send(pack_data(bytes(2) + pack_data(host.encode('utf-8')) +
                         struct.pack('>H', port) + bytes([1])) + bytes([1, 0]))
     pop_int(conn) # packet length
     pop_int(conn) # packet id
     len_int, data = pop_int(conn), bytes()
     while len(data) < len_int:
         data += conn.recv(1024)
+        if not pinged:
+            ping = (datetime.now() - time_before).total_seconds() * 1000
+            pinged = True
     conn.close()
-    return json.loads(data.decode('utf-8'))
-
+    final = jloads(data.decode('utf-8'))
+    final['latency_ms'] = ping
+    return final

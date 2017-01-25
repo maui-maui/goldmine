@@ -647,6 +647,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
                 else:
                     server_type = t.title()
         emb.add_field(name='Server Type', value=server_type)
+        emb.add_field(name='Ping', value=str(round(data['latency_ms'], 2)) + 'ms')
         await self.bot.say(embed=emb)
 
     @commands.cooldown(1, 20, type=commands.BucketType.user)
