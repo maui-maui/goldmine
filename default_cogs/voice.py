@@ -236,6 +236,7 @@ class Voice(Cog):
                     self.bot.loop.create_task(state.voice.disconnect())
             except:
                 pass
+        self.disconnect_task.cancel()
 
     async def on_speaking(self, speaking, uid):
         """Event for when someone is speaking."""

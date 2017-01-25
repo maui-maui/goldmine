@@ -23,6 +23,10 @@ class SelfbotGoodies(Cog):
         self.web_render = None
         super().__init__(bot)
 
+    def __unload(self):
+        if self.web_render:
+            self.web_render.app.quit()
+
     @commands.command(pass_context=True)
     async def screenshot(self, ctx):
         """Take a screenshot.
@@ -67,9 +71,8 @@ class SelfbotGoodies(Cog):
         except ImportError:
             await self.bot.say('The bot owner hasn\'t enabled this feature!')
             return
-        bio = self.web_render.capture(webpage)
-        bio.seek(0)
-        await self.bot.upload(bio, filename='webpage.png')
+        image = self.web_render.capture(webpage)
+        await self.bot.upload(io.BytesIO(image), filename='webpage.png')
 
 def setup(bot):
     bot.add_cog(SelfbotGoodies(bot))
