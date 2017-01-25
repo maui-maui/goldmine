@@ -437,7 +437,7 @@ class GoldBot(commands.Bot):
             twitch_global = json.loads(f.read())['emotes']
         with open(os.path.join(cur_dir, 'assets', 'emotes_twitch_subscriber.json')) as f:
             twitch_sub = json.loads(f.read())
-        twitch_subcriber = {e: {'description': '', 'image_id': twitch_sub[e], 'first_seen': None} for e in twitch_sub}
+        twitch_subcriber = {e: {'description': '\u200b', 'image_id': twitch_sub[e], 'first_seen': None} for e in twitch_sub}
         self.emotes['twitch'] = {**twitch_global, **twitch_subscriber}
         with open(os.path.join(cur_dir, 'assets', 'emotes_ffz.json')) as f:
             self.emotes['ffz'] = json.loads(f.read())
