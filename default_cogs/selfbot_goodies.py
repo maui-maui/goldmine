@@ -66,6 +66,12 @@ class SelfbotGoodies(Cog):
         """Render a webpage to image.
         Usage: render [url]"""
         await echeck_perms(ctx, ('bot_owner',))
+        await self.bot.say(':warning: Not yet working.'
+                           'Type `yes` within 6 seconds to proceed and maybe crash your bot.')
+        if not (await self.bot.wait_for_message(timeout=6.0, author=ctx.message.author,
+                                                channel=ctx.message.channel,
+                                                check=lambda m: m.content.lower().startswith('yes'))):
+            return
         try:
             self.web_render = scr.Screenshot()
         except ImportError:
