@@ -69,7 +69,7 @@ class Help(Cog):
                     else:
                         field += cmd.name + '`'
                     field += '\n\n' + (cmd.help if cmd.help else 'I\'m a command.')
-                    fields[item] = (field,)
+                    fields['\u200b' + item] = (field,)
                     item_done = True
                 if not item_done:
                     fields['\u200b' + item] = ('No such command or cog.',)
