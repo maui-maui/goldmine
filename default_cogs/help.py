@@ -48,31 +48,32 @@ class Help(Cog):
         else: # got commands OR cogs here, and don't know which.
             lcogs = {c.lower(): self.bot.cogs[c] for c in self.bot.cogs}
             for item in commands_or_cogs[0:25]:
-                litem = item.lower()
-                item_done = False
-                if litem in lcogs:
-                    did_names = []
-                    field = []
-                    for cmd in self.bot.commands.values():
-                        if cmd.cog_name.lower() == item:
-                            if cmd.name not in did_names:
-                                if not cmd.hidden:
-                                    field.append('\u2022 **' + cmd.name + '**: *' + (cmd.short_doc if cmd.short_doc else 'I\'m a command.') + '*')
-                                    did_names.append(cmd.name)
-                    fields[item] = field
-                    item_done = True
-                if litem in self.bot.commands:
-                    cmd = self.bot.commands[litem]
-                    field = '`' + ctx.prefix
-                    if cmd.aliases:
-                        field += '[' + cmd.name + '|' + '|'.join(cmd.aliases) + ']`'
-                    else:
-                        field += cmd.name + '`'
-                    field += '\n\n' + (cmd.help if cmd.help else 'I\'m a command.')
-                    fields['\u200b' + item] = (field,)
-                    item_done = True
-                if not item_done:
-                    fields['\u200b' + item] = ('No such command or cog.',)
+                if item:
+                    litem = item.lower()
+                    item_done = False
+                    if litem in lcogs:
+                        did_names = []
+                        field = []
+                        for cmd in self.bot.commands.values():
+                            if cmd.cog_name.lower() == item:
+                                if cmd.name not in did_names:
+                                    if not cmd.hidden:
+                                        field.append('\u2022 **' + cmd.name + '**: *' + (cmd.short_doc if cmd.short_doc else 'I\'m a command.') + '*')
+                                        did_names.append(cmd.name)
+                        fields[item] = field
+                        item_done = True
+                    if litem in self.bot.commands:
+                        cmd = self.bot.commands[litem]
+                        field = '`' + ctx.prefix
+                        if cmd.aliases:
+                            field += '[' + cmd.name + '|' + '|'.join(cmd.aliases) + ']`'
+                        else:
+                            field += cmd.name + '`'
+                        field += '\n\n' + (cmd.help if cmd.help else 'I\'m a command.')
+                        fields['\u200b' + item] = (field,)
+                        item_done = True
+                    if not item_done:
+                        fields['\u200b' + item] = ('No such command or cog.',)
         chars = 0
         for cog in fields:
             field = fields[cog]
