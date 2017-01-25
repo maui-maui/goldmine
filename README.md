@@ -41,7 +41,7 @@ For as much as you can get on Windows, use `python3 -m pip install -U -r win_req
 Now, you'll want to replace the owner with your DiscordTag.
 To do this, open `properties.py` in a text editor and edit `bot_owner = '160567046642335746'` to match your Discord user ID.
 Example: 012345678901234567 - make sure you don't leave out any numbers, though.
-There should be 18 of them.
+There should be around 18 of them.
 
 The bot will guide you through the setup, including login (token or email+password),
 bot owner (soon), and all that good stuff.
