@@ -47,6 +47,7 @@ class Help(Cog):
                 fields[group] = field
         else: # got commands OR cogs here, and don't know which.
             lcogs = {c.lower(): self.bot.cogs[c] for c in self.bot.cogs}
+            cog_names = {c.lower(): c for c in self.bot.cogs}
             for item in commands_or_cogs[0:25]:
                 litem = item.lower()
                 item_done = False
@@ -54,13 +55,12 @@ class Help(Cog):
                     did_names = []
                     field = []
                     for cmd in self.bot.commands.values():
-                        if cmd.cog_name:
-                            if cmd.cog_name.lower() == litem:
-                                if cmd.name not in did_names:
-                                    if not cmd.hidden:
-                                        field.append('\u2022 **' + cmd.name + '**: *' + (cmd.short_doc if cmd.short_doc else 'I\'m a command.') + '*')
-                                        did_names.append(cmd.name)
-                    fields[item] = field
+                        if cmd.cog_name == cog_names[litem]:
+                            if cmd.name not in did_names:
+                                if not cmd.hidden:
+                                    field.append('\u2022 **' + cmd.name + '**: *' + (cmd.short_doc if cmd.short_doc else 'I\'m a command.') + '*')
+                                    did_names.append(cmd.name)
+                    fields[cog_names[litem]] = field
                     item_done = True
                 if litem in self.bot.commands:
                     cmd = self.bot.commands[litem]
