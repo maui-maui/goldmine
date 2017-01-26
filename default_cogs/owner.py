@@ -364,7 +364,7 @@ class Owner(Cog):
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
         emb.add_field(name='Total', value=sum(self.bot.event_calls.values()))
-        for ev, count in reversed(sorted(bot.event_calls.items(), key=lambda i: i[1])):
+        for ev, count in reversed(sorted(self.bot.event_calls.items(), key=lambda i: i[1])):
             emb.add_field(name=ev, value=count)
         await self.bot.say(embed=emb)
 
@@ -378,7 +378,7 @@ class Owner(Cog):
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
         emb.add_field(name='Total', value=sum(self.bot.command_calls.values()))
-        for cmd, count in reversed(sorted(bot.command_calls.items(), key=lambda i: i[1])):
+        for cmd, count in reversed(sorted(self.bot.command_calls.items(), key=lambda i: i[1])):
             emb.add_field(name=cmd, value=count)
         await self.bot.say(embed=emb)
 
