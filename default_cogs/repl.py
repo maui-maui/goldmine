@@ -187,7 +187,7 @@ class REPL(Cog):
                         result += 'Output: ' + e.output.decode('utf-8') + '\n'
                     if e.stdout:
                         result +='Output: ' + e.stdout.decode('utf-8') + '\n'
-                     if e.stderr:
+                    if e.stderr:
                         result +='Output: ' + e.stderr.decode('utf-8') + '\n'
                 fmt = result + '\n'
             else:
