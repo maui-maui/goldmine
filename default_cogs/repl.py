@@ -8,7 +8,7 @@ import util.dynaimport as di
 from .cog import Cog
 
 for mod in ['asyncio', 're', 'os', 'sys', 'io', 'traceback', 'inspect',
-            'asteval', 'async_timeout', 'discord', 'subprocess']:
+            'asteval', 'async_timeout', 'discord', 'subprocess', 'contextlib']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
@@ -40,8 +40,13 @@ class REPL(Cog):
             if re.search(key, code):
                 return '⚠ Blocked keyword found!'
         try:
+            sio = io.StringIO()
             with async_timeout.timeout(3):
-                m_result = await self.math_task(code)
+                with contextlib.redirect_stdout(sio):
+                    m_result = await self.math_task(code)
+            v = sio.getvalue()
+            if v:
+                m_result = v + str(m_result)
         except (asyncio.TimeoutError, RuntimeError) as exp:
             resp = '⚠ Your code took too long to evaluate!'
             if isinstance(exp, RuntimeError):

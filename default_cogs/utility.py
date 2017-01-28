@@ -3,7 +3,7 @@ from contextlib import suppress
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from fnmatch import filter
-from io import BytesIO
+from io import BytesIO, StringIO
 from properties import bot_owner
 from util.const import _mention_pattern, _mentions_transforms, home_broadcast, absfmt, status_map, ch_fmt, code_stats, eval_blocked, v_level_map
 from util.fake import FakeContextMember, FakeMessageMember
@@ -15,7 +15,7 @@ from .cog import Cog
 
 for mod in ['asyncio', 'random', 're', 'sys', 'time', 'textwrap', 'unicodedata',
             'aiohttp', 'async_timeout', 'discord', 'asteval', 'os', 'elizabeth',
-            'qrcode', 'warnings', 'tesserocr']:
+            'qrcode', 'warnings', 'tesserocr', 'contextlib']:
     globals()[mod] = di.load(mod)
 json = di.load('util.json')
 commands = di.load('util.commands')
@@ -73,8 +73,13 @@ class Utility(Cog):
                 await self.bot.say(ctx.message.author.mention + ' **Blocked keyword found!**')
                 return False
         try:
+            sio = StringIO()
             with async_timeout.timeout(3):
-                m_result = await self.math_task(code)
+                with contextlib.redirect_stdout(sio):
+                    m_result = await self.math_task(code)
+            v = sio.getvalue()
+            if v:
+                m_result = v + str(m_result)
         except (asyncio.TimeoutError, RuntimeError) as exp:
             resp = '{0.author.mention} **It took too long to evaluate your expression!**'.format(ctx.message)
             if isinstance(exp, RuntimeError):
