@@ -29,7 +29,7 @@ class Roleplay(Cog):
         """Slap someone for the win.
         Usage: slap [person]"""
         cmdfix = await self.store.get_cmdfix(ctx.message.content)
-        keystr = '* ' + ctx.message.content.split(' ')[0].strip(cmdfix) + 's *'
+        keystr = '* ' + ctx.message.content.split()[0].strip(cmdfix) + 's *'
         await self.bot.say('*' + ctx.message.author.display_name + keystr +
                            target + '* **' + random.choice(adjs) + '**.')
 

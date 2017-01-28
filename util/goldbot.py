@@ -63,7 +63,7 @@ class GoldBot(commands.Bot):
             with open(fn, 'rb') as f: # fix for windows unicode error
                 fr = f.read().decode('utf-8') # fix for windows unicode error
                 self.chars += len(fr)
-                self.words += len(fr.split(' '))
+                self.words += len(fr.split())
                 self.lines += len(fr.split('\n'))
                 self.files += 1
             self.raw_sizes_bytes.add(os.path.getsize(fn))

@@ -41,7 +41,7 @@ class Errors(Cog):
                 cmdfix = myself.name[0].lower() + '.'
         else:
             cmdfix = await self.store.get_cmdfix(ctx.message)
-        cproc = ctx.message.content.split(' ')[0]
+        cproc = ctx.message.content.split()[0]
         cprocessed = bdel(cproc, cmdfix)
         c_key = str(exp)
         bc_key = bdel(c_key, 'Command raised an exception: ')

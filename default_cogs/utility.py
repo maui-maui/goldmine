@@ -399,7 +399,7 @@ class Utility(Cog):
         except ValueError:
             await self.bot.say('**You must provide a valid poll time!**')
             return
-        _question = question.split(' ')
+        _question = question.split()
         del _question[-1:]
         question = ' '.join(_question)
         try: # UCS-4
