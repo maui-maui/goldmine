@@ -21,6 +21,7 @@ class Owner(Cog):
     """Powerful, owner only commands."""
 
     def __init__(self, bot):
+        self.last_broadcasts = {}
         self.dc_funcs = DiscordFuncs(bot)
         super().__init__(bot)
 
@@ -119,13 +120,20 @@ class Owner(Cog):
                     return props['global']['command_prefix']
             else:
                 return props['global']['command_prefix']
+        if self.bot.selfbot:
+            await self.bot.say(''':warning: **This could potentially get you banned with a selfbot.**
+If you're sure you want to do this, type `yes` within 8 seconds.''')
+            if not (await self.bot.wait_for_message(timeout=8.0, author=ctx.message.author,
+                                                channel=ctx.message.channel,
+                                                check=lambda m: m.content.lower().startswith('yes'))):
+                return
         for i in self.bot.servers:
             text = broadcast_text.replace('%prefix%', get_prefix(i))
             if i.id in self.dstore['nobroadcast']:
                 pass
             else:
                 try:
-                    await self.bot.send_message(i.default_channel, text)
+                    self.last_broadcasts[i.id] = await self.bot.send_message(i.default_channel, text)
                 except discord.Forbidden:
                     satisfied = False
                     c_count = 0
@@ -133,7 +141,7 @@ class Owner(Cog):
                     channel_count = len(try_channels) - 1
                     while not satisfied:
                         with suppress(discord.Forbidden, discord.HTTPException):
-                            await self.bot.send_message(try_channels[c_count], text)
+                            self.last_broadcasts[i.id] = await self.bot.send_message(try_channels[c_count], text)
                             satisfied = True
                         if c_count >= channel_count:
                             err += f'`[WARN]` Couldn\'t broadcast to server **{i.name}**\n'
