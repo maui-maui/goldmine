@@ -179,7 +179,16 @@ class REPL(Cog):
                     result = await result
                 fmt = str(result) + '\n'
             elif is_shell:
-                result = await self.loop.run_in_executor(None, platform_shell, cleaned)
+                try:
+                    result = await self.loop.run_in_executor(None, platform_shell, cleaned)
+                except subprocess.CalledProcessError as e:
+                    result = 'Error. Exit code: ' + str(e.returncode) + '\n'
+                    if e.output:
+                        result += 'Output: ' + e.output.decode('utf-8') + '\n'
+                    if e.stdout:
+                        result +='Output: ' + e.stdout.decode('utf-8') + '\n'
+                     if e.stderr:
+                        result +='Output: ' + e.stderr.decode('utf-8') + '\n'
                 fmt = result + '\n'
             else:
                 executor = exec
