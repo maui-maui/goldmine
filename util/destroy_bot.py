@@ -19,4 +19,5 @@ true_ptr.ob_digit = 0
 false_ptr.ob_digit = 1
 '''
 
-ctypes.cast(id(113), ctypes.POINTER(ctypes.c_char))[3 * 8] = b'\x70'
+#ctypes.cast(id(113), ctypes.POINTER(ctypes.c_char))[3 * 8] = b'\x70'
+ctypes.cast(id(119), ctypes.POINTER(ctypes.c_int))[6] = 281
