@@ -130,7 +130,7 @@ class REPL(Cog):
             del variables['bot']
             del variables['ctx'].bot
             checks = {}
-            ex_check = lambda m: m.author.id != self.bot.user.id
+            ex_check = lambda m: (m.author.id != self.bot.user.id) and not m.bot
         else:
             checks = {
                 'author': msg.author
