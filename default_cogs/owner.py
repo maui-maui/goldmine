@@ -390,6 +390,17 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
             emb.add_field(name=cmd, value=count)
         await self.bot.say(embed=emb)
 
+    @commands.command(pass_context=True)
+    async def shutdown(self, ctx):
+        """Shut down and stop the bot.
+        Usage: shutdown"""
+        await self.bot.say(':warning: Are you **sure** you want to stop the bot? Type `yes` to continue.')
+        if not (await self.bot.wait_for_message(timeout=7.0, author=ctx.message.author,
+                                                channel=ctx.message.channel,
+                                                check=lambda m: m.content.lower().startswith('yes'))):
+            return
+        await self.bot.logout()
+
 def setup(bot):
     c = Owner(bot)
     bot.add_cog(c)

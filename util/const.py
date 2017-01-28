@@ -298,7 +298,7 @@ q_replies = [
     'Hello.'
 ]
 cnf_fmt = '{0.mention} The command you tried to execute, `{2}{1}`, does not exist. Type `{2}help` for help.'
-npm_fmt = '{0.mention} Sorry, the `{2}{1}` command does not work in DMs. Try a channel.'
+npm_fmt = '{0.mention} Sorry, the `{2}{1}` command doesn\'t work in DMs. Try a channel.'
 ccd_fmt = '{0.mention} Sorry, the `{2}{1}` command is currently disabled. Try again later!'
 cpe_fmt = '{0.mention} Sorry, you don\'t have enough **permissions** to execute `{2}{1}`! You need **{3}**.'
 ocpe_fmt = '{0.mention} Sorry, you don\'t have enough **permissions** to execute `{2}{1}`! **{3}** will work.'
