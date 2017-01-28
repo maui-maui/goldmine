@@ -38,8 +38,8 @@ class Owner(Cog):
         try:
             gitout = await self.loop.run_in_executor(None, functools.partial(subprocess.check_output, ['git', 'pull'], stderr=subprocess.STDOUT))
             gitout = gitout.decode('utf-8')
-        except subprocess.CalledProcessError as exp:
-            if 'status 128' in str(exp):
+        except (subprocess.CalledProcessError, FileNotFoundError) as exp:
+            if ('status 128' in str(exp)) or isinstance(exp, FileNotFoundError):
                 async with aiohttp.ClientSession() as session:
                     with async_timeout.timeout(16): # for streaming
                         async with session.get('https://github.com/Armored-Dragon/goldmine/archive/master.zip') as r:
