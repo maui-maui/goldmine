@@ -11,7 +11,7 @@ class GameNight(Cog):
         self.games = {}
         super().__init__(bot)
 
-    @commands.group(pass_context=True, aliases=['game_night'])
+    @commands.group(pass_context=True, aliases=['game_night'], no_pm=True)
     async def gamenight(self, ctx):
         """Game night!
         Usage: gamenight {stuff}"""

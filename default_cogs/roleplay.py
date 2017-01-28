@@ -54,7 +54,7 @@ class Roleplay(Cog):
         Usage: mentionme"""
         await self.bot.say('Hey there, ' + ctx.message.author.mention + '!')
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, no_pm=True)
     async def mention(self, ctx, *, target: discord.Member):
         """Make the bot mention someone. Useful for testing.
         Usage: mention [mention, nickname, DiscordTag, or username]"""

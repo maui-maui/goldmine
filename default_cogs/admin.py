@@ -251,7 +251,7 @@ class Admin(Cog):
                 anim_i = 0
             await asyncio.sleep(1.1)
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, no_pm=True)
     async def mute(self, ctx, *, member: discord.Member):
         """Mute someone on voice and text chat.
         Usage: mute [person's name]"""
@@ -271,7 +271,7 @@ class Admin(Cog):
             await self.bot.delete_message(status)
             await self.bot.say('**I don\'t have enough permissions to do that!**')
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, no_pm=True)
     async def unmute(self, ctx, *, member: discord.Member):
         """Unmute someone on voice and text chat.
         Usage: unmute [person's name]"""

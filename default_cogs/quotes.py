@@ -15,6 +15,9 @@ class Quotes(Cog):
     async def quote(self, *args):
         """Reference a quote.
         Usage: quote {quote number}"""
+        if not self.dstore['quotes']:
+            await self.bot.say('There are no quotes. Add some first!')
+            return
         try:
             qindx = args[0]
         except IndexError:
@@ -37,10 +40,13 @@ class Quotes(Cog):
         """List all the quotes.
         Usage: quotelist"""
         # maybe PM this
+        if not self.dstore['quotes']:
+            await self.bot.say('There are no quotes. Add some first!')
+            return
         show_pages = [i for i in rshow_pages]
         pager = commands.Paginator(prefix='', suffix='', max_size=1595)
         if not show_pages:
-            show_pages.append(1)
+            show_pages = (1,)
         for n, i in enumerate(self.dstore['quotes']):
             qout = quote.qrender(i, n, self.bot)
             pager.add_line(qout)
@@ -51,15 +57,14 @@ class Quotes(Cog):
                 await self.bot.say('**__Error: page *{0}* doesn\'t exist! There are *{1}* pages.__**'.format(page_n, len(pager.pages)))
 
     @commands.command(pass_context=True, aliases=['newquote', 'quotenew', 'addquote', 'makequote', 'quotemake', 'createquote', 'quotecreate', 'aq'])
-    async def quoteadd(self, ctx, target: discord.Member, *, text: str):
+    async def quoteadd(self, ctx, target: discord.User, *, text: str):
         """Add a quote.
         Usage: quoteadd [member] [text here]"""
         fmt_time = [int(i) for i in time.strftime("%m/%d/%Y").split('/')]
-        bname = await self.store.get_prop(ctx.message, 'bot_name')
         q_template = {
             'id': 0,
             'quote': 'The bot has encountered an internal error.',
-            'author': bname,
+            'author': 'Goldmine',
             'author_ids': [self.bot.user.id],
             'date': fmt_time
         }
