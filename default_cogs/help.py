@@ -14,9 +14,12 @@ class Help(Cog):
         Usage: help"""
         if ctx.invoked_with.startswith('p'):
             await or_check_perms(ctx, ['bot_admin', 'manage_server', 'manage_messages', 'manage_channels'])
-        if ctx.message.server.me:
-            target = ctx.message.server.me
-        else:
+        try:
+            if ctx.message.server.me:
+                target = ctx.message.server.me
+            else:
+                target = self.bot.user
+        except AttributeError:
             target = self.bot.user
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
