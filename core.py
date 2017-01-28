@@ -79,7 +79,7 @@ def runbot(loop, bot):
     """Start the bot and handle Ctrl-C."""
     try:
         try:
-            loop.run_until_complete(bot.start(*bot_token, bot=False))
+            loop.run_until_complete(bot.start(*bot_token))
         except discord.errors.LoginFailure:
             print('''Hmm... I\'m having trouble logging into Discord.
 This usually means you revoked your token, or gave an invalid token.
