@@ -33,8 +33,8 @@ class Logger(Cog):
         for channel in self.log:
             ct = '\n'.join(self.log[channel])
             t_len += len(ct)
-            with open(os.path.join(self.bot.dir, 'data', 'logger', channel + '.log'), 'a') as f:
-                f.write('\n' + ct)
+            with open(os.path.join(self.bot.dir, 'data', 'logger', channel + '.log'), 'ab') as f:
+                f.write(b'\n' + ct.encode('utf-8'))
         self.log = {}
         self.bot.logger.info(f'Wrote {t_len} characters of chatlogs!')
         return t_len
@@ -58,7 +58,7 @@ class Logger(Cog):
         """Commit all the logs to disk.
         Usage: logger write"""
         await self.bot.say('**Writing...**')
-        s = await bot.write()
+        s = await self.write()
         await self.bot.say('**Wrote `%s` characters**' % str(s))
 
     @cmd_logger.command()

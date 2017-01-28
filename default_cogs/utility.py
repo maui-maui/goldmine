@@ -770,6 +770,16 @@ Server Owner\'s ID: `{0.server.owner.id}`
             await self.bot.say('**I found: **\n' + '\n'.join(targets))
         else:
             await self.bot.say('I found no matches. Maybe I\'m not in a server with them?')
+        
+    @commands.command(pass_context=True, aliases=['perms'])
+    async def permissions(self, ctx):
+        """Get your permissions here.
+        Usage: permissions"""
+        perms = ['**' + k[0].replace('_', ' ').title() + '**' for k in list(ctx.message.author.permissions_in(ctx.message.channel)) if k[1]]
+        if '**Administrator**' in perms:
+            perms.remove('**Administrator**')
+            perms.append('be an **administrator**')
+        await self.bot.say('You can ' + smartjoin(perms) + '!')
 
 def setup(bot):
     c = Utility(bot)
