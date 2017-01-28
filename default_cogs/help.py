@@ -126,7 +126,8 @@ class Help(Cog):
             except discord.HTTPException:
                 await self.bot.send_message(destination, 'Error sending embed. Cogs/Commands: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
         if destination == ctx.message.author:
-            await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
+            if not ctx.message.channel.is_private:
+                await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
 
 def setup(bot):
     bot.add_cog(Help(bot))
