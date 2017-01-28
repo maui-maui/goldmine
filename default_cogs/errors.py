@@ -20,7 +20,6 @@ class Errors(Cog):
         self.csend = bot.csend
         self.say = bot.send_message
         self.store = bot.store
-        self.user = bot.user
         super().__init__(bot)
 
     async def on_error(self, ev_name, *ev_args, **ev_kwargs):
@@ -33,7 +32,9 @@ class Errors(Cog):
         try:
             myself = ctx.message.server.me
         except AttributeError:
-            myself = self.user
+            myself = self.bot.user
+        if not myself:
+            myself = self.bot.user
         if self.bot.selfbot:
             try:
                 cmdfix = self.store['properties']['global']['selfbot_prefix']
