@@ -470,6 +470,10 @@ Channel ID: `{0.channel.id}`
 Your ID: `{0.author.id}`
 Server Owner\'s ID: `{0.server.owner.id}`
 **You can also look up the ID of other people with** `{1.prefix}user [name / id / mention]`**.**'''
+        if not ctx.message.server:
+            class C:
+                id = 'Not applicable'
+            ctx.message.server = C
         await self.bot.say(fmt.format(ctx.message, ctx))
 
     @commands.command(pass_context=True, aliases=['memegen'], hidden=True)
