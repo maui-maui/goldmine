@@ -33,7 +33,7 @@ class AutoCucumber(Cog):
             self.corrections[pair[0]] = pair[1].split(', ')[0]
 
     async def init_corrector(self):
-        with async_timeout.timeout(16):
+        with async_timeout.timeout(60):
             async with aiohttp.request('GET', 'http://norvig.com/big.txt') as r:
                 text = await r.text()
         with open(os.path.join(self.bot.dir, 'data', 'autocorrect.txt'), 'a') as f:
@@ -74,7 +74,7 @@ class AutoCucumber(Cog):
             if raw_final != raw_msg_content:
                 await self.bot.edit_message(msg, final)
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, aliases=['autocucumber', 'cucumber', 'ac'])
     async def tac(self, ctx):
         await echeck_perms(ctx, ('bot_owner',))
         self.enabled = not self.enabled
