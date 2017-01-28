@@ -45,15 +45,15 @@ class Logger(Cog):
             await asyncio.sleep(self.int)
             await self.write()
 
-    @commands.group(pass_context=True, aliases=['chatlog', 'log'])
-    async def logger(self, ctx):
+    @commands.group(pass_context=True, aliases=['chatlog', 'log'], name='logger')
+    async def cmd_logger(self, ctx):
         """Control panel for the logger.
         Usage: logger {stuff}"""
         await echeck_perms(ctx, ('bot_owner',))
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
-    @logger.command(aliases=['commit', 'save'], name='write')
+    @cmd_logger.command(aliases=['commit', 'save'], name='write')
     async def cmd_write(self):
         """Commit all the logs to disk.
         Usage: logger write"""
@@ -61,33 +61,43 @@ class Logger(Cog):
         s = await bot.write()
         await self.bot.say('**Wrote `%s` characters**' % str(s))
 
-    @logger.command()
+    @cmd_logger.command()
     async def wstart(self):
         """Start the 6-min writer task.
         Usage: logger wstart"""
         self.w_task = self.loop.create_task(self.writer())
         await self.bot.say('**Started 6-min writer task!**')
 
-    @logger.command()
+    @cmd_logger.command()
     async def wstop(self):
         """Stop the 6-min writer task.
         Usage: logger wstop"""
         self.w_task.cancel()
         await self.bot.say('**Stopped 6-min writer task!**')
 
-    @logger.command()
+    @cmd_logger.command()
     async def start(self):
         """Start logging messages.
         Usage: logger start"""
         self.active = True
         await self.bot.say('**Now logging messages!**')
 
-    @logger.command()
+    @cmd_logger.command()
     async def stop(self):
         """Stop logging messages.
         Usage: logger stop"""
         self.active = False
         await self.bot.say('**No longer logging messages!**')
+
+    @cmd_logger.command(pass_context=True)
+    async def clast(self, ctx, *count: int):
+        """Get the last messages from this channel.
+        Usage: logger clast {count}"""
+        if not count:
+            n = 12
+        else:
+            n = count[0]
+        await self.bot.say('\n'.join(self.log[ctx.message.channel.id][-n:]))
 
 def setup(bot):
     log_dir = os.path.join(bot.dir, 'data', 'logger')
