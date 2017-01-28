@@ -394,6 +394,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
     async def shutdown(self, ctx):
         """Shut down and stop the bot.
         Usage: shutdown"""
+        await echeck_perms(ctx, ('bot_owner',))
         await self.bot.say(':warning: Are you **sure** you want to stop the bot? Type `yes` to continue.')
         if not (await self.bot.wait_for_message(timeout=7.0, author=ctx.message.author,
                                                 channel=ctx.message.channel,
