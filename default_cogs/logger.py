@@ -9,11 +9,11 @@ class Logger(Cog):
     """Chat logger for collecting AI training data."""
 
     def __init__(self, bot):
+        super().__init__(bot)
         self.int = 6 * 60
         self.log = {}
         self.w_task = self.loop.create_task(self.writer())
         self.active = True
-        super().__init__(bot)
 
     def __unload(self):
         self.w_task.cancel()
