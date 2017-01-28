@@ -103,7 +103,7 @@ class Admin(Cog):
     async def admintest(self, ctx):
         """Check to see if you're registered as a bot admin.
         Usage: admintest'"""
-        tmp = await check_perms(ctx, ['bot_admin'])
+        tmp = await check_perms(ctx, ('bot_admin',))
         if tmp:
             await self.bot.say(ctx.message.author.mention + ' You are a bot admin! :smiley:')
         else:
@@ -113,7 +113,7 @@ class Admin(Cog):
     async def addadmin(self, ctx, *rrtarget: str):
         """Add a user to the bot admin list.
         Usage: addadmin [user]"""
-        tmp = await check_perms(ctx, ['bot_admin'])
+        tmp = await check_perms(ctx, ('bot_admin',))
         if not rrtarget:
             await self.bot.say('**You need to specify a name, nickname, name#0000, mention, or ID!**')
             return
@@ -145,7 +145,7 @@ class Admin(Cog):
     async def rmadmin(self, ctx, *rrtarget: str):
         """Remove a user from the bot admin list.
         Usage: rmadmin [user]"""
-        tmp = await check_perms(ctx, ['bot_admin'])
+        tmp = await check_perms(ctx, ('bot_admin',))
         if not rrtarget:
             await self.bot.say('**You need to specify a name, nickname, name#discriminator, or ID!**')
             return
@@ -209,7 +209,7 @@ class Admin(Cog):
     async def setprop(self, ctx, pname: str, *values: str):
         """Set the value of a property on server level.
         Usage: setprop [property name] [value]"""
-        await echeck_perms(ctx, ['manage_server'])
+        await echeck_perms(ctx, ('manage_server',))
         value = ' '.join(values)
         await self.store.set_prop(ctx.message, 'by_server', pname, value)
         await self.bot.say('Successfully set `{0}` as `{1}`!'.format(pname, value))

@@ -66,17 +66,17 @@ def check(in_bool: bool):
 def encode(content: str) -> str:
     """Goldcode encoder."""
     orig_ords = [ord(c) for c in list(content)]
-    shift = round(random.uniform(1, 145), random.randint(3, 6))
-    shift_shift = random.randint(1, 14)
-    shifted_ords = [float(o) + shift for o in orig_ords]
+    aift = round(random.uniform(1, 145), random.randint(3, 6))
+    aift_aift = random.randint(1, 14)
+    aifted_ords = [float(o) + aift for o in orig_ords]
     join_chars = list('@!($)_*#%"}?\'=-`\\][')
     join_char = random.choice(join_chars)
-    ords_str = join_char.join([str(s) for s in shifted_ords]) + '~' + join_char.join([str(float(ord(c)) + shift) for c in list('3MainShiftCorrect')])
+    ords_str = join_char.join([str(s) for s in aifted_ords]) + '~' + join_char.join([str(float(ord(c)) + aift) for c in list('3MainShiftCorrect')])
     fn_head_join = random.choice(list('|^&'))
     _g = random.uniform(1, 51)
     head_keys = {
-        'd': shift + shift_shift, # encoded (shift_shifted) shift
-        'g': _g, # shift for join char index
+        'd': aift + aift_aift, # encoded (aift_aifted) aift
+        'g': _g, # aift for join char index
         'l': (float(join_chars.index(join_char)) - 4.4689257) + _g
     }
     head_str = ';'.join([k + str(head_keys[k]) for k in head_keys])
@@ -88,8 +88,8 @@ def decode(content: str) -> str:
     try:
         expected_key = '3MainShiftCorrect'
         join_chars = list('@!($)_*#%"}?\'=-`\\][')
-        shift_key = content.split('~')[1]
-        content = content.replace('~' + shift_key, '') # discard shift key
+        aift_key = content.split('~')[1]
+        content = content.replace('~' + aift_key, '') # discard aift key
         head_keys = {}
         for try_decode_head in list('|^&'):
             if try_decode_head in content:
@@ -102,13 +102,13 @@ def decode(content: str) -> str:
         head_keys['g'] = float(head_keys['g'])
         head_keys['l'] = float(head_keys['l'])
         j = join_chars[int((head_keys['l'] + 4.4689257) - head_keys['g'])]
-        for try_shift_shift in range(1, 14):
-            shift_to_try = head_keys['d'] - float(try_shift_shift)
-            if ''.join([chr(int(cn - shift_to_try)) for cn in [float(sf) for sf in shift_key.split(j)]]) == expected_key:
-                shift = shift_to_try
+        for try_aift_aift in range(1, 14):
+            aift_to_try = head_keys['d'] - float(try_aift_aift)
+            if ''.join([chr(int(cn - aift_to_try)) for cn in [float(sf) for sf in aift_key.split(j)]]) == expected_key:
+                aift = aift_to_try
                 break
         content = no_head_content
-        dec = ''.join([chr(int(cn - shift)) for cn in [float(sf) for sf in content.split(j)]])
+        dec = ''.join([chr(int(cn - aift)) for cn in [float(sf) for sf in content.split(j)]])
         return dec
     except Exception:
         return '⚠ Couldn\'t decode. Maybe your content is corrupted?'
@@ -116,17 +116,17 @@ def decode(content: str) -> str:
 async def async_encode(content: str) -> str:
     """Coroutine version of encode()."""
     orig_ords = [ord(c) for c in list(content)]
-    shift = round(random.uniform(1, 145), random.randint(3, 6))
-    shift_shift = random.randint(1, 14)
-    shifted_ords = [float(o) + shift for o in orig_ords]
+    aift = round(random.uniform(1, 145), random.randint(3, 6))
+    aift_aift = random.randint(1, 14)
+    aifted_ords = [float(o) + aift for o in orig_ords]
     join_chars = list('@!($)_*#%"}?\'=-`\\][')
     join_char = random.choice(join_chars)
-    ords_str = join_char.join([str(s) for s in shifted_ords]) + '~' + join_char.join([str(float(ord(c)) + shift) for c in list('3MainShiftCorrect')])
+    ords_str = join_char.join([str(s) for s in aifted_ords]) + '~' + join_char.join([str(float(ord(c)) + aift) for c in list('3MainShiftCorrect')])
     fn_head_join = random.choice(list('|^&'))
     _g = random.uniform(1, 51)
     head_keys = {
-        'd': shift + shift_shift, # encoded (shift_shifted) shift
-        'g': _g, # shift for join char index
+        'd': aift + aift_aift, # encoded (aift_aifted) aift
+        'g': _g, # aift for join char index
         'l': (float(join_chars.index(join_char)) - 4.4689257) + _g
     }
     head_str = ';'.join([k + str(head_keys[k]) for k in head_keys])
@@ -138,8 +138,8 @@ async def async_decode(content: str) -> str:
     try:
         expected_key = '3MainShiftCorrect'
         join_chars = list('@!($)_*#%"}?\'=-`\\][')
-        shift_key = content.split('~')[1]
-        content = content.replace('~' + shift_key, '') # discard shift key
+        aift_key = content.split('~')[1]
+        content = content.replace('~' + aift_key, '') # discard aift key
         head_keys = {}
         for try_decode_head in list('|^&'):
             if try_decode_head in content:
@@ -152,13 +152,13 @@ async def async_decode(content: str) -> str:
         head_keys['g'] = float(head_keys['g'])
         head_keys['l'] = float(head_keys['l'])
         j = join_chars[int((head_keys['l'] + 4.4689257) - head_keys['g'])]
-        for try_shift_shift in range(1, 14):
-            shift_to_try = head_keys['d'] - float(try_shift_shift)
-            if ''.join([chr(int(cn - shift_to_try)) for cn in [float(sf) for sf in shift_key.split(j)]]) == expected_key:
-                shift = shift_to_try
+        for try_aift_aift in range(1, 14):
+            aift_to_try = head_keys['d'] - float(try_aift_aift)
+            if ''.join([chr(int(cn - aift_to_try)) for cn in [float(sf) for sf in aift_key.split(j)]]) == expected_key:
+                aift = aift_to_try
                 break
         content = no_head_content
-        dec = ''.join([chr(int(cn - shift)) for cn in [float(sf) for sf in content.split(j)]])
+        dec = ''.join([chr(int(cn - aift)) for cn in [float(sf) for sf in content.split(j)]])
         return dec
     except Exception:
         return '⚠ Couldn\'t decode. Maybe your content is corrupted?'
@@ -194,3 +194,6 @@ def smartjoin(l):
     if len(l) > 1:
         l[-1] = 'and ' + l[-1]
     return ', '.join(l)
+
+ceaser_encode = (lambda s, k: s.translate(str.maketrans(('abcdefghijklmnopqrstuvwxyz' + 'abcdefghijklmnopqrstuvwxyz'.upper()), (lambda a: ''.join(a[(a.index(i) + k) % len(a)] for i in a))('abcdefghijklmnopqrstuvwxyz') + (lambda a: ''.join(a[(a.index(i) + k) % len(a)] for i in a))('abcdefghijklmnopqrstuvwxyz').upper())))
+ceaser_decode = (lambda s, k: s.translate(str.maketrans((lambda a: ''.join(a[(a.index(i) + k) % len(a)] for i in a))('abcdefghijklmnopqrstuvwxyz') + (lambda a: ''.join(a[(a.index(i) + k) % len(a)] for i in a))('abcdefghijklmnopqrstuvwxyz').upper(), ('abcdefghijklmnopqrstuvwxyz' + 'abcdefghijklmnopqrstuvwxyz'.upper()))))

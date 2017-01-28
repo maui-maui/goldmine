@@ -109,7 +109,7 @@ class Quotes(Cog):
             await self.bot.reply(f'quote **#{qindex}** doesn\'t already exist!')
             return
         mauthor = ctx.message.author
-        _pcheck = await check_perms(ctx, ['bot_owner'])
+        _pcheck = await check_perms(ctx, ('bot_owner',))
         if (mauthor.id == q_target['author_ids'][0]) or (_pcheck):
             del self.dstore['quotes'][qindex - 1]
             await self.bot.reply(f'you deleted quote **#{qindex}**!')

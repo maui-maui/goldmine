@@ -54,7 +54,7 @@ class Cogs(Cog):
     async def cog(self, ctx):
         """Manage all of my cogs and gears.
         Usage: cog {stuff}"""
-        await or_check_perms(ctx, ['bot_owner'])
+        await or_check_perms(ctx, ('bot_owner',))
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 

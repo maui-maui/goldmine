@@ -76,7 +76,7 @@ class AutoCucumber(Cog):
 
     @commands.command(pass_context=True)
     async def tac(self, ctx):
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         self.enabled = not self.enabled
         await self.bot.say('Autocucumber is now ' + ('on.' if self.enabled else 'off.'))
 

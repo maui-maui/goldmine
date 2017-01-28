@@ -7,6 +7,7 @@ import util.commands as commands
 from util.perms import echeck_perms
 import util.dynaimport as di
 pyscreenshot = di.load('pyscreenshot')
+scr = di.load('util.screen')
 have_pil = True
 try:
     from PIL import ImageGrab
@@ -19,13 +20,18 @@ class SelfbotGoodies(Cog):
 
     def __init__(self, bot):
         self.start_time = datetime.now()
+        self.web_render = None
         super().__init__(bot)
+
+    def __unload(self):
+        if self.web_render:
+            self.web_render.app.quit()
 
     @commands.command(pass_context=True)
     async def screenshot(self, ctx):
         """Take a screenshot.
         Usage: screenshot"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         if have_pil and (sys.platform not in ['linux', 'linux2']):
             grabber = ImageGrab
         else:
@@ -40,7 +46,7 @@ class SelfbotGoodies(Cog):
     async def msg_rate(self, ctx):
         """Get the message rate.
         Usage: msg_rate"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         msg = await self.bot.say('Please wait...')
         start_time = datetime.now()
         m = {'messages': 0}
@@ -54,6 +60,33 @@ class SelfbotGoodies(Cog):
         time_elapsed = datetime.now() - start_time
         time_elapsed = time_elapsed.total_seconds()
         await self.bot.edit_message(msg, 'I seem to be getting ' + str(round(m['messages'] / time_elapsed, 2)) + ' messages per second.')
+
+    @commands.command(pass_context=True)
+    async def render(self, ctx, *, webpage: str):
+        """Render a webpage to image.
+        Usage: render [url]"""
+        await echeck_perms(ctx, ('bot_owner',))
+        await self.bot.say(':warning: Not yet working.'
+                           'Type `yes` within 6 seconds to proceed and maybe crash your bot.')
+        if not (await self.bot.wait_for_message(timeout=6.0, author=ctx.message.author,
+                                                channel=ctx.message.channel,
+                                                check=lambda m: m.content.lower().startswith('yes'))):
+            return
+        try:
+            self.web_render = scr.Screenshot()
+        except ImportError:
+            await self.bot.say('The bot owner hasn\'t enabled this feature!')
+            return
+        image = self.web_render.capture(webpage)
+        await self.bot.upload(io.BytesIO(image), filename='webpage.png')
+
+    @commands.group(pass_context=True)
+    async def sub(self, ctx):
+        """Message substitution manager.
+        Usage: sub {stuff}"""
+        await echeck_perms(ctx, ('bot_owner',))
+        if ctx.invoked_subcommand is None:
+            await self.bot.send_cmd_help(ctx)
 
 def setup(bot):
     bot.add_cog(SelfbotGoodies(bot))

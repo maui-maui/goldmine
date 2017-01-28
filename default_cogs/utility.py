@@ -66,7 +66,7 @@ class Utility(Cog):
     async def cmd_eval(self, ctx, *, code: str):
         """Evaluate some code, or a math expression.
         Usage: eval [code/expression]"""
-        await or_check_perms(ctx, ['bot_admin'])
+        await or_check_perms(ctx, ('bot_admin',))
         code = bdel(bdel(code, '```python').strip('`'), '```py')
         for key in eval_blocked:
             if re.search(key, code):
@@ -199,8 +199,8 @@ class Utility(Cog):
             except AttributeError:
                 tg_ctx = None
             else:
-                c_srv = await check_perms(tg_ctx, ['manage_server'])
-                c_sown = await check_perms(tg_ctx, ['server_owner'])
+                c_srv = await check_perms(tg_ctx, ('manage_server',))
+                c_sown = await check_perms(tg_ctx, ('server_owner',))
             c_own = target.id == bot_owner
             c_adm = target.id in self.dstore['bot_admins']
             is_server = isinstance(target, discord.Member)
@@ -307,98 +307,6 @@ class Utility(Cog):
         emb.add_field(name='Invite Link', value='https://tiny.cc/goldbot')
         await self.bot.say(home_broadcast, embed=emb)
 
-    @commands.command(pass_context=True, aliases=['halp', 'phelp', 'phalp'])
-    async def help(self, ctx, *commands_or_cogs: str):
-        """Show the bot's help.
-        Usage: help"""
-        if ctx.invoked_with.startswith('p'):
-            await or_check_perms(ctx, ['bot_admin', 'manage_server', 'manage_messages', 'manage_channels'])
-        if ctx.message.server.me:
-            target = ctx.message.server.me
-        else:
-            target = self.bot.user
-        au = target.avatar_url
-        avatar_link = (au if au else target.default_avatar_url)
-        pages = []
-        cog_assign = {}
-        fields = {}
-        chars = 0
-        emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
-        emb.title = 'Bot Help'
-        emb.set_author(name=target.display_name, icon_url=avatar_link)
-        for name, cmd in self.bot.commands.items():
-            if cmd.cog_name:
-                cog = cmd.cog_name
-            else:
-                cog = 'No Category'
-            if cog not in cog_assign:
-                cog_assign[cog] = []
-            cog_assign[cog].append(cmd)
-        for group, cmds in cog_assign.items():
-            field = []
-            did_names = []
-            for cmd in cmds:
-                if cmd.name not in did_names:
-                    if not cmd.hidden:
-                        field.append('\u2022 **' + cmd.name + '**: *' + (cmd.short_doc if cmd.short_doc else 'I\'m a command.') + '*')
-                        did_names.append(cmd.name)
-            fields[group] = field
-        chars = 0
-        for cog in fields:
-            field = fields[cog]
-            content = '\n'.join(field)
-            if not content:
-                content = 'No visible commands.'
-            pre_len = sum([len(i) for i in field])
-            #chars += int(sum([len(i) for i in field]))
-            #chars += int(len(content) * 1.7)
-            print('CUR COG', cog)
-            print('CHARS', chars)
-            print('PRE LEN', pre_len)
-            print('-----------')
-            if chars + pre_len < 6000:
-                if len(content) <= 1024:
-                    emb.add_field(name=cog, value=content)
-                else:
-                    pager = commands.Paginator(prefix='', suffix='', max_size=1024)
-                    for ln in field:
-                        pager.add_line(ln)
-                    for page in pager.pages:
-                        emb.add_field(name=cog, value=page)
-            else:
-                pages.append(emb)
-                emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
-                emb.title = 'Bot Help'
-                emb.set_author(name=target.display_name, icon_url=avatar_link)
-                chars = 0
-                if len(content) <= 1024:
-                    emb.add_field(name=cog, value=content)
-                else:
-                    pager = commands.Paginator(prefix='', suffix='', max_size=1024)
-                    for ln in field:
-                        pager.add_line(ln)
-                    for page in pager.pages:
-                        emb.add_field(name=cog, value=page)
-            chars += pre_len
-        if not pages:
-            pages.append(emb)
-        pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
-        destination = ctx.message.author
-        if ctx.invoked_with.startswith('p'):
-            destination = ctx.message.channel
-        if self.bot.selfbot:
-            destination = ctx.message.channel
-        for page in pages:
-            try:
-                print(', '.join([f['name'] for f in page.to_dict()['fields']]) + ': total ' + str(sum([len(i['value']) for i in page.to_dict()['fields']])))
-                await self.bot.send_message(destination, embed=page)
-            except discord.HTTPException:
-                await self.bot.send_message(destination, 'Error sending embed. Cogs: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
-                print(page.to_dict()['fields'])
-                print('totalLen', sum([len(i) for i in [f['value'] for f in page.to_dict()['fields']]]))
-        if destination == ctx.message.author:
-            await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
-
     @commands.cooldown(1, 9.5, type=commands.BucketType.server)
     @commands.command(pass_context=True, aliases=['ping', 'pong', 'delay', 'net', 'network', 'lag', 'netlag'])
     async def latency(self, ctx):
@@ -491,7 +399,7 @@ class Utility(Cog):
         except ValueError:
             await self.bot.say('**You must provide a valid poll time!**')
             return
-        _question = question.split(' ')
+        _question = question.split()
         del _question[-1:]
         question = ' '.join(_question)
         try: # UCS-4
@@ -628,7 +536,9 @@ Server Owner\'s ID: `{0.server.owner.id}`
                 hexp = '0' + hexp
             preview = f' (`{char}`)'
             cinfo.add_line(f'U+{hexp} {unicodedata.name(char)} {char}' + (preview if char not in no_preview else ''))
-        for page in cinfo.pages:
+        if len(cinfo.pages) > 5:
+            await self.bot.say('Too long, trimming to 5 pages.')
+        for page in cinfo.pages[0:5]:
             await self.bot.say(page)
 
     @commands.command()
@@ -737,6 +647,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
                 else:
                     server_type = t.title()
         emb.add_field(name='Server Type', value=server_type)
+        emb.add_field(name='Ping', value=str(round(data['latency_ms'], 2)) + 'ms')
         await self.bot.say(embed=emb)
 
     @commands.cooldown(1, 20, type=commands.BucketType.user)
@@ -820,7 +731,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
     async def ocr(self, ctx):
         """OCR an image.
         Usage: ocr [attach an image]"""
-        await or_check_perms(ctx, ['bot_owner'])
+        await or_check_perms(ctx, ('bot_owner',))
         if not have_pil:
             await self.bot.say('The bot owner hasn\'t set up this feature!')
             return False
@@ -839,6 +750,17 @@ Server Owner\'s ID: `{0.server.owner.id}`
             await self.bot.say(text)
         else:
             await self.bot.say('No results.')
+        
+    @commands.command(aliases=['cm_discrim'])
+    async def discrim(self, *, discriminator: str):
+        """Look up users by discriminator.
+        Usage: discrim [discriminator]"""
+        d = discriminator
+        targets = list(set(str(m) for m in self.bot.get_all_members() if m.discriminator == d))
+        if targets:
+            await self.bot.say('**I found: **\n' + '\n'.join(targets))
+        else:
+            await self.bot.say('I found no matches. Maybe I\'m not in a server with them?')
 
 def setup(bot):
     c = Utility(bot)

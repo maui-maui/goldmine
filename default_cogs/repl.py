@@ -82,7 +82,7 @@ class REPL(Cog):
     async def repl(self, ctx, *flags: str):
         """A REPL, in Discord.
         Usage: repl {flags}"""
-        await echeck_perms(ctx, ['bot_owner'])
+        await echeck_perms(ctx, ('bot_owner',))
         msg = ctx.message
 
         def import_by_path(name: str, path: str) -> None:
@@ -118,6 +118,7 @@ class REPL(Cog):
             'hex_to_rgb': lambda shex: [int(h.upper(), 16) for h in [shex.replace('#', '').replace('0x', '')[i:i + 2] for i in range(0, len(shex.replace('#', '').replace('0x', '')), 2)]],
             'is_playing': lambda s: self.bot.cogs['Voice'].voice_states[{g.name: g for g in self.bot.servers}[s].id].current.player.is_playing(),
             'vstate': lambda s: self.bot.cogs['Voice'].voice_states[{g.name: g for g in self.bot.servers}[s].id],
+            'cm_discrim': lambda d: list(set(str(m) for m in self.bot.get_all_members() if m.discriminator == d)),
         }
         is_shell = False
         valid_flags = ['public', 'asteval', 'py', 'split', 'shell']

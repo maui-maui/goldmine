@@ -48,7 +48,7 @@ class Owner(Cog):
                     z.extractall(os.path.join(self.bot.dir, 'data'))
                 distutils.dir_util.copy_tree(os.path.join(self.bot.dir, 'data', 'goldmine-master'), self.bot.dir)
                 shutil.rmtree(os.path.join(self.bot.dir, 'data', 'goldmine-master'))
-                gitout = 'Successfully updated via zip.'
+                gitout = 'Successfully updated via zip.\nZip size: ' + str(sys.getsizeof(tarball) / 1048576) + ' MB'
             else:
                 await self.bot.edit_message(msg, 'An error occured while attempting to update!')
                 await self.bot.send_message(dest, '```' + str(exp) + '```')
@@ -189,7 +189,7 @@ class Owner(Cog):
     async def rawsetprop(self, ctx, scope: str, pname: str, value: str):
         """Set the value of a property on any level.
         Usage: rawsetprop [scope] [property name] [value]"""
-        await echeck_perms(ctx, ['bot_admin'])
+        await echeck_perms(ctx, ('bot_admin',))
         try:
             await self.store.set_prop(ctx.message, scope, pname, value)
         except Exception:
@@ -289,7 +289,7 @@ class Owner(Cog):
     async def repeat(self, ctx, times : int, *, command: str):
         """Repeats a command a specified number of times.
         Usage: repeat [times] [command]"""
-        await echeck_perms(ctx, ['bot_admin'])
+        await echeck_perms(ctx, ('bot_admin',))
         msg = copy.copy(ctx.message)
         msg.content = command
         for i in range(times):
@@ -330,7 +330,7 @@ class Owner(Cog):
         if number:
             nums = number
         else:
-            nums = range(len(self.bot.store.store['owner_messages']))
+            nums = range(self.dstore.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
         for num in nums:
             msg = self.bot.store.store['owner_messages'][num]
             emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
@@ -351,9 +351,10 @@ class Owner(Cog):
                                                 '`\nMembers at the time: ' + str(msg['server_members']) +
                                                 '\nMembers now: ' + str(len({s.id: s for s in self.bot.servers}[msg['server_id']].members)))
             await self.bot.say(embed=emb)
+        self.bot.store.store['msgs_read_index'] = nums[-1]
         await self.bot.say('Finished!')
     
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, aliases=['events', 'ecalls', 'evcalls', 'eventcalls', 'ev_calls'])
     async def event_calls(self, ctx):
         """Get the specific event calls.
         Usage: event_calls"""
@@ -363,11 +364,11 @@ class Owner(Cog):
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
         emb.add_field(name='Total', value=sum(self.bot.event_calls.values()))
-        for ev in self.bot.event_calls:
-            emb.add_field(name=ev, value=self.bot.event_calls[ev])
+        for ev, count in reversed(sorted(self.bot.event_calls.items(), key=lambda i: i[1])):
+            emb.add_field(name=ev, value=count)
         await self.bot.say(embed=emb)
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, aliases=['ccalls', 'cmdcalls', 'commandcalls', 'cmd_calls'])
     async def command_calls(self, ctx):
         """Get the specific command calls.
         Usage: command_calls"""
@@ -377,8 +378,8 @@ class Owner(Cog):
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
         emb.add_field(name='Total', value=sum(self.bot.command_calls.values()))
-        for cmd in self.bot.command_calls:
-            emb.add_field(name=cmd, value=self.bot.command_calls[cmd])
+        for cmd, count in reversed(sorted(self.bot.command_calls.items(), key=lambda i: i[1])):
+            emb.add_field(name=cmd, value=count)
         await self.bot.say(embed=emb)
 
 def setup(bot):

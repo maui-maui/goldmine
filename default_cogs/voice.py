@@ -236,6 +236,7 @@ class Voice(Cog):
                     self.bot.loop.create_task(state.voice.disconnect())
             except:
                 pass
+        self.disconnect_task.cancel()
 
     async def on_speaking(self, speaking, uid):
         """Event for when someone is speaking."""
@@ -323,8 +324,8 @@ class Voice(Cog):
         if state.voice.channel != ctx.message.author.voice_channel:
             await self.bot.say('You can only modify the queue if you\'re in the same channel as me!')
             return
-        if len(state.songs._queue) >= 6:
-            await self.bot.say('There can only be up to 6 items in queue!')
+        if len(state.songs._queue) >= 5:
+            await self.bot.say('There can only be up to 5 items in queue!')
             return
 
         status = await self.bot.say('Loading... 🌚')
@@ -450,7 +451,7 @@ class Voice(Cog):
     async def picospeak(self, ctx, *, tospeak: str):
         """Uses the SVOX pico TTS engine to speak a message.
         Usage: picospeak [message]"""
-        await or_check_perms(ctx, ['bot_owner'])
+        await or_check_perms(ctx, ('bot_owner',))
         state = self.get_voice_state(ctx.message.server)
 
         if state.voice is None:
@@ -460,8 +461,8 @@ class Voice(Cog):
         if state.voice.channel != ctx.message.author.voice_channel:
             await self.bot.say('You can only modify the queue if you\'re in the same channel as me!')
             return
-        if len(state.songs._queue) >= 6:
-            await self.bot.say('There can only be up to 6 items in queue!')
+        if len(state.songs._queue) >= 5:
+            await self.bot.say('There can only be up to 5 items in queue!')
             return
 
         stream = io.BytesIO(subprocess.check_output(['pico2wave', '-w', '/tmp/pipe.wav', tospeak]))
@@ -480,7 +481,7 @@ class Voice(Cog):
         state = self.get_voice_state(ctx.message.server)
         opts = {
             'quiet': True,
-            'user-agent': 'stagefright/1.2 (Linux;Android 6.0)',
+            'user-agent': 'stagefright/1.2 (Linux;Android 5.0)',
             'referer': 'https://translate.google.com/'
         }
         base_url = 'http://translate.google.com/translate_tts'
@@ -496,8 +497,8 @@ class Voice(Cog):
         if state.voice.channel != ctx.message.author.voice_channel:
             await self.bot.say('You can only modify the queue if you\'re in the same channel as me!')
             return
-        if len(state.songs._queue) >= 6:
-            await self.bot.say('There can only be up to 6 items in queue!')
+        if len(state.songs._queue) >= 5:
+            await self.bot.say('There can only be up to 5 items in queue!')
             return
 
         for intxt in rounds:
@@ -523,7 +524,7 @@ class Voice(Cog):
     async def recording(self, ctx):
         """Manage voice recording, recognition, and playback.
         Usage: recording"""
-        await or_check_perms(ctx, ['bot_owner'])
+        await or_check_perms(ctx, ('bot_owner',))
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
@@ -580,8 +581,8 @@ class Voice(Cog):
         if state.voice.channel != ctx.message.author.voice_channel:
             await self.bot.say('You can only modify the queue if you\'re in the same channel as me!')
             return
-        if len(state.songs._queue) >= 6:
-            await self.bot.say('There can only be up to 6 items in queue!')
+        if len(state.songs._queue) >= 5:
+            await self.bot.say('There can only be up to 5 items in queue!')
             return
         with assert_msg(ctx, '**This server does not have a recording!**'):
             check(ctx.message.server.id in self.recording_data)

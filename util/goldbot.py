@@ -63,7 +63,7 @@ class GoldBot(commands.Bot):
             with open(fn, 'rb') as f: # fix for windows unicode error
                 fr = f.read().decode('utf-8') # fix for windows unicode error
                 self.chars += len(fr)
-                self.words += len(fr.split(' '))
+                self.words += len(fr.split())
                 self.lines += len(fr.split('\n'))
                 self.files += 1
             self.raw_sizes_bytes.add(os.path.getsize(fn))
@@ -436,7 +436,8 @@ class GoldBot(commands.Bot):
         with open(os.path.join(cur_dir, 'assets', 'emotes_twitch_global.json')) as f:
             twitch_global = json.loads(f.read())['emotes']
         with open(os.path.join(cur_dir, 'assets', 'emotes_twitch_subscriber.json')) as f:
-            twitch_subscriber = json.loads(f.read())
+            twitch_sub = json.loads(f.read())
+        twitch_subscriber = {e: {'description': '\u200b', 'image_id': twitch_sub[e], 'first_seen': None} for e in twitch_sub}
         self.emotes['twitch'] = {**twitch_global, **twitch_subscriber}
         with open(os.path.join(cur_dir, 'assets', 'emotes_ffz.json')) as f:
             self.emotes['ffz'] = json.loads(f.read())
