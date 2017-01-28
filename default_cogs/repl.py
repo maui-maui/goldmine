@@ -91,9 +91,9 @@ class REPL(Cog):
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             return module
-        platform_shell = lambda s: subprocess.check_output(['bash', '-c', s]).decode('utf-8')
+        platform_shell = lambda s: subprocess.check_output(['bash', '-c', s]).decode('utf-8', 'ignore')
         if sys.platform == 'win32':
-            platform_shell = lambda s: subprocess.check_output(s.split()).decode('utf-8')
+            platform_shell = lambda s: subprocess.check_output(s.split()).decode('utf-8', 'ignore')
         variables = {
             'ctx': ctx,
             'bot': self.bot,
@@ -184,11 +184,11 @@ class REPL(Cog):
                 except subprocess.CalledProcessError as e:
                     result = 'Error. Exit code: ' + str(e.returncode) + '\n'
                     if e.output:
-                        result += 'Output: ' + e.output.decode('utf-8') + '\n'
+                        result += 'Output: ' + e.output.decode('utf-8', 'ignore') + '\n'
                     if e.stdout:
-                        result +='Output: ' + e.stdout.decode('utf-8') + '\n'
+                        result +='Output: ' + e.stdout.decode('utf-8', 'ignore') + '\n'
                     if e.stderr:
-                        result +='Output: ' + e.stderr.decode('utf-8') + '\n'
+                        result +='Output: ' + e.stderr.decode('utf-8', 'ignore') + '\n'
                 fmt = result + '\n'
             else:
                 executor = exec
