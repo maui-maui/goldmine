@@ -562,7 +562,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         Usage: decode [encoded text]"""
         await self.bot.say('```' + (await b_decode(content)) + '```')
 
-    @commands.cooldown(1, 5.5, type=commands.BucketType.user)
+    @commands.cooldown(1, 6.75, type=commands.BucketType.user)
     @commands.command(pass_context=True, aliases=['mc'])
     async def minecraft(self, ctx, *, server_ip: str):
         """Get information about a Minecraft server.
