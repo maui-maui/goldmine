@@ -1,5 +1,6 @@
 """JSON importing abstraction layer."""
 
+'''
 try:
     from rapidjson import *
 except ImportError:
@@ -10,3 +11,6 @@ except ImportError:
             from simplejson import *
         except ImportError:
             from json import *
+'''
+# Issues
+from json import *
