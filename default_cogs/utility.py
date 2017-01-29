@@ -575,7 +575,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
                 port = int(port_split[1])
             except ValueError:
                 pass
-        if '.' not in server:
+        if ('.' not in server) or (' ' in server_ip):
             await self.bot.say(':warning: Invalid address.')
             return
         try:
