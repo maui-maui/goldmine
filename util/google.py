@@ -39,7 +39,8 @@ async def search(query, num=3):
     query = quote_plus(query)
     ret = []
     html = await get_page(url_t % vars())
-    print('GRESP', html)
+    with open('data/google.html', 'w+') as f:
+        f.write(html)
     hashes = set()
     soup = BeautifulSoup(html, 'html.parser')
     anchors = soup.find(id='search').findAll('a')
