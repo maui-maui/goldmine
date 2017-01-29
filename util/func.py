@@ -169,7 +169,7 @@ def decoy_print(*ina: str) -> str:
 
 def dprint(*ina: str):
     """Print function!"""
-    print(' '.join(ina))
+    print(' '.join(str(a) for a in ina))
 
 def _get_variable(name):
     stack = inspect.stack()

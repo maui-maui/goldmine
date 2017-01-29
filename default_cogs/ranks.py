@@ -1,6 +1,7 @@
 """Ranks and levels."""
 import math
 import random
+import discord
 import util.commands as commands
 import util.ranks as rank
 from util.const import lvl_base, bool_true

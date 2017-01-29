@@ -1,5 +1,5 @@
 """Server stats reporting."""
-import json
+import uitl.json as json
 import aiohttp
 import async_timeout
 import util.commands as commands
