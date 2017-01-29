@@ -1,6 +1,9 @@
 """The bot's chatlogger for AI training."""
 import asyncio
 import os
+from datetime import datetime
+import aiohttp
+import async_timeout
 import util.commands as commands
 from util.perms import echeck_perms
 from .cog import Cog
@@ -24,6 +27,19 @@ class Logger(Cog):
         if not self.active: return
         try:
             self.log[msg.channel.id].append(msg.content)
+# [{'width': 460, 'url': 'file', 'size': 63565, 'proxy_url': 'file', 'id': '', 'height': 215, 'filename': 'file.jpg'}]
+            for a in msg.attachments:
+                with async_timeout.timeout(7):
+                    async with aiohttp.request('GET', a['url']) as r:
+                        data = await r.read()
+                path = os.path.join(self.bot.dir, 'data', 'logger', 'attachments', msg.channel.id)
+                timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+                file = os.path.join(path, timestamp + '-' + a['filename'])
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                with open(os.path.join(path, file), 'wb+') as f:
+                    f.write(data)
+                del data
         except (KeyError, AttributeError):
             self.log[msg.channel.id] = [msg.content]
 
@@ -103,4 +119,7 @@ def setup(bot):
     log_dir = os.path.join(bot.dir, 'data', 'logger')
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
+    a_dir = os.path.join(log_dir, 'attachments')
+    if not os.path.exists(a_dir):
+        os.makedirs(a_dir)
     bot.add_cog(Logger(bot))

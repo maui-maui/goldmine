@@ -9,7 +9,7 @@ from convert_to_old_syntax import cur_dir, rc_files
 from properties import storage_backend
 from util.datastore import DataStore
 from util.const import *
-from util.func import decoy_print, _get_variable
+from util.func import dprint, _get_variable
 from util.fake import FakeObject
 import util.token as token
 import util.dynaimport as di
@@ -456,7 +456,7 @@ class GoldBot(commands.Bot):
             pass
         gc.collect()
         self.asteval = Interpreter(use_numpy=False, writer=FakeObject(value=True))
-        self.asteval.symtable['print'] = decoy_print
+        self.asteval.symtable['print'] = dprint
         del self.asteval.symtable['dir']
         if log_reset:
             if note:
