@@ -3,6 +3,7 @@ import traceback
 import asyncio
 import random
 import discord
+from discord.ext.commands.errors import CommandOnCooldown as DiscordCNC
 import util.commands as commands
 from util.const import *
 from util.func import bdel
@@ -70,7 +71,7 @@ class Errors(Cog):
             pass
         elif isinstance(exp, commands.DisabledCommand):
             await self.csend(ctx, ccd_fmt.format(ctx.message.author, cprocessed, cmdfix))
-        elif isinstance(exp, commands.CommandOnCooldown):
+        elif isinstance(exp, commands.CommandOnCooldown) or isinstance(exp, DiscordCNC):
             #await self.say(exp.ctx.message.author, coc_fmt.format(ctx.message.author, cprocessed, cmdfix, bdel(c_key, 'You are on cooldown. Try again in ')))
             await self.csend(ctx, ':warning: :gear: ' + random.choice(clocks))
         elif isinstance(exp, commands.PassException):
