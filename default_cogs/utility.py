@@ -779,8 +779,8 @@ Server Owner\'s ID: `{0.server.owner.id}`
         if '**Administrator**' in perms:
             perms.remove('**Administrator**')
             perms.append('be an **administrator**')
-        if '**Send Tts Message**' in perms:
-            perms[perms.index('**Send Tts Message**')] = '**Send TTS Message**'
+        if '**Send Tts Messages**' in perms:
+            perms[perms.index('**Send Tts Messages**')] = '**Send TTS Messages**'
         await self.bot.say('You can ' + smartjoin(perms) + '!')
 
 def setup(bot):
