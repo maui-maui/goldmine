@@ -1,6 +1,7 @@
 """Ranks and levels."""
 import math
 import random
+from contextlib import suppress
 import discord
 import util.commands as commands
 import util.ranks as rank
