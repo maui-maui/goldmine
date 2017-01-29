@@ -20,6 +20,7 @@ for mod in ['asyncio', 'random', 're', 'sys', 'time', 'textwrap', 'unicodedata',
 json = di.load('util.json')
 commands = di.load('util.commands')
 mclib = di.load('util.mclib')
+xkcd = di.load('util.xkcd')
 
 have_pil = True
 print(' - Loading PIL...')
@@ -561,7 +562,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         Usage: decode [encoded text]"""
         await self.bot.say('```' + (await b_decode(content)) + '```')
 
-    @commands.cooldown(1, 4, type=commands.BucketType.user)
+    @commands.cooldown(1, 5.5, type=commands.BucketType.user)
     @commands.command(pass_context=True, aliases=['mc'])
     async def minecraft(self, ctx, *, server_ip: str):
         """Get information about a Minecraft server.
@@ -574,6 +575,9 @@ Server Owner\'s ID: `{0.server.owner.id}`
                 port = int(port_split[1])
             except ValueError:
                 pass
+        if '.' not in server:
+            await self.bot.say(':warning: Invalid address.')
+            return
         try:
             self.logger.info('Connecting to Minecraft server ' + server + ':' + str(port) + '...')
             with async_timeout.timeout(5):
@@ -639,14 +643,26 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.set_footer(text=target.name, icon_url=avatar_link)
         emb.add_field(name='Players', value=str(data['players']['online']) + '/' + str(data['players']['max']))
         if data['players'].get('sample', False):
-            emb.add_field(name='Players Online', value=smartjoin([p['name'] for p in data['players']['sample']]))
+            content = re.sub(r'\u00a7[4c6e2ab319d5f78lnokmr]', '', smartjoin([p['name'] for p in data['players']['sample']]))
+            if len(content) <= 1024:
+                emb.add_field(name='Players Online', value=content)
+            else:
+                pages = textwrap.wrap(content, width=1024)
+                for page in pages:
+                    emb.add_field(name='Players Online', value=page)
         emb.add_field(name='Version', value=re.sub(r'\u00a7[4c6e2ab319d5f78lnokmr]', '', data['version']['name']))
         emb.add_field(name='Protocol Version', value=data['version']['protocol'])
         if 'modinfo' in data:
             if 'modList' in data['modinfo']:
                 if data['modinfo']['modList']:
-                    emb.add_field(name='Mods', value=smartjoin([m['modid'].title() + ' ' +
-                                  m['version'] for m in data['modinfo']['modList']]))
+                    content = smartjoin([m['modid'].title() + ' ' +
+                              m['version'] for m in data['modinfo']['modList']])
+                    if len(content) <= 1024:
+                        emb.add_field(name='Mods', value=content)
+                    else:
+                        pages = textwrap.wrap(content, width=1024)
+                        for page in pages:
+                            emb.add_field(name='Mods', value=page)
                 else:
                     emb.add_field(name='Use of Mods', value='This server appears to fake its identity, so Forge clients will send their mod list.')
             if data['modinfo'].get('type', False):
@@ -782,6 +798,44 @@ Server Owner\'s ID: `{0.server.owner.id}`
         if '**Send Tts Messages**' in perms:
             perms[perms.index('**Send Tts Messages**')] = '**Send TTS Messages**'
         await self.bot.say('You can ' + smartjoin(perms) + '!')
+
+    @commands.group(pass_context=True, name='xkcd')
+    async def cmd_xkcd(self, ctx):
+        """Get a xkcd comic.
+        Usage: xkcd {stuff}"""
+        if ctx.invoked_subcommand is None:
+            await self.bot.send_cmd_help(ctx)
+
+    @commands.cooldown(1, 4, type=commands.BucketType.user)
+    @cmd_xkcd.command(name='random')
+    async def xkcd_random(self):
+        """Get a random comic from xkcd.
+        Usage: xkcd random"""
+        comic = await xkcd.random_comic()
+        img_bytes = BytesIO((await comic.fetch()))
+        await self.bot.upload(img_bytes, content=comic.title, filename='comic.png')
+
+    @commands.cooldown(1, 4, type=commands.BucketType.user)
+    @cmd_xkcd.command(name='latest')
+    async def xkcd_latest(self):
+        """Get the latest comic from xkcd.
+        Usage: xkcd latest"""
+        comic = await xkcd.latest_comic()
+        img_bytes = BytesIO((await comic.fetch()))
+        await self.bot.upload(img_bytes, content=comic.title, filename='comic.png')
+
+    @commands.cooldown(1, 4, type=commands.BucketType.user)
+    @cmd_xkcd.command(name='number')
+    async def xkcd_number(self, number: int):
+        """Get the Nth comic from xkcd.
+        Usage: xkcd number [number]"""
+        try:
+            comic = await xkcd.get_comic(number)
+        except xkcd.InvalidComic:
+            await self.bot.say(':warning: That comic doesn\'t exist.')
+            return
+        img_bytes = BytesIO((await comic.fetch()))
+        await self.bot.upload(img_bytes, content=comic.title, filename='comic.png')
 
 def setup(bot):
     c = Utility(bot)
