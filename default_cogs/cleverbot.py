@@ -61,6 +61,8 @@ class Cleverbot(Cog):
         if self.bot.status == 'invisible': return
         await self.bot.send_typing(msg.channel)
         lmsg = msg.content.lower().replace('@everyone', 'everyone').replace('@here', 'here')
+        for m in msg.mentions:
+            lmsg = lmsg.replace(m.mention, m.display_name)
         if replace:
             cb_string = lmsg.replace(kickstart, '')
         else:
@@ -115,7 +117,10 @@ class Cleverbot(Cog):
     async def on_pm(self, msg):
         """PM replying logic."""
         await self.bot.send_typing(msg.channel)
-        cb_reply = await self.askcb(msg.content)
+        c = msg.content
+        for m in msg.mentions:
+            c = c.replace(m.mention, m.display_name)
+        cb_reply = await self.askcb(c)
         return await self.bot.msend(msg, ':speech_balloon: ' + cb_reply)
 
     async def on_prefix_convo(self, msg, lbname):
