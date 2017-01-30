@@ -3,6 +3,7 @@ import asyncio
 import io
 import copy
 import sys
+import re
 from datetime import datetime
 import util.commands as commands
 from util.perms import echeck_perms
@@ -89,7 +90,7 @@ class SelfbotGoodies(Cog):
         content = copy.copy(msg.content)
         for sub, replacement in self.dstore['subs'].items():
             if sub in msg.content:
-                content = content.replace(sub, replacement)
+                content = re.sub('\\b' + sub + '\\b', replacement, content)
         if content != msg.content:
             await self.bot.edit_message(msg, content)
 
