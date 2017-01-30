@@ -348,6 +348,9 @@ class GoldBot(commands.Bot):
                 if '```' in content:
                     truncate_msg = '```' + truncate_msg
                 content = content[:2000 - len(truncate_msg)] + truncate_msg
+            elif len(content) <= 1999:
+                if self.selfbot:
+                    content += '\u200b'
         if embed:
             embed = embed.to_dict()
         try:
