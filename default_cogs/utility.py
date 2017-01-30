@@ -838,6 +838,17 @@ Server Owner\'s ID: `{0.server.owner.id}`
         img_bytes = BytesIO((await comic.fetch()))
         await self.bot.upload(img_bytes, content=comic.title, filename='comic.png')
 
+    @commands.command(aliases=['zws', 'u200b', '200b'])
+    async def zwsp(self, number: int=1):
+        """Output a number of ZWSPs.
+        Usage: zwsp {number = 1}"""
+        if number > 2000:
+            await self.bot.say('I can\'t give you more than 2000 ZWSPs.')
+        elif number > 2000:
+            await self.bot.say('\u200b' * number)
+        else:
+            await self.bot.say('I can\'t give you zero ZWSPs.')
+
 def setup(bot):
     c = Utility(bot)
     bot.add_cog(c)
