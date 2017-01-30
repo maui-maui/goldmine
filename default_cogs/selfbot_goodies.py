@@ -120,13 +120,27 @@ class SelfbotGoodies(Cog):
             await self.bot.say('You don\'t have any substitutions!')
 
     @sub.command()
-    async def remove(self, number: int):
-        """Remove a substitution."""
+    async def edit(self, number: int, *, content: str):
+        """Edit a substitution.
+        Usage: sub edit [number] [new content]"""
         if number <= 0:
             await self.bot.say('We don\'t have zero or negative substitutions here!')
         else:
             try:
-                del self.dstore['subs'][list(self.dstore['subs'].keys())[number - 1 ]]
+                self.dstore['subs'][list(self.dstore['subs'].keys())[number - 1]] = content
+                await self.bot.say('Edited substitution #' + str(number) + '.')
+            except (IndexError, ValueError):
+                await self.bot.say('No such substitution.')
+
+    @sub.command(aliases=['delete', 'del'])
+    async def remove(self, number: int):
+        """Remove a substitution.
+        Usage: sub remove number"""
+        if number <= 0:
+            await self.bot.say('We don\'t have zero or negative substitutions here!')
+        else:
+            try:
+                del self.dstore['subs'][list(self.dstore['subs'].keys())[number - 1]]
                 await self.bot.say('Deleted substitution #' + str(number) + '.')
             except (IndexError, ValueError):
                 await self.bot.say('No such substitution.')
