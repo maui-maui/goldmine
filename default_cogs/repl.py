@@ -79,7 +79,7 @@ class REPL(Cog):
             if msg.content.replace('`', '').replace('\n', '').strip('py') in ('quit', 'exit', 'exit()', 'sys.exit()'):
                 await asyncio.sleep(0.6)
                 if msg.channel.id in self.sessions:
-                    await self.bot.say('Exiting.')
+                    await self.bot.send_message(ctx.message.channel, '**Exiting...**')
                     self.sessions.remove(msg.channel.id)
                     raise commands.PassException()
 
@@ -173,7 +173,7 @@ class REPL(Cog):
             cleaned = self.cleanup_code(response.content)
 
             if cleaned in ('quit', 'exit', 'exit()', 'sys.exit()'):
-                await self.bot.say('Exiting.')
+                await self.bot.say('**Exiting...**')
                 self.sessions.remove(msg.channel.id)
                 quit_task.cancel()
                 return
