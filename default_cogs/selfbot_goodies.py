@@ -1,6 +1,7 @@
 """Nice selfbot goodies."""
 import asyncio
 import io
+import copy
 import sys
 from datetime import datetime
 import util.commands as commands
@@ -80,6 +81,15 @@ class SelfbotGoodies(Cog):
         image = self.web_render.capture(webpage)
         await self.bot.upload(io.BytesIO(image), filename='webpage.png')
 
+    async def on_not_command(self, msg):
+        if msg.author.id != self.bot.user.id: return
+        content = copy.copy(msg.content)
+        for sub, replacement in self.dstore['subs'].items():
+            if sub in msg.content:
+                content = content.replace(sub, replacement)
+        if content != msg.content:
+            await self.bot.edit_message(msg, content)
+
     @commands.group(pass_context=True)
     async def sub(self, ctx):
         """Message substitution manager.
@@ -87,6 +97,20 @@ class SelfbotGoodies(Cog):
         await echeck_perms(ctx, ('bot_owner',))
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
+
+    @sub.command()
+    async def add(self, replace: str, *, sub: str):
+        """Add a substitution.
+        Usage: sub add [from] [to]"""
+        if replace not in self.dstore['subs']:
+            self.dstore['subs'][replace] = sub
+        else:
+            await self.bot.say(':warning: `' + replace + '` is already a substitution!')
+    
+    @sub.command(aliases=['ls'])
+    async def list(self):
+        """List the substitutions.
+        Usage: sub list"""
 
 def setup(bot):
     bot.add_cog(SelfbotGoodies(bot))

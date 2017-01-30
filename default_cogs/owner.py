@@ -2,6 +2,7 @@
 from __future__ import print_function
 from importlib import import_module as imp
 import distutils.dir_util
+from contextlib import suppress
 from util.perms import echeck_perms, check_perms
 from util.func import bdel, DiscordFuncs, _set_var, _import, _del_var, snowtime, assert_msg, check
 import util.dynaimport as di
