@@ -10,7 +10,7 @@ import discord
 from default_cogs.utils.dataIO import dataIO
 import __main__
 __main__.core_file = __file__
-from util.token import bot_token, selfbot
+from util.token import bot_token, selfbot, is_bot
 from convert_to_old_syntax import rc_files, cur_dir
 from util.goldbot import GoldBot
 from util.datastore import initialize as init_store
@@ -79,7 +79,7 @@ def runbot(loop, bot):
     """Start the bot and handle Ctrl-C."""
     try:
         try:
-            loop.run_until_complete(bot.start(*bot_token))
+            loop.run_until_complete(bot.start(*bot_token, bot=is_bot))
         except discord.errors.LoginFailure:
             print('''Hmm... I\'m having trouble logging into Discord.
 This usually means you revoked your token, or gave an invalid token.

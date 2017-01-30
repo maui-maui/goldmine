@@ -66,3 +66,4 @@ HOWEVER, if you want me to run as a selfbot, just answer \'self\' for this.''')
         print('\nYou pressed Ctrl-C... Ok, exiting setup.')
         exit(0)
 selfbot = len(bot_token) > 1
+is_bot = True
