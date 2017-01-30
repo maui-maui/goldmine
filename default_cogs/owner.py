@@ -306,6 +306,8 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
 
     @commands.command(pass_context=True)
     async def console_msg(self, ctx):
+        """Allow you to type here in the console.
+        Usage: console_msg"""
         await echeck_perms(ctx, ('bot_owner',))
         def console_task(ch):
             while True:
@@ -321,6 +323,8 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
 
     @commands.command(pass_context=True)
     async def messages(self, ctx, *number: int):
+        """Read contact messages.
+        Usage: messages {number}"""
         await echeck_perms(ctx, ('bot_owner',))
         def chan(msg):
             if 'server' in msg:
