@@ -83,6 +83,7 @@ class SelfbotGoodies(Cog):
 
     async def on_not_command(self, msg):
         if msg.author.id != self.bot.user.id: return
+        if msg.content.startswith('Here are your substitutions:\n`#0`'): return
         content = copy.copy(msg.content)
         for sub, replacement in self.dstore['subs'].items():
             if sub in msg.content:
@@ -90,7 +91,7 @@ class SelfbotGoodies(Cog):
         if content != msg.content:
             await self.bot.edit_message(msg, content)
 
-    @commands.group(pass_context=True)
+    @commands.group(pass_context=True, aliases=['subs'])
     async def sub(self, ctx):
         """Message substitution manager.
         Usage: sub {stuff}"""
@@ -104,14 +105,34 @@ class SelfbotGoodies(Cog):
         Usage: sub add [from] [to]"""
         if replace not in self.dstore['subs']:
             self.dstore['subs'][replace] = sub
+            await self.bot.say('Substitution added!')
         else:
             await self.bot.say(':warning: `' + replace + '` is already a substitution!')
-    
+
     @sub.command(aliases=['ls'])
     async def list(self):
         """List the substitutions.
         Usage: sub list"""
+        if len(self.dstore['subs']) >= 1:
+            ct = '\n'.join('`#' + str(pair[0]) + '`: ' + pair[1][0] + ' **→** ' + pair[1][1] for pair in enumerate(self.dstore['subs'].items()))
+            await self.bot.say('Here are your substitutions:\n' + ct)
+        else:
+            await self.bot.say('You don\'t have any substitutions!')
+
+    @sub.command()
+    async def remove(self, number: int):
+        """Remove a substitution."""
+        if number <= 0:
+            await self.bot.say('We don\'t have zero or negative substitutions here!')
+        else:
+            try:
+                del self.dstore['subs'][number - 1]
+                await self.bot.say('Deleted substitution #' + str(number) + '.')
+            except (IndexError, ValueError):
+                await self.bot.say('No such substitution.')
 
 def setup(bot):
+    if 'subs' not in bot.store.store:
+        bot.store.store['subs'] = {}
     bot.add_cog(SelfbotGoodies(bot))
 
