@@ -67,3 +67,4 @@ HOWEVER, if you want me to run as a selfbot, just answer \'self\' for this.''')
         exit(0)
 selfbot = len(bot_token) > 1
 is_bot = True
+#selfbot, is_bot = (True, False)
