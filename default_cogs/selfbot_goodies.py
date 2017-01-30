@@ -83,7 +83,7 @@ class SelfbotGoodies(Cog):
 
     async def on_not_command(self, msg):
         if msg.author.id != self.bot.user.id: return
-        if msg.content.startswith('Here are your substitutions:\n`#0`'): return
+        if msg.content.startswith('Here are your substitutions:\n`#1`'): return
         content = copy.copy(msg.content)
         for sub, replacement in self.dstore['subs'].items():
             if sub in msg.content:
@@ -114,7 +114,7 @@ class SelfbotGoodies(Cog):
         """List the substitutions.
         Usage: sub list"""
         if len(self.dstore['subs']) >= 1:
-            ct = '\n'.join('`#' + str(pair[0]) + '`: ' + pair[1][0] + ' **→** ' + pair[1][1] for pair in enumerate(self.dstore['subs'].items()))
+            ct = '\n'.join('`#' + str(pair[0] + 1) + '`: ' + pair[1][0] + ' **→** ' + pair[1][1] for pair in enumerate(self.dstore['subs'].items()))
             await self.bot.say('Here are your substitutions:\n' + ct)
         else:
             await self.bot.say('You don\'t have any substitutions!')
@@ -126,7 +126,7 @@ class SelfbotGoodies(Cog):
             await self.bot.say('We don\'t have zero or negative substitutions here!')
         else:
             try:
-                del self.dstore['subs'][number - 1]
+                del self.dstore['subs'][list(self.dstore['subs'].keys())[number - 1 ]]
                 await self.bot.say('Deleted substitution #' + str(number) + '.')
             except (IndexError, ValueError):
                 await self.bot.say('No such substitution.')
