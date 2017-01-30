@@ -735,6 +735,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
             emb.add_field(name=trait, value=str(traits[trait]))
         await self.bot.say(embed=emb)
 
+    @commands.cooldown(1, 5.75, type=commands.BucketType.user)
     @commands.command(pass_context=True, aliases=['qr', 'makeqr', 'qrmake'])
     async def qrcode(self, ctx, *, text: str):
         """Create a QR code.
