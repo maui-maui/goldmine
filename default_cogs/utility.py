@@ -844,7 +844,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         Usage: zwsp {number = 1}"""
         if number > 2000:
             await self.bot.say('I can\'t give you more than 2000 ZWSPs.')
-        elif number > 2000:
+        elif number > 0:
             await self.bot.say('\u200b' * number)
         else:
             await self.bot.say('I can\'t give you zero ZWSPs.')
