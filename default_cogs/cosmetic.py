@@ -152,13 +152,6 @@ Testing multi line
         Usage: animlist"""
         await self.bot.say('**Listing stored packed animations.**```\n' + '\n'.join(spinners) + '```')
 
-    @commands.command(pass_context=True, aliases=['spider', 'spiders'])
-    async def webs(self, ctx):
-        """Some web developers that like bugs.
-        Usage: web"""
-        with open('assets/webs.jpeg', 'rb') as image:
-            await self.bot.send_file(ctx.message.channel, image, filename='spiders_webs.jpg')
-
 #    @commands.cooldown(1, 4, type=commands.BucketType.user)
     @commands.command(pass_context=True, aliases=['random.cat', 'randomcat', 'rcat', 'cats', 'catrandom', 'random_cat'])
     async def cat(self, ctx):

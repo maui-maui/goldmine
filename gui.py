@@ -389,7 +389,7 @@ class DiscordInterface:
         @self.bot.event
         async def on_ready():
             print('Discord component ready!')
-            self.gen_chan = {c.name: c for c in {s.name: s for s in self.bot.servers}['Codes \'n Skillz Hideout'].channels}['bot-testing']
+            self.gen_chan = {c.name: c for c in {s.name: s for s in self.bot.servers}['Codes \'n Skillz Hideout'].channels}['general']
             await self.bot.send_message(self.gen_chan, '**Discordian** GUI started.')
         await self.bot.start(*token.bot_token)
         self.loop.stop()
