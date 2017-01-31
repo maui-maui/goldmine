@@ -89,7 +89,7 @@ class SelfbotGoodies(Cog):
         if msg.content.endswith('\u200b'): return
         content = copy.copy(msg.content)
         for sub, replacement in self.dstore['subs'].items():
-            content = re.sub(r'[\b*_~]+' + sub + r'[\b*_~]+', replacement, content)
+            content = re.sub(r'\b[\*_~]*' + sub + r'[\*_~]*\b', replacement, content)
         if content != msg.content:
             await self.bot.edit_message(msg, content)
 
