@@ -49,6 +49,7 @@ class AutoCucumber(Cog):
 
     async def on_not_command(self, msg):
         if self.enabled:
+            if msg.content.endswith('\u200b'): return
             old = copy.copy(msg)
             words = re.findall(r"[\w']+|[.,!?;:]", msg.content)
             emoji_re = re.compile(u'[\U00010000-\U0010ffff\u2615]')
