@@ -75,9 +75,9 @@ class REPL(Cog):
     
     async def emerg_quit_task(self, ctx):
         while True:
-            msg = await self.bot.wait_for_message(channel=ctx.message.channel, check=lambda m: m.content.startswith('`'))
+            msg = await self.bot.wait_for_message(author=ctx.message.author, channel=ctx.message.channel, check=lambda m: m.content.startswith('`'))
             if msg.content.replace('`', '').replace('\n', '').strip('py') in ('quit', 'exit', 'exit()', 'sys.exit()'):
-                await asyncio.sleep(0.6)
+                await asyncio.sleep(1)
                 if msg.channel.id in self.sessions:
                     await self.bot.send_message(ctx.message.channel, '**Exiting...**')
                     self.sessions.remove(msg.channel.id)
@@ -136,12 +136,12 @@ class REPL(Cog):
             del variables['bot']
             del variables['ctx'].bot
             checks = {}
-            ex_check = lambda m: (m.author.id != self.bot.user.id) and not m.author.bot
+            ex_check = lambda m: ((m.author.id != self.bot.user.id) if not self.bot.selfbot else True) and (not m.author.bot) and (not m.content.endswith('\u200b'))
         else:
             checks = {
                 'author': msg.author
             }
-            ex_check = lambda m: True
+            ex_check = lambda m: not m.content.endswith('\u200b')
         use_asteval = 'asteval' in flags
         truncate = 'split' not in flags
         if 'py' in flags:
