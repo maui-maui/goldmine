@@ -101,7 +101,7 @@ class SelfbotGoodies(Cog):
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
-    @sub.command()
+    @sub.command(aliases=['new', 'create', 'make'])
     async def add(self, replace: str, *, sub: str):
         """Add a substitution.
         Usage: sub add [from] [to]"""
@@ -121,7 +121,7 @@ class SelfbotGoodies(Cog):
         else:
             await self.bot.say('You don\'t have any substitutions!')
 
-    @sub.command()
+    @sub.command(aliases=['mod', 'rewrite', 'change'])
     async def edit(self, number: int, *, content: str):
         """Edit a substitution.
         Usage: sub edit [number] [new content]"""
@@ -134,7 +134,7 @@ class SelfbotGoodies(Cog):
             except (IndexError, ValueError):
                 await self.bot.say('No such substitution.')
 
-    @sub.command(aliases=['delete', 'del'])
+    @sub.command(aliases=['delete', 'del', 'rm'])
     async def remove(self, number: int):
         """Remove a substitution.
         Usage: sub remove number"""
