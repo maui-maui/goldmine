@@ -97,7 +97,7 @@ class Owner(Cog):
         Usage: dload"""
         await echeck_perms(ctx, ('bot_owner',))
         await self.bot.say('**ARE YOU SURE YOU WANT TO LOAD THE DATASTORE?** *yes, no*')
-        resp = await self.bot.wait_for_message(author=ctx.message.author)
+        resp = await self.bot.wait_for_message(channel=ctx.message.channel, author=ctx.message.author)
         if resp.content.lower() == 'yes':
             await self.store.read()
             await self.bot.say('**Read the datastore from disk, overwriting current copy!**')
