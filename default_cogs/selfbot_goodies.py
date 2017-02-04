@@ -129,28 +129,22 @@ class SelfbotGoodies(Cog):
     @sub.command(aliases=['mod', 'rewrite', 'change'])
     async def edit(self, name: str, *, content: str):
         """Edit a substitution.
-        Usage: sub edit [number] [new content]"""
-        if number <= 0:
-            await self.bot.say('We don\'t have zero or negative substitutions here!')
-        else:
-            try:
-                self.dstore['subs'][name] = content
-                await self.bot.say('Edited substitution `' + name + '`.')
-            except KeyError:
-                await self.bot.say('No such substitution.')
+        Usage: sub edit [substitution] [new content]"""
+        try:
+            self.dstore['subs'][name] = content
+            await self.bot.say('Edited substitution `' + name + '`.')
+        except KeyError:
+            await self.bot.say('No such substitution.')
 
     @sub.command(aliases=['delete', 'del', 'rm'])
     async def remove(self, *, name: str):
         """Remove a substitution.
-        Usage: sub remove number"""
-        if number <= 0:
-            await self.bot.say('We don\'t have zero or negative substitutions here!')
-        else:
-            try:
-                del self.dstore['subs'][name]
-                await self.bot.say('Deleted substitution `' + name + '`.')
-            except KeyError:
-                await self.bot.say('No such substitution.')
+        Usage: sub remove [substitution]"""
+        try:
+            del self.dstore['subs'][name]
+            await self.bot.say('Deleted substitution `' + name + '`.')
+        except KeyError:
+            await self.bot.say('No such substitution.')
 
     @commands.command(pass_context=True, aliases=['ttsspam', 'tts_spam'])
     async def ttspam(self, ctx, *, text: str):
