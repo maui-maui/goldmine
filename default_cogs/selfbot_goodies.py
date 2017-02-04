@@ -148,7 +148,7 @@ class SelfbotGoodies(Cog):
             except (IndexError, ValueError):
                 await self.bot.say('No such substitution.')
 
-    @commands.command(pass_context=True)
+    @commands.command(pass_context=True, aliases=['ttsspam', 'tts_spam'])
     async def ttspam(self, ctx, *, text: str):
         """Spam a message with TTS. **This may get you banned from some servers.**
         Usage: ttspam [message]"""
