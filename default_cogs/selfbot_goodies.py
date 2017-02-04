@@ -89,7 +89,9 @@ class SelfbotGoodies(Cog):
         if msg.content.endswith('\u200b'): return
         content = copy.copy(msg.content)
         for sub, replacement in self.dstore['subs'].items():
-            content = re.sub(r'\b[\*_~]*' + sub + r'[\*_~]*\b', replacement, content)
+            regexp = r'\b[\*_~]*' + sub + r'[\*_~]*\b'
+            final_rep = replacement
+            content = re.sub(regexp, final_rep, content)
         if content != msg.content:
             await self.bot.edit_message(msg, content)
 
@@ -116,8 +118,13 @@ class SelfbotGoodies(Cog):
         """List the substitutions.
         Usage: sub list"""
         if len(self.dstore['subs']) >= 1:
-            ct = '\n'.join('`#' + str(pair[0] + 1) + '`: ' + pair[1][0] + ' **→** ' + pair[1][1] for pair in enumerate(self.dstore['subs'].items()))
-            await self.bot.say('Here are your substitutions:\n' + ct)
+            pager = commands.Paginator(prefix='', suffix='')
+            pager.add_line('Here are your substitutions:')
+            for idx, (key, sub) in enumerate(self.dstore['subs'].items()):
+                content = sub[0]
+                pager.add_line('`#' + str(idx + 1) + '`: ' + ' **→** ' + str(sub) + 'idk yet')
+            for pg in pager.pages:
+                await self.bot.say(pg)
         else:
             await self.bot.say('You don\'t have any substitutions!')
 

@@ -17,6 +17,7 @@ class REPL(Cog):
         self.sessions = set()
         self.asteval = asteval.Interpreter(use_numpy=False)
         self.root_path = os.path.dirname(os.path.abspath(sys.modules['__main__'].core_file))
+        self.cur_task = {}
         super().__init__(bot)
 
     def cleanup_code(self, content):
@@ -81,6 +82,9 @@ class REPL(Cog):
                 if msg.channel.id in self.sessions:
                     await self.bot.send_message(ctx.message.channel, '**Exiting...**')
                     self.sessions.remove(msg.channel.id)
+                    if msg.channel.id in self.cur_task:
+                        self.cur_task[msg.channel.id].cancel()
+                        del self.cur_task[msg.channel.id]
                     raise commands.PassException()
 
     @commands.command(pass_context=True)
@@ -214,9 +218,13 @@ class REPL(Cog):
                 stdout = io.StringIO()
                 try:
                     with redirect_stdout(stdout):
-                        result = await self.loop.run_in_executor(None, executor, code, variables)
+                        task = self.loop.create_task(self.loop.run_in_executor(None, executor, code, variables))
+                        self.cur_task[ctx.message.channel.id] = task
+                        result = await asyncio.wait_for(task, timeout=120)
                         if inspect.isawaitable(result):
-                            result = await result
+                            r_task = self.loop.create_task(result)
+                            self.cur_task[ctx.message.channel.id] = r_task
+                            result = await r_task
                 except Exception as e:
                     value = stdout.getvalue()
                     fmt = '{}{}\n'.format(value, traceback.format_exc())
@@ -227,6 +235,9 @@ class REPL(Cog):
                         variables['last'] = result
                     elif value:
                         fmt = f'{value}\n'
+                finally:
+                    if ctx.message.channel.id in self.cur_task:
+                        del self.cur_task[ctx.message.channel.id]
             try:
                 if fmt is not None:
                     fmt = fmt.replace(self.root_path, 'bot_path')
@@ -243,6 +254,8 @@ class REPL(Cog):
             except discord.HTTPException as e:
                 await self.bot.send_message(msg.channel, f'Unexpected error: `{e}`')
         quit_task.cancel()
+        if ctx.message.channel.id in self.cur_task:
+            del self.cur_task[ctx.message.channel.id]
 
 def setup(bot):
     bot.add_cog(REPL(bot))
