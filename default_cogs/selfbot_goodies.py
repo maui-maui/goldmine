@@ -117,35 +117,39 @@ class SelfbotGoodies(Cog):
         """List the substitutions.
         Usage: sub list"""
         if len(self.dstore['subs']) >= 1:
-            ct = '\n'.join('`#' + str(pair[0] + 1) + '`: ' + pair[1][0] + ' **→** ' + pair[1][1] for pair in enumerate(self.dstore['subs'].items()))
-            await self.bot.say('Here are your substitutions:\n' + ct)
+            pager = commands.Paginator(prefix='', suffix='')
+            pager.add_line('Here are your substitutions:')
+            for idx, (name, replacement) in enumerate(self.dstore['subs'].items()):
+                pager.add_line('`#' + str(idx + 1) + '`: ' + name + ' **→** ' + replacement)
+            for page in pager.pages:
+                await self.bot.say(page)
         else:
             await self.bot.say('You don\'t have any substitutions!')
 
     @sub.command(aliases=['mod', 'rewrite', 'change'])
-    async def edit(self, number: int, *, content: str):
+    async def edit(self, name: str, *, content: str):
         """Edit a substitution.
         Usage: sub edit [number] [new content]"""
         if number <= 0:
             await self.bot.say('We don\'t have zero or negative substitutions here!')
         else:
             try:
-                self.dstore['subs'][list(self.dstore['subs'].keys())[number - 1]] = content
-                await self.bot.say('Edited substitution #' + str(number) + '.')
-            except (IndexError, ValueError):
+                self.dstore['subs'][name] = content
+                await self.bot.say('Edited substitution `' + name + '`.')
+            except KeyError:
                 await self.bot.say('No such substitution.')
 
     @sub.command(aliases=['delete', 'del', 'rm'])
-    async def remove(self, number: int):
+    async def remove(self, *, name: str):
         """Remove a substitution.
         Usage: sub remove number"""
         if number <= 0:
             await self.bot.say('We don\'t have zero or negative substitutions here!')
         else:
             try:
-                del self.dstore['subs'][list(self.dstore['subs'].keys())[number - 1]]
-                await self.bot.say('Deleted substitution #' + str(number) + '.')
-            except (IndexError, ValueError):
+                del self.dstore['subs'][name]
+                await self.bot.say('Deleted substitution `' + name + '`.')
+            except KeyError:
                 await self.bot.say('No such substitution.')
 
     @commands.command(pass_context=True, aliases=['ttsspam', 'tts_spam'])
