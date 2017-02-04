@@ -15,7 +15,7 @@ from .cog import Cog
 
 for mod in ['asyncio', 'random', 're', 'sys', 'time', 'textwrap', 'unicodedata',
             'aiohttp', 'async_timeout', 'discord', 'asteval', 'os', 'elizabeth',
-            'qrcode', 'warnings', 'tesserocr', 'contextlib']:
+            'qrcode', 'warnings', 'tesserocr', 'contextlib', 'base64']:
     globals()[mod] = di.load(mod)
 json = di.load('util.json')
 commands = di.load('util.commands')
@@ -53,10 +53,11 @@ class Utility(Cog):
     async def say(self, ctx, *, stuffs: str):
         """Repeat your message.
         Usage: say [message]"""
-        try:
-            await self.bot.delete_message(ctx.message)
-        except discord.Forbidden:
-            pass
+        if not self.bot.selfbot:
+            try:
+                await self.bot.delete_message(ctx.message)
+            except discord.Forbidden:
+                pass
         await self.bot.say(stuffs)#.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere'))
 
     async def math_task(self, code: str):
@@ -256,6 +257,8 @@ class Utility(Cog):
         r_embed = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
         r_embed.set_author(name=s.name, url='https://blog.khronodragon.com/', icon_url=(iurl if iurl else avatar_link))
         r_embed.set_footer(text=str(target), icon_url=avatar_link)
+        if iurl:
+            r_embed.set_image(url=iurl)
         r_embed.add_field(name='ID', value=s.id)
         r_embed.add_field(name='Members', value=len(s.members))
         r_embed.add_field(name='Channels', value=ch_fmt.format(*[str(i) for i in chlist]))
@@ -539,7 +542,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
             '\u0020',
             '\uFEFF'
         ]
-        cinfo = commands.Paginator(prefix='', suffix='')
+        cinfo = commands.Paginator(prefix='', suffix='', max_size=(1999 if self.bot.selfbot else 2000))
         for char in list(uchars.replace('\n', '')):
             hexp = str(hex(ord(char))).replace('0x', '').upper()
             while len(hexp) < 4:
@@ -848,6 +851,28 @@ Server Owner\'s ID: `{0.server.owner.id}`
             await self.bot.say('\u200b' * number)
         else:
             await self.bot.say('I can\'t give you zero ZWSPs.')
+
+    @commands.command()
+    async def b64decode(self, *, b64: str):
+        """Decode some base64 data.
+        Usage: b64decode [base64]"""
+        br = base64.b64decode(b64)
+        try:
+            m = br.decode('utf-8')
+        except ValueError:
+            m = '```' + str(br)[2:][:-1] + '```'
+        await self.bot.say(m)
+
+    @commands.command()
+    async def b64encode(self, *, b64: str):
+        """Encode some base64 data.
+        Usage: b64encode [base64]"""
+        br = base64.b64encode(b64.encode('utf-8'))
+        try:
+            m = br.decode('utf-8')
+        except ValueError:
+            m = '```' + str(br)[2:][:-1] + '```'
+        await self.bot.say(m)
 
 def setup(bot):
     c = Utility(bot)
