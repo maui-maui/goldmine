@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """The launcher for Dragon5232's Discord bot.'"""
 from __future__ import print_function
+#import util.kewl
 print('The bot is now loading, please wait...')
 import sys
 print('Running on Python ' + '.'.join([str(i) for i in sys.version_info]))

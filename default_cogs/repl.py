@@ -76,7 +76,7 @@ class REPL(Cog):
     async def emerg_quit_task(self, ctx):
         while True:
             msg = await self.bot.wait_for_message(author=ctx.message.author, channel=ctx.message.channel, check=lambda m: m.content.startswith('`'))
-            if msg.content.replace('`', '').replace('\n', '').strip('py') in ('quit', 'exit', 'exit()', 'sys.exit()'):
+            if msg.content.replace('`', '').replace('\n', '').strip('py') in ['quit', 'exit', 'exit()', 'sys.exit()']:
                 await asyncio.sleep(1)
                 if msg.channel.id in self.sessions:
                     await self.bot.send_message(ctx.message.channel, '**Exiting...**')
