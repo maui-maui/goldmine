@@ -257,6 +257,8 @@ class Utility(Cog):
         r_embed = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
         r_embed.set_author(name=s.name, url='https://blog.khronodragon.com/', icon_url=(iurl if iurl else avatar_link))
         r_embed.set_footer(text=str(target), icon_url=avatar_link)
+        if iurl:
+            r_embed.set_image(url=iurl)
         r_embed.add_field(name='ID', value=s.id)
         r_embed.add_field(name='Members', value=len(s.members))
         r_embed.add_field(name='Channels', value=ch_fmt.format(*[str(i) for i in chlist]))
