@@ -330,7 +330,8 @@ class DiscordMain(QWidget):
         self.main_wrap.addWidget(self.channel_list)
         self.main_wrap.addWidget(self.msg_view)
         btn = QPushButton('test msg')
-        btn.clicked.connect(lambda: self.parent.discord.send_message(self.parent.discord.gen_chan, 'test message'))
+        #btn.clicked.connect(lambda: self.parent.discord.send_message(self.parent.discord.gen_chan, 'test message'))
+        btn.clicked.connect(lambda: self.parent.discord.bot.loop.create_task(self.parent.discord.bot.send_message(self.parent.discord.gen_chan, 'hmmm i wonder if this works better')))
         self.main_wrap.addWidget(btn)
         self.main_grid = QGridLayout()
         self.main_grid.addLayout(self.main_wrap, 0, 1)
@@ -393,7 +394,7 @@ class DiscordInterface:
             await self.bot.send_message(self.gen_chan, '**Discordian** GUI started.')
         await self.bot.start(*token.bot_token)
         self.loop.stop()
-
+'''
     def __getattr__(self, name):
         if name in dir(self):
             return getattr(self, name)
@@ -403,7 +404,7 @@ class DiscordInterface:
                 if hasattr(bot_attr, '__call__'):
                     return FakeDiscordCallable(name, self, bot_attr)
                 else:
-                    return bot_attr
+                    return bot_attr'''
 
 def quit_cleanup(window):
     if window.discord:
@@ -421,7 +422,7 @@ def main():
     app.setStyleSheet(stylesheets[0])
     window = DiscordWindow()
     timer = QTimer()
-    timer.start(60) # let interpreter run every 550ms
+    timer.start(20) # let interpreter run every 550ms
     timer.timeout.connect(lambda: None)
     window.show()
     window.raise_()
