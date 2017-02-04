@@ -4,6 +4,7 @@ import io
 import copy
 import sys
 import re
+import textwrap
 from datetime import datetime
 import util.commands as commands
 from util.perms import echeck_perms
@@ -146,6 +147,12 @@ class SelfbotGoodies(Cog):
                 await self.bot.say('Deleted substitution #' + str(number) + '.')
             except (IndexError, ValueError):
                 await self.bot.say('No such substitution.')
+
+    @commands.command(pass_context=True)
+    async def ttspam(self, ctx, *, text: str):
+        """"""
+        await echeck_perms(ctx, ('bot_owner',))
+        await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
 
 def setup(bot):
     if 'subs' not in bot.store.store:
