@@ -150,7 +150,8 @@ class SelfbotGoodies(Cog):
 
     @commands.command(pass_context=True)
     async def ttspam(self, ctx, *, text: str):
-        """"""
+        """Spam a message with TTS. **This may get you banned from some servers.**
+        Usage: ttspam [message]"""
         await echeck_perms(ctx, ('bot_owner',))
         await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
 
