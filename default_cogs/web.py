@@ -3,7 +3,7 @@ import os
 import sys
 import json
 import aiohttp
-import japronto
+#import japronto
 from sanic import Sanic
 import sanic.response as response
 import util.commands as commands
@@ -19,10 +19,15 @@ class Web(Cog):
     def __init__(self, bot):
         super().__init__(bot)
         self.port = 8085
-        self.host = '0.0.0.0'
+        self.host = '127.0.0.1'
         self.app = None
         self.server = None
         self.server_task = None
+        if bot.user:
+            self.loop.create_task(self.start())
+
+    def __unload(self):
+        self.server_task.cancel()
 
     async def on_ready(self):
         await self.start()
@@ -37,8 +42,11 @@ class Web(Cog):
         self.logger.info('debug ALSO starting japronto 8090 not')
 
     async def init_app(self, app):
+        print('INIT APP')
         @app.route('/')
         async def test(req):
+            print('i gotta req /')
+            return response.text('hello')
             return response.file(webroot('index.html'))
 
 def setup(bot):
