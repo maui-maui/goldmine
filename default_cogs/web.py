@@ -3,12 +3,13 @@ import os
 import sys
 import json
 import aiohttp
-#import japronto
-from sanic import Sanic
-import sanic.response as response
 import util.commands as commands
+import util.dynaimport as di
 from .cog import Cog
 
+japronto = di.load('japronto')
+sanic = di.load('sanic')
+response = di.load('sanic.response')
 root_dir = os.path.dirname(os.path.abspath(sys.modules['__main__'].core_file))
 web_root = os.path.join(root_dir, 'assets', 'web')
 def webroot(f):
@@ -34,7 +35,7 @@ class Web(Cog):
 
     async def start(self):
         self.logger.info('Starting web server on %s:%s!', self.host, str(self.port))
-        app = Sanic()
+        app = sanic.Sanic()
         await self.init_app(app)
         self.app = app
         self.server = app.create_server(host=self.host, port=self.port)
