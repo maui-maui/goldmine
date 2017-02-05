@@ -151,7 +151,9 @@ class SelfbotGoodies(Cog):
         """Spam a message with TTS. **This may get you banned from some servers.**
         Usage: ttspam [message]"""
         await echeck_perms(ctx, ('bot_owner',))
-        await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
+        m = await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
+        await asyncio.sleep(0.1)
+        await self.bot.delete_message(m)
 
 def setup(bot):
     if 'subs' not in bot.store.store:
