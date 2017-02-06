@@ -89,8 +89,13 @@ class SelfbotGoodies(Cog):
         if msg.content.startswith('```') or msg.content.endswith('```'): return
         if msg.content.endswith('\u200b'): return
         content = copy.copy(msg.content)
-        for sub, replacement in self.dstore['subs'].items():
-            content = re.sub(r'\b[\*_~]*' + sub + r'[\*_~]*\b', replacement, content)
+        for sub, rep in self.dstore['subs'].items():
+            regexp = r'\b[\*_~]*' + sub + r'[\*_~]*\b'
+            replacement = rep
+            try:
+                content = re.sub(regexp, replacement, content)
+            except Exception as e:
+                self.logger.error('Substititons: Regexp error. ' + sub)
         if content != msg.content:
             await self.bot.edit_message(msg, content)
 

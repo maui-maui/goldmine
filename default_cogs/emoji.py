@@ -9,7 +9,7 @@ from .cog import Cog
 class Emoji(Cog):
     """😄 Emoji! 😂"""
 
-    @commands.command(aliases=['csay', 'esay', 'coolsay'])
+    @commands.command(aliases=['csay', 'esay', 'coolsay', 'emotesay'])
     async def emotisay(self, *, text: str):
         """Make the bot mention someone. Useful for testing.
         Usage: emotisay [your text here]"""
