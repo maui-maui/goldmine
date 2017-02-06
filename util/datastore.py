@@ -51,6 +51,12 @@ class DataStore():
     def __getitem__(self, item: str):
         return self.store[item]
 
+    def __setitem__(self, key, item):
+        self.store[key] = item
+
+    def __len__(self):
+        return len(self.store)
+
     async def read(self):
         """Re-read the datastore from disk, discarding changes."""
         if self.backend == 'json':

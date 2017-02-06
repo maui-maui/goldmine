@@ -201,3 +201,14 @@ def smartjoin(l):
 
 ceaser_encode = (lambda s, k: s.translate(str.maketrans(('abcdefghijklmnopqrstuvwxyz' + 'abcdefghijklmnopqrstuvwxyz'.upper()), (lambda a: ''.join(a[(a.index(i) + k) % len(a)] for i in a))('abcdefghijklmnopqrstuvwxyz') + (lambda a: ''.join(a[(a.index(i) + k) % len(a)] for i in a))('abcdefghijklmnopqrstuvwxyz').upper())))
 ceaser_decode = (lambda s, k: s.translate(str.maketrans((lambda a: ''.join(a[(a.index(i) + k) % len(a)] for i in a))('abcdefghijklmnopqrstuvwxyz') + (lambda a: ''.join(a[(a.index(i) + k) % len(a)] for i in a))('abcdefghijklmnopqrstuvwxyz').upper(), ('abcdefghijklmnopqrstuvwxyz' + 'abcdefghijklmnopqrstuvwxyz'.upper()))))
+
+def date_suffix(rday):
+    day = str(rday)
+    if day[-1] == '1':
+        return 'st'
+    elif day[-1] == '2':
+        return 'nd'
+    elif day[-1] == '3':
+        return 'rd'
+    else:
+        return 'th'
