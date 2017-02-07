@@ -124,6 +124,8 @@ class REPL(Cog):
             'is_playing': lambda s: self.bot.cogs['Voice'].voice_states[{g.name: g for g in self.bot.servers}[s].id].current.player.is_playing(),
             'vstate': lambda s: self.bot.cogs['Voice'].voice_states[{g.name: g for g in self.bot.servers}[s].id],
             'cm_discrim': lambda d: list(set(str(m) for m in self.bot.get_all_members() if m.discriminator == d)),
+            '_internal_channel': msg.channel,
+            '_internal_author': msg.author,
         }
         is_shell = False
         valid_flags = ['public', 'asteval', 'py', 'split', 'shell']
