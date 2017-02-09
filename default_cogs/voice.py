@@ -334,13 +334,17 @@ class Voice(Cog):
         try:
             player = await state.voice.create_ytdl_player(song, ytdl_options=opts, after=state.toggle_next)
         except Exception as e:
-            if type(e).__name__.endswith('DownloadError') or type(e).__name__.endswith('IndexError'):
+            n = type(e).__name__
+            if n.endswith('DownloadError') or n.endswith('IndexError'):
                 pg_task.cancel()
-                await self.bot.delete_message(status)
+                self.loop.create_task(self.bot.delete_message(status))
                 await self.bot.say('**That video couldn\'t be found!**')
                 return False
             else:
                 raise e
+        if player.duration > 8600:
+            await self.bot.say(':warning: Song can\'t be longer than 2h22m.')
+            return
 
         player.volume = 0.7
         entry = VoiceEntry(ctx.message, player, False)
