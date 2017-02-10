@@ -1,31 +1,20 @@
 """Good ol' Cleverbot."""
 import asyncio
 import random
-#from util.cleverbot import Cleverbot as RealCleverbot
-try:
-    from cleverbot import Cleverbot as RealCleverbot
-except ImportError:
-    class RealCleverbot:
-        def __init__(self, *a, **b):
-            pass
-        @staticmethod
-        def ask(m):
-            return 'The bot owner hasn\'t set up Cleverbot.'
+class RealCleverbot:
+    @staticmethod
+    def ask(m):
+        return """Cleverbot updated, and I'm now unable to use it.
+I'll be rolling out a custom solution soon. Stay tuned, and sorry for any inconvenience caused!"""
 import util.commands as commands
 from util.func import bdel
 from .cog import Cog
-try:
-    from d_props import cleverbot_name as BOT_API
-except ImportError:
-    BOT_API = 'Goldmine'
 
 class Cleverbot(Cog):
     """Good ol' Cleverbot."""
-    BOTNAME = BOT_API
-
     def __init__(self, bot):
         try:
-            self.cb = RealCleverbot(self.BOTNAME)
+            self.cb = RealCleverbot()
         except Exception as e:
             bot.logger.error('Couldn\'t initialize Cleverbot! Got ' + type(e).__name__ + ': ' + str(e))
             class PlaceholderCleverbot:
@@ -51,7 +40,6 @@ class Cleverbot(Cog):
     async def askcb(self, query):
         """Cleverbot query helper."""
         try:
-            #return await self.cb.ask(query)
             return await self.loop.run_in_executor(None, self.cb.ask, query)
         except IndexError:
             return 'Couldn\'t get a response from Cleverbot.'
