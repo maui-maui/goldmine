@@ -21,7 +21,7 @@ class Cleverbot(Cog):
     BOTNAME = BOT_API
     def __init__(self, bot):
         try:
-            self.cb = RealCleverbot(async_init=False)
+            self.cb = RealCleverbot()
         except Exception as e:
             bot.logger.error('Couldn\'t initialize Cleverbot! Got ' + type(e).__name__ + ': ' + str(e))
             class PlaceholderCleverbot:
@@ -35,11 +35,14 @@ class Cleverbot(Cog):
         super().__init__(bot)
 
     def __unload(self):
-        self.cb.session.close()
+        try:
+            self.cb.session.close()
+        except Exception:
+            pass
 
     async def on_ready(self):
         try:
-            await self.cb.async_init()
+            #await self.cb.async_init()
             pass
         except asyncio.TimeoutError:
             self.logger.warning('Couldn\'t get cookies for Cleverbot, so it probably won\'t work.')
@@ -47,8 +50,8 @@ class Cleverbot(Cog):
     async def askcb(self, query):
         """Cleverbot query helper."""
         try:
-            #return await self.loop.run_in_executor(None, self.cb.ask, query)
-            return await self.cb.ask(query)
+            return await self.loop.run_in_executor(None, self.cb.ask, query)
+            #return await self.cb.ask(query)
         except IndexError:
             return 'Couldn\'t get a response from Cleverbot.'
 

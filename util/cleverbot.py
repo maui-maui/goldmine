@@ -1,10 +1,7 @@
 """An unofficial library to access the Cleverbot service."""
 import collections
 import hashlib
-import logging
-import asyncio
-import async_timeout
-import aiohttp
+import requests
 from urllib.parse import urlencode
 from html import parser
 
@@ -27,7 +24,7 @@ class Cleverbot:
     PROTOCOL = "http://"
     RESOURCE = "/webservicemin"
 
-    def __init__(self, uc='777', async_init=True):
+    def __init__(self, uc='777'):
         """Cleverbot requests that bots identify themselves when
         connecting to the service. You must pass an identifying string
         for your bot when you create the connection.
@@ -93,17 +90,10 @@ class Cleverbot:
         self.conversation = []
 
         # get cookie
-        self.session = aiohttp.ClientSession()
-        if async_init:
-            asyncio.ensure_future(self.async_init())
+        self.session = requests.Session()
+        self.session.get(Cleverbot.PROTOCOL + Cleverbot.HOST)
 
-    async def async_init(self):
-        with async_timeout.timeout(6):
-            async with self.session.get(self.PROTOCOL + self.HOST) as r:
-                pass # to close properly
-        logging.getLogger('cleverbot').info('Initialized aiohttp with cookie.')
-
-    async def ask(self, question):
+    def ask(self, question):
         """Asks Cleverbot a question.
 
         Maintains message history.
@@ -116,7 +106,7 @@ class Cleverbot:
         self.data['stimulus'] = question
 
         # Connect to Cleverbot and remember the response
-        resp = await self._send()
+        resp = self._send().text
 
         # Add the current question to the conversation log
         self.conversation.append(question)
@@ -132,7 +122,7 @@ class Cleverbot:
 
         return parsed['answer'].encode('latin-1').decode('utf-8')
 
-    async def _send(self):
+    def _send(self):
         """POST the user's question and all required information to the
         Cleverbot service
 
@@ -156,9 +146,9 @@ class Cleverbot:
         self.data['icognocheck'] = token
 
         # POST the data to Cleverbot and return
-        with async_timeout.timeout(7):
-            async with self.session.post(self.SERVICE_URL, data=self.data, headers=self.headers) as r:
-                return await r.text()
+        return self.session.post(self.SERVICE_URL,
+                                 data=self.data,
+                                 headers=self.headers)
 
     @staticmethod
     def _parse(resp_text):
