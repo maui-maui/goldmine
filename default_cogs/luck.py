@@ -20,7 +20,7 @@ class Luck(Cog):
     async def flip(self):
         """Flip a virtual coin.
         Usage: flip"""
-        await self.bot.say('The coin toss revealed... ' + random.choice(['Heads', 'Tails']) + '!')
+        await self.bot.say('The coin toss revealed... ' + random.choice(['heads', 'tails']) + '!')
 
     @commands.command(aliases=['dice', 'rolldice', 'rolld', 'droll', 'diceroll'])
     async def roll(self, dice: str):
