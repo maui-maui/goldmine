@@ -199,7 +199,7 @@ class Admin(Cog):
         """Fetch a property from the datastore.
         Usage: getprop [property name]"""
         try:
-            pout = await self.store.get_prop(ctx.message, pname)
+            pout = self.store.get_prop(ctx.message, pname)
         except Exception:
             await self.bot.say('⚠ An error occured.')
             return
@@ -210,7 +210,7 @@ class Admin(Cog):
         """Set the value of a property on server level.
         Usage: setprop [property name] [value]"""
         await echeck_perms(ctx, ('manage_server',))
-        await self.store.set_prop(ctx.message, 'by_server', pname, value)
+        self.store.set_prop(ctx.message, 'by_server', pname, value)
         await self.bot.say(':white_check_mark:')
 
     @commands.command(pass_context=True, aliases=['getprefix', 'setprefix'])
@@ -225,7 +225,7 @@ class Admin(Cog):
         if prefix:
             await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
             jprefix = ' '.join(prefix)
-            await self.store.set_prop(ctx.message, *prop, jprefix)
+            self.store.set_prop(ctx.message, *prop, jprefix)
             await self.bot.say(':white_check_mark:')
         else:
             oprefix = self.store.get_cmdfix(ctx.message)

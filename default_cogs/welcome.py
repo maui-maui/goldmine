@@ -21,8 +21,8 @@ class Welcome(Cog):
             em_string = 'Try some custom emotes: ' + ' '.join([str(i) for i in cemotes]) + '! '
             if len(em_string) >= (1980 - len(welcome)):
                 em_string = ''
-        bc = await self.store.get_prop(member, 'broadcast_join')
-        cmdfix = await self.store.get_prop(member, 'command_prefix')
+        bc = self.store.get_prop(member, 'broadcast_join')
+        cmdfix = self.store.get_prop(member, 'command_prefix')
         if str(bc).lower() in bool_true:
             try:
                 await self.bot.send_message(target, welcome.format(member, target, em_string, cmdfix))
@@ -33,7 +33,7 @@ class Welcome(Cog):
         """On_member_remove event for members leaving."""
         if self.bot.selfbot: return
         target = member.server
-        bc = await self.store.get_prop(member, 'broadcast_leave')
+        bc = self.store.get_prop(member, 'broadcast_leave')
         if str(bc).lower() in bool_true:
             utype = ('bot' if member.bot else 'member')
             try:

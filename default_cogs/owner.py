@@ -200,7 +200,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         Usage: rawsetprop [scope] [property name] [value]"""
         await echeck_perms(ctx, ('bot_admin',))
         try:
-            await self.store.set_prop(ctx.message, scope, pname, value)
+            self.store.set_prop(ctx.message, scope, pname, value)
         except Exception:
             await self.bot.say('⚠ An error occured.')
             return
