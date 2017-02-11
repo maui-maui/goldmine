@@ -206,15 +206,12 @@ class Admin(Cog):
         await self.bot.say(pout)
 
     @commands.command(pass_context=True, no_pm=True)
-    async def setprop(self, ctx, pname: str, *values: str):
+    async def setprop(self, ctx, pname: str, *, value: str):
         """Set the value of a property on server level.
         Usage: setprop [property name] [value]"""
         await echeck_perms(ctx, ('manage_server',))
-        value = ' '.join(values)
         await self.store.set_prop(ctx.message, 'by_server', pname, value)
-        await self.bot.say('Successfully set `{0}` as `{1}`!'.format(pname, value))
-        if pname == 'bot_name':
-            await self.bot.change_nickname(ctx.message.server.me, value)
+        await self.bot.say(':white_check_mark:')
 
     @commands.command(pass_context=True, aliases=['getprefix', 'setprefix'])
     async def prefix(self, ctx, *prefix: str):
@@ -227,12 +224,12 @@ class Admin(Cog):
             prop = ('global', 'selfbot_prefix')
         if prefix:
             await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
-            jprefix = ' '.join(list(prefix))
+            jprefix = ' '.join(prefix)
             await self.store.set_prop(ctx.message, *prop, jprefix)
-            await self.bot.say('Successfully set command prefix as `' + jprefix + '`!')
+            await self.bot.say(':white_check_mark:')
         else:
             oprefix = await self.store.get_cmdfix(ctx.message)
-            await self.bot.say(f'**Current{sk} command prefix is: **`' + oprefix + '`')
+            await self.bot.say('**Current%s command prefix is: **`%s`' % (sk, oprefix))
 
     async def progress(self, msg: discord.Message, begin_txt: str):
         """Play loading animation with dots and moon."""

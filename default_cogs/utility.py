@@ -4,7 +4,6 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from fnmatch import filter
 from io import BytesIO, StringIO
-from properties import bot_owner
 from util.const import _mention_pattern, _mentions_transforms, home_broadcast, absfmt, status_map, ch_fmt, code_stats, eval_blocked, v_level_map
 from util.fake import FakeContextMember, FakeMessageMember
 from util.func import bdel, async_encode as b_encode, async_decode as b_decode, smartjoin
@@ -23,11 +22,9 @@ mclib = di.load('util.mclib')
 xkcd = di.load('util.xkcd')
 
 have_pil = True
-print(' - Loading PIL...')
 try:
     from PIL import Image, ImageOps
 except ImportError:
-    print(' - Could not load PIL!')
     have_pil = False
 
 class Utility(Cog):
@@ -208,7 +205,7 @@ class Utility(Cog):
             else:
                 c_srv = await check_perms(tg_ctx, ('manage_server',))
                 c_sown = await check_perms(tg_ctx, ('server_owner',))
-            c_own = target.id == bot_owner
+            c_own = target.id == self.bot.owner_user.id
             c_adm = target.id in self.dstore['bot_admins']
             is_server = isinstance(target, discord.Member)
             if c_own:
@@ -873,6 +870,15 @@ Server Owner\'s ID: `{0.server.owner.id}`
         except ValueError:
             m = '```' + str(br)[2:][:-1] + '```'
         await self.bot.say(m)
+
+    @commands.command(pass_context=True, aliases=['ttsspam', 'tts_spam'])
+    async def ttspam(self, ctx, *, text: str):
+        """Spam a message with TTS. **This may get you banned from some servers.**
+        Usage: ttspam [message]"""
+        await echeck_perms(ctx, ('bot_owner',))
+        m = await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
+        await asyncio.sleep(0.1)
+        await self.bot.delete_message(m)
 
 def setup(bot):
     c = Utility(bot)

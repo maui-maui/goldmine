@@ -27,9 +27,8 @@ This bot is written in Python 3, and uses discord.py and asyncio for enhanced pe
 ####This method is extremely easy, but may not offer the best performance and/or reliability. Overall, better.
 Just click this link: [Click to add GOLDMINE and CO. to your server](https://discordapp.com/api/oauth2/authorize?client_id=239775420470394897&scope=bot&permissions=66321471 "Click to add GOLDMINE to your server!"), select a server, click **Done**, and you're all set! Easy as pie :)
 
-You might want to set the command prefix and/or bot name for your server.
+You might want to set the command prefix for your server.
 To do so, simply make sure you're a server admin (Manage Server permission), and type: 
- - `!setprop bot_name MyAwesomeBot` for bot name, replacing **MyAwesomeBot** with your desired name.
  - `!prefix $` for command prefix, replacing **$** with your desired prefix.
 
 ###Manual (Private Instance) (Selfbot mode available)
@@ -37,13 +36,8 @@ To do so, simply make sure you're a server admin (Manage Server permission), and
 Simply run `python3 -m pip install -U -r requirements.txt` to install all the basic dependencies of this bot. 
 For many more advanced features and speed improvements, use `python3 -m pip install -U -r full_requirements.txt` (this doesn't work on Windows!).
 For as much as you can get on Windows, use `python3 -m pip install -U -r win_requirements.txt`.
+**Note: If you're on Windows, replace `python3` with `python` in all the commands!**
 
-Now, you'll want to replace the owner with your DiscordTag.
-To do this, open `properties.py` in a text editor and edit `bot_owner = '160567046642335746'` to match your Discord user ID.
-Example: 012345678901234567 - make sure you don't leave out any numbers, though.
-There should be around 18 of them.
+The bot will guide you through the setup, such as login.
 
-The bot will guide you through the setup, including login (token or email+password),
-bot owner (soon), and all that good stuff.
-
-####Simply run `python3 goldmine.py` to complete the rest of the setup! This works for both bot mode and selfbot mode.
+####Simply run `python3 goldmine.py` to complete the setup! This works for both bot mode and selfbot mode.

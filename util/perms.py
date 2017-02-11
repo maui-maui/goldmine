@@ -1,6 +1,5 @@
 """Permission handling code."""
 import asyncio
-from properties import bot_owner
 from util.commands.errors import CommandPermissionError, OrCommandPermissionError
 
 async def check_perms(ctx, perms_required):
@@ -8,6 +7,7 @@ async def check_perms(ctx, perms_required):
     perms_satisfied = 0
     sender = ctx.message.author
     sender_id = sender.id
+    bot_owner = ctx.bot.owner_user.id
     dc_perms = ctx.message.author.permissions_in(ctx.message.channel)
     try:
         sowner = ctx.message.server.owner
@@ -24,11 +24,9 @@ async def check_perms(ctx, perms_required):
     elif sender_id == ctx.bot.user.id:
         return True
     for i in perms_required:
-        if i == 'bot_owner':
-            pass
-        elif (i == 'server_owner') and (sender_id == sowner_id):
+        if (i == 'server_owner') and (sender_id == sowner_id):
             perms_satisfied += 1
-        elif (i == 'bot_admin') and ((sender_id in ctx.bot.store['bot_admins']) or (sender_id == bot_owner)):
+        elif i == 'bot_admin' and sender_id in ctx.bot.store['bot_admins']:
             perms_satisfied += 1
         else:
             try:

@@ -13,7 +13,6 @@ ujson
 psutil
 cozmo
 elizabeth
-cleverbot
 qrcode
 cython
 tesserocr

@@ -10,7 +10,7 @@ import discord
 from default_cogs.utils.dataIO import dataIO
 import __main__
 __main__.core_file = __file__
-from util.token import bot_token, selfbot, is_bot
+from util.token import bot_token, is_bot
 from convert_to_old_syntax import rc_files, cur_dir
 from util.goldbot import GoldBot
 from util.datastore import initialize as init_store
@@ -70,7 +70,7 @@ def login_fail_loop(loop, bot):
                 pass
             del bot_token
             del selfbot
-            from util.token import bot_token, selfbot
+            from util.token import bot_token
     else:
         print('That\'s not a valid choice, try again!')
         login_fail_loop(loop, bot)
@@ -104,7 +104,7 @@ async def io_flusher():
 
 def init_bot():
     """Initialize the bot."""
-    bot = GoldBot(command_prefix='!', description=description, formatter=RichFormatter(), pm_help=(False if selfbot else None))
+    bot = GoldBot(command_prefix='!', description=description, formatter=RichFormatter(), pm_help=None)
     __main__.send_cmd_help = bot.send_cmd_help
     logger.info('Init: Loading cogs')
     try:

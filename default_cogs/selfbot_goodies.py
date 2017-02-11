@@ -151,17 +151,7 @@ class SelfbotGoodies(Cog):
         except KeyError:
             await self.bot.say('No such substitution.')
 
-    @commands.command(pass_context=True, aliases=['ttsspam', 'tts_spam'])
-    async def ttspam(self, ctx, *, text: str):
-        """Spam a message with TTS. **This may get you banned from some servers.**
-        Usage: ttspam [message]"""
-        await echeck_perms(ctx, ('bot_owner',))
-        m = await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
-        await asyncio.sleep(0.1)
-        await self.bot.delete_message(m)
-
 def setup(bot):
     if 'subs' not in bot.store.store:
         bot.store.store['subs'] = {}
     bot.add_cog(SelfbotGoodies(bot))
-

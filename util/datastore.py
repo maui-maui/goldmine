@@ -4,7 +4,6 @@ import os
 import sys
 import util.json as json
 from util.commands import CommandInvokeError
-from util.const import orig_store
 from properties import storage_backend
 
 def initialize():
@@ -75,8 +74,13 @@ class DataStore():
             await self.commit()
 
     async def get_cmdfix(self, msg):
-        """Easy method to retrieve the command prefix in current scope."""
-        return await self.get_prop(msg, 'command_prefix')
+        """Easy method to retrieve the command prefix."""
+        if not msg.server:
+            return self.store['properties']['global']['command_prefix']
+        try:
+            return self.store['properties']['by_server'][msg.server.id]['command_prefix']
+        except KeyError:
+            return self.store['properties']['global']['command_prefix']
 
     async def get_props_s(self, msg):
         """Get the server properties of a message."""
@@ -94,30 +98,20 @@ class DataStore():
             self.store['properties']['by_user'][msg.author.id] = {}
             return {}
 
-    async def get_props_c(self, msg):
-        """Get the channel properties of a message."""
-        try:
-            return self.store['properties']['by_channel'][msg.server.id +':'+ msg.channel.id]
-        except (KeyError, AttributeError):
-            self.store['properties']['by_channel'][msg.server.id +':'+ msg.channel.id] = {}
-            return {}
-
     async def set_prop(self, msg, scope: str, prop: str, content):
         try:
             t_scope = self.store['properties'][scope]
         except (KeyError, AttributeError):
-            raise CommandInvokeError(AttributeError('Invalid scope specified. Valid scopes are by_user, by_channel, by_server, and global.'))
+            raise AttributeError('Invalid scope specified. Valid scopes are by_user, by_server, and global.')
         else:
             if scope == 'by_user':
                 t_scope[msg.author.id][prop] = content
-            elif scope == 'by_channel':
-                t_scope[msg.channel.id][prop] = content
             elif scope == 'by_server':
                 t_scope[msg.server.id][prop] = content
             elif scope == 'global':
                 t_scope[prop] = content
             else:
-                raise CommandInvokeError(AttributeError('Invalid scope specified. Valid scopes are by_user, by_channel, by_server, and global.'))
+                raise AttributeError('Invalid scope specified. Valid scopes are by_user, by_server, and global.')
             self.store['properties'][scope] = t_scope
 
     async def get_prop(self, msg, prop: str, hint=[]):
@@ -126,18 +120,14 @@ class DataStore():
             thing = await self.get_props_u(msg)
             return thing[prop]
         except (KeyError, AttributeError):
-            try: # Channel
-                thing = await self.get_props_c(msg)
+            try: # Server
+                thing = await self.get_props_s(msg)
                 return thing[prop]
             except (KeyError, AttributeError):
-                try: # Server
-                    thing = await self.get_props_s(msg)
-                    return thing[prop]
+                try:
+                    return self.store['properties']['global'][prop]
                 except (KeyError, AttributeError):
-                    try:
-                        return self.store['properties']['global'][prop]
-                    except (KeyError, AttributeError):
-                        if prop.startswith('profile_'):
-                            return self.store['properties']['global']['profile']
-                        else:
-                            raise KeyError(str)
+                    if prop.startswith('profile_'):
+                        return self.store['properties']['global']['profile'].copy()
+                    else:
+                        raise KeyError(str)

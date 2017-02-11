@@ -1,5 +1,5 @@
 aiohttp
-https://github.com/Armored-Dragon/discord.py/archive/master.zip#egg=discord.py[voice]
+discord.py[voice]
 youtube_dl
 async_timeout
 pickledb
@@ -8,11 +8,9 @@ bs4
 future
 asteval
 cchardet
-ujson
 psutil
 cozmo[camera]
 pillow
 elizabeth
-cleverbot
 qrcode
 pyscreenshot

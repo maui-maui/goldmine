@@ -53,18 +53,21 @@ class Errors(Cog):
         except AttributeError:
             cmid = ctx.message.author.id
             eprefix = 'dm'
-        server = ctx.message.server
-        if not server:
-            server = ctx.message.author
-        if isinstance(exp, commands.CommandNotFound):
-            self.logger.error(str(ctx.message.author) + ' in ' + server.name + ': command \'' + cprocessed + '\' not found')
-        elif isinstance(exp, commands.CommandInvokeError):
-            self.logger.error(str(ctx.message.author) + ' in ' + server.name + f': [cmd {cprocessed}] ' + bc_key)
-            traceback.print_exception(type(exp.original), exp.original, exp.original.__traceback__)
-            traceback.print_exception(type(exp), exp, exp.__traceback__)
+        if ctx.message.server:
+            location = ctx.message.server.name
         else:
-            self.logger.error(str(ctx.message.author) + ' in ' + server.name + ': ' + str(exp) + ' (%s)' % type(exp).__name__)
+            location = '[DM with %s]' % str(ctx.message.author)
+        if isinstance(exp, commands.CommandNotFound):
+            self.logger.error(str(ctx.message.author) + ' in ' + location + ': command \'' + cprocessed + '\' not found')
+        elif isinstance(exp, commands.CommandInvokeError):
+            self.logger.error(str(ctx.message.author) + ' in ' + location + f': [cmd {cprocessed}] ' + bc_key)
+            traceback.print_exception(type(exp.original), exp.original, exp.original.__traceback__)
+        elif isinstance(exp, commands.CommandPermissionError):
+            self.logger.error(str(ctx.message.author) + ' in ' + location + f': Not enough permissions for ' + ctx.message.content[:150])
+        else:
+            self.logger.error(str(ctx.message.author) + ' in ' + location + f': [cmd {cprocessed}] ' + str(exp) + ' (%s)' % type(exp).__name__)
             traceback.print_exception(type(exp), exp, exp.__traceback__)
+
         if isinstance(exp, commands.NoPrivateMessage):
             await self.csend(ctx, npm_fmt.format(ctx.message.author, cprocessed, cmdfix))
         elif isinstance(exp, commands.CommandNotFound):
@@ -72,7 +75,6 @@ class Errors(Cog):
         elif isinstance(exp, commands.DisabledCommand):
             await self.csend(ctx, ccd_fmt.format(ctx.message.author, cprocessed, cmdfix))
         elif isinstance(exp, commands.CommandOnCooldown) or isinstance(exp, DiscordCNC):
-            #await self.say(exp.ctx.message.author, coc_fmt.format(ctx.message.author, cprocessed, cmdfix, bdel(c_key, 'You are on cooldown. Try again in ')))
             await self.csend(ctx, ':warning: :gear: ' + random.choice(clocks))
         elif isinstance(exp, commands.PassException):
             pass
@@ -106,37 +108,25 @@ class Errors(Cog):
                     if key.endswith('Cannot send an empty message'):
                         await self.csend(ctx, emp_msg.format(ctx.message.author, cprocessed, cmdfix))
                     elif c_key.startswith('Command raised an exception: HTTPException: BAD REQUEST (status code: 400)'):
-                        if (eprefix == 'dm') and (ctx.invoked_with == 'user'):
+                        if (eprefix == 'dm') and (ctx.command.name == 'user'):
                             await self.csend(ctx, '**No matching users, try again! Name, nickname, name#0000 (discriminator), or ID work. Spaces do, too!**')
                         else:
                             await self.csend(ctx, big_msg.format(ctx.message.author, cprocessed, cmdfix))
                     else:
                         await self.csend(ctx, msg_err.format(ctx.message.author, cprocessed, cmdfix, key))
                 elif c_key.startswith('Command raised an exception: HTTPException: BAD REQUEST (status code: 400)'):
-                    if (eprefix == 'dm') and (ctx.invoked_with == 'user'):
-                        await self.csend(ctx, '**No matching users, try again! Name, nickname, name#0000 (discriminator), or ID work. Spaces do, too!**')
-                    else:
-                        await self.csend(ctx, big_msg.format(ctx.message.author, cprocessed, cmdfix))
+                    await self.csend(ctx, big_msg.format(ctx.message.author, cprocessed, cmdfix))
                 elif c_key.startswith('Command raised an exception: RuntimeError: PyNaCl library needed in order to use voice'):
                     await self.csend(ctx, '**The bot owner hasn\'t enabled voice!**')
                 else:
                     await self.csend(ctx, msg_err.format(ctx.message.author, cprocessed, cmdfix, key))
-            elif isinstance(exp.original, NameError):
-                if isinstance(exp.original, UnboundLocalError):
-                    key = bdel(bc_key, "UnboundLocalError: local variable '")
-                    key = key.replace("' referenced before assignment", '')
-                    await self.csend(ctx, nam_err.format(ctx.message.author, cprocessed, cmdfix, key))
-                else:
-                    key = bdel(bc_key, "NameError: name '")
-                    key = key.replace("' is not defined", '')
-                    await self.csend(ctx, nam_err.format(ctx.message.author, cprocessed, cmdfix, key.split("''")[0]))
             elif isinstance(exp.original, asyncio.TimeoutError):
                 await self.csend(ctx, tim_err.format(ctx.message.author, cprocessed, cmdfix))
-            elif (cprocessed in self.bot.commands['eval'].aliases) or (cprocessed == 'eval'):
+            elif ctx.command.name == 'eval':
                 await self.csend(ctx, ast_err.format(ctx.message.author, cprocessed, cmdfix))
             else:
                 await self.csend(ctx, '⚠ Error in `%s`!\n```' % (cmdfix + cprocessed) + bc_key + '```')
-        elif type(exp) in [commands.MissingRequiredArgument, commands.TooManyArguments, commands.BadArgument]:
+        elif type(exp) in (commands.MissingRequiredArgument, commands.TooManyArguments, commands.BadArgument):
             if ctx.invoked_subcommand is None:
                 tgt_cmd = self.bot.commands[cprocessed]
             else:

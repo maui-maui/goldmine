@@ -212,3 +212,14 @@ def date_suffix(rday):
         return 'rd'
     else:
         return 'th'
+
+async def async_write(path, mode, data, loop, executor=None):
+    f = None
+    val = 0
+    try:
+        f = await loop.run_in_executor(executor, open, path, mode)
+        val = await loop.run_in_executor(executor, f.write, data)
+    finally:
+        if f:
+            f.close()
+    return val

@@ -630,6 +630,11 @@ class Voice(Cog):
             emb.add_field(name=e.get_name(), value=e.get_desc())
         await self.bot.say('🎶🎵', embed=emb)
 
+    async def on_ready(self):
+        if self.bot.selfbot:
+            self.logger.info('We\'re a selfbot, unloading voice. Discord\'s TOS doesn\'t allow selfbots to stream music.')
+            self.bot.unload_extension('default_cogs.voice')
+
 def setup(bot):
     c = Voice(bot)
     bot.add_cog(c)

@@ -6,6 +6,7 @@ import aiohttp
 import async_timeout
 import util.commands as commands
 from util.perms import echeck_perms
+from util.func import async_write
 from .cog import Cog
 
 class Logger(Cog):
@@ -20,37 +21,39 @@ class Logger(Cog):
 
     def __unload(self):
         self.w_task.cancel()
-        self.bot.loop.create_task(self.write())
+        self.loop.create_task(self.write(background=False))
 
     async def on_message(self, msg):
         """Log messages."""
         if not self.active: return
         try:
             self.log[msg.channel.id].append(msg.content)
-# [{'width': 460, 'url': 'file', 'size': 63565, 'proxy_url': 'file', 'id': '', 'height': 215, 'filename': 'file.jpg'}]
-            for a in msg.attachments:
-                with async_timeout.timeout(7):
+            for a in msg.attachments[:2]:
+                with async_timeout.timeout(5):
                     async with aiohttp.request('GET', a['url']) as r:
                         data = await r.read()
                 path = os.path.join(self.bot.dir, 'data', 'logger', 'attachments', msg.channel.id)
                 timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-                file = os.path.join(path, timestamp + '-' + a['filename'])
+                file = os.path.join(path, timestamp + '-' + a['filename'][:100])
                 if not os.path.exists(path):
                     os.makedirs(path)
-                with open(os.path.join(path, file), 'wb+') as f:
-                    f.write(data)
+                await async_write(os.path.join(path, file), 'wb+', data, self.loop)
                 del data
         except (KeyError, AttributeError):
             self.log[msg.channel.id] = [msg.content]
 
-    async def write(self):
+    async def write(self, background=True):
         """Commit logs to disk."""
         t_len = 0
         for channel in self.log:
             ct = '\n'.join(self.log[channel])
             t_len += len(ct)
-            with open(os.path.join(self.bot.dir, 'data', 'logger', channel + '.log'), 'ab') as f:
-                f.write(b'\n' + ct.encode('utf-8'))
+            coro = async_write(os.path.join(self.bot.dir, 'data', 'logger', channel + '.log'),
+                              'ab', b'\n' + ct.encode('utf-8'), self.loop)
+            if background:
+                self.loop.create_task(coro)
+            else:
+                await coro
         self.log = {}
         self.bot.logger.info(f'Wrote {t_len} characters of chatlogs!')
         return t_len

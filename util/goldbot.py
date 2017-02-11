@@ -140,11 +140,6 @@ class GoldBot(commands.Bot):
         if not os.path.exists(self.cog_json_cogs_path):
             with open(self.cog_json_cogs_path, 'a') as f:
                 f.write('{}')
-        self.selfbot = token.selfbot
-        if self.selfbot:
-            self.game['name'] = ''
-            self.game['type'] = 0
-            self.game['url'] = ''
         self.server_map = {}
         if 'nobroadcast' not in self.store.store:
             self.store.store['nobroadcast'] = ['110373943822540800']
@@ -152,8 +147,11 @@ class GoldBot(commands.Bot):
             self.store.store['owner_messages'] = []
         self.command_calls = {}
         self.event_calls = {}
+        self.app_info = None
+        self.owner_user = None
         super().__init__(**options)
         self.commands = {}
+        self.selfbot = False
 
     async def update_presence(self):
         """Generate an updated presence and change it."""
@@ -172,24 +170,36 @@ class GoldBot(commands.Bot):
     async def on_ready(self):
         """On_ready event for when the bot logs into Discord."""
         self.logger.info('Bot has logged into Discord, ID ' + self.user.id)
-        await self.update_presence()
+        self.selfbot = not self.user.bot
+        if self.selfbot:
+            self.game['name'] = ''
+            self.game['type'] = 0
+            self.game['url'] = ''
+        else:
+            await self.update_presence()
+        if self.user.bot:
+            self.app_info = await self.application_info()
+            self.owner_user = self.app_info.owner
+            self.store.store['owner_id'] = self.owner_user.id
+        else:
+            self.store.store['owner_id'] = self.user.id
+        self.logger.info('Owner information automatically filled.')
 
     async def on_message(self, msg):
         try:
             myself = msg.server.me
         except AttributeError:
             myself = self.user
+        bname = myself.display_name
         if self.selfbot:
             try:
                 cmdfix = self.store['properties']['global']['selfbot_prefix']
             except KeyError:
                 cmdfix = myself.name[0].lower() + '.'
-            bname = myself.name
             prefix_convo = False
             do_logic = msg.author.id == self.user.id
         else:
             cmdfix = await self.store.get_cmdfix(msg)
-            bname = await self.store.get_prop(msg, 'bot_name')
             prefix_convo = (await self.store.get_prop(msg, 'prefix_answer')) in bool_true
             do_logic = msg.author.id != self.user.id
         prefix_help = (msg.server.id if msg.server else None) != '110373943822540800' # DBots
@@ -207,13 +217,6 @@ class GoldBot(commands.Bot):
                         self.dispatch('not_command', msg)
                     return
                 if not msg.channel.is_private:
-                    int_name = await self.store.get_prop(msg, 'bot_name')
-                    if msg.server.me.display_name != int_name:
-                        sntn = await self.store.get_prop(msg, 'set_nick_to_name')
-                        if isinstance(sntn, str):
-                            sntn = sntn.lower()
-                        if sntn in bool_true:
-                            await self.change_nickname(msg.server.me, int_name)
                     if not msg.content.startswith(cmdfix):
                         self.dispatch('not_command', msg)
                 if self.status == 'invisible':
@@ -301,8 +304,6 @@ class GoldBot(commands.Bot):
         cl = cmd.lower().replace('é', 'e').replace('è', 'e') # TODO: Real accent parsing
 
         if cl in self.commands:
-            if not self.selfbot:
-                await self.send_typing(message.channel)
             command = self.commands[cl]
             self.dispatch('command', command, ctx)
             try:

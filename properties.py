@@ -1,2 +1,1 @@
-bot_owner = '160567046642335746'
-storage_backend = 'json'
+storage_backend = 'json' # Nothing else is supported yet.

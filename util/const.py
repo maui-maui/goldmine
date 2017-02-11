@@ -307,7 +307,7 @@ emp_msg = '{0.mention} The bot tried to send an empty message for `{2}{1}`. Mayb
 msg_err = '{0.mention} Something went wrong in the bot while responding to `{2}{1}`. Maybe try again? Error: `{3}`'
 nam_err = '{0.mention} Something went wrong in the bot while responding to `{2}{1}`. Maybe try again? Error: internal variable `{3}` not defined.'
 big_msg = '{0.mention} Something went wrong in the bot while sending the message to respond to `{2}{1}`. This usually means the message was too long. Maybe try again?'
-tim_err = '{0.mention} The bot tried to respond to `{2}{1}`, but the web request timeouted! This usually means they\'re down. Maybe try again?'
+tim_err = '{0.mention} The bot tried to respond to `{2}{1}`, but the request took too long! Maybe try again?'
 arg_err = '{0.mention} You tried to execute `{2}{1}` with{4}. Type `{2}help {1}` for extra help. Here\'s the correct usage:\n`{3}`'
 ast_err = '{0.mention} You tried to execute `{2}{1}` with invalid code. Maybe try again?'
 ast_pow = '{0.mention} You tried to execute `{2}{1}` with a power too high. Max is `900**900`.'
@@ -333,50 +333,6 @@ charsets = {
     'squared': '🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉0123456789~ `!@#$%^&⧆()⊟_=⊞[]{}|;:\'",<⊡>⧄?⧅',
     'squared_negative': '🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉0123456789~ `!@#$%^&*()-_=+[]{}|;:\'",<.>/?\\',
     'upside_down': 'ɐqɔpǝɟƃɥᴉɾʞlɯuodbɹsʇnʌʍxʎz∀qƆpƎℲפHIſʞ˥WNOԀQɹS┴∩ΛMX⅄Z0ƖᄅƐㄣϛ9ㄥ86~ ,¡@#$%^⅋*)(-‾=+][}{|;:,,,\'>˙</¿'
-}
-orig_store = {
-    'version': 3,
-    'date_format': '{0}/{1}/{2}',
-    'quotes': [
-        {
-            'id': 0,
-            'quote': 'Haaaaaaaaahn!',
-            'author': 'Frisky Turtle, MrXarous',
-            'author_ids': ['000000000000000000', '141246933359394816'],
-            'date': [11, 7, 2016]
-        },
-        {
-            'id': 1,
-            'quote': 'Living well is the best revenge.',
-            'author': 'George Herbert',
-            'author_ids': ['000000000000000000'],
-            'date': [4, 3, 1593]
-        },
-        {
-            'id': 2,
-            'quote': 'Change your thoughts and you change your world.',
-            'author': 'Norman Vincent Peale',
-            'author_ids': ['000000000000000000'],
-            'date': [5, 31, 1898]
-        }
-    ],
-    'properties': {
-        'global': {
-            'bot_name': 'Goldmine',
-            'command_prefix': '!',
-            'set_nick_to_name': True,
-            'profile': {
-                'level': 0,
-                'exp': 0
-            },
-            'broadcast_level_up': True,
-            'broadcast_join': True,
-            'broadcast_leave': True
-        },
-        'by_user': {},
-        'by_channel': {},
-        'by_server': {}
-    }
 }
 
 em_cells = list(emojis)
