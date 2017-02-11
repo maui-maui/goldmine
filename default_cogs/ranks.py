@@ -14,6 +14,7 @@ class Ranks(Cog):
 
     async def on_not_command(self, msg):
         """Do level-up logic."""
+        if self.bot.selfbot: return
         if msg.channel.is_private: return
         if msg.author.bot: return
         prof_name = 'profile_' + msg.server.id

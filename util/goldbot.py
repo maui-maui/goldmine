@@ -11,6 +11,7 @@ from util.datastore import DataStore
 from util.const import *
 from util.func import dprint, _get_variable
 from util.fake import FakeObject
+from util.token import is_bot
 import distutils.dir_util
 import util.token as token
 import util.dynaimport as di
@@ -150,6 +151,7 @@ class GoldBot(commands.Bot):
         self.event_calls = {}
         self.app_info = None
         self.owner_user = None
+        self.selfbot = not is_bot
         if 'utils_revision' not in self.store.store:
             self.store['utils_revision'] = 1
         if self.store.store['utils_revision'] < 2:
@@ -157,7 +159,6 @@ class GoldBot(commands.Bot):
             self.store['utils_revision'] = 2
         super().__init__(**options)
         self.commands = {}
-        self.selfbot = False
 
     async def update_presence(self):
         """Generate an updated presence and change it."""
@@ -176,7 +177,6 @@ class GoldBot(commands.Bot):
     async def on_ready(self):
         """On_ready event for when the bot logs into Discord."""
         self.logger.info('Bot has logged into Discord, ID ' + self.user.id)
-        self.selfbot = not self.user.bot
         if self.selfbot:
             self.game['name'] = ''
             self.game['type'] = 0
@@ -190,7 +190,8 @@ class GoldBot(commands.Bot):
         else:
             self.store.store['owner_id'] = self.user.id
         self.logger.info('Owner information automatically filled.')
-        await self.send_message(self.owner_user, "I've just started up!\nThe time is **%s**." % datetime.now().strftime(absfmt))
+        if not self.selfbot:
+            await self.send_message(self.owner_user, "I've just started up!\nThe time is **%s**." % datetime.now().strftime(absfmt))
 
     async def on_message(self, msg):
         try:

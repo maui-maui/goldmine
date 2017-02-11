@@ -43,7 +43,7 @@ This is done for security purposes.''')
         write()
         return
     else:
-        if ('.' in bot_token[0]) or (self_setup_finished):
+        if ('.' in bot_token[0]) or self_setup_finished:
             write()
         else:
             print('Hmm, that token doesn\'t seem right. Let\'s try again...')
@@ -65,4 +65,4 @@ HOWEVER, if you want me to run as a selfbot, just answer \'self\' for this.''')
     except KeyboardInterrupt:
         print('\nYou pressed Ctrl-C... Ok, exiting setup.')
         exit(0)
-is_bot = not ('mfa.' in bot_token)
+is_bot = 'mfa.' not in bot_token[0]
