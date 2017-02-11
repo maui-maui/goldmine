@@ -129,7 +129,7 @@ class Utility(Cog):
             del byte_size
         await self.bot.say(_result)
 
-    @commands.command(pass_context=True, aliases=['whois', 'who'])
+    @commands.command(pass_context=True, aliases=['whois', 'who', 'userinfo', 'uinfo', 'u'])
     async def user(self, ctx, *users: str):
         """Get tons of info on an user or some users.
         Spaces, multiuser, and cross-server IDs work.
@@ -873,7 +873,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
 
     @commands.command(pass_context=True, aliases=['ttsspam', 'tts_spam'])
     async def ttspam(self, ctx, *, text: str):
-        """Spam a message with TTS. **This may get you banned from some servers.**
+        """Spam a message with TTS. **This may get you banned from servers.**
         Usage: ttspam [message]"""
         await echeck_perms(ctx, ('bot_owner',))
         m = await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
