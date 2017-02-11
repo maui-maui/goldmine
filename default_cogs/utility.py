@@ -531,7 +531,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         col_str = '0x%02X%02X%02X' % (col_rgb[0], col_rgb[1], col_rgb[2])
         await self.bot.say(embed=discord.Embed(color=int(col_str, 16), title='Hex: ' + col_str.replace('0x', '#') + ' | RGB: ' + ', '.join([str(c) for c in col_rgb])))
 
-    @commands.command(aliases=['character', 'char', 'cinfo', 'unicode', 'uinfo'])
+    @commands.command(aliases=['character', 'char', 'cinfo', 'unicode'])
     async def charinfo(self, *, uchars: str):
         """Get the Unicode info for a character or characters.
         Usage: charinfo [character(s)]"""
