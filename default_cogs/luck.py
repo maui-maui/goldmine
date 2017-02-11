@@ -18,9 +18,9 @@ class Luck(Cog):
 
     @commands.command(aliases=['flipcoin', 'coin', 'coinflip'])
     async def flip(self):
-        """Flips a virtual coin... or a person!
+        """Flip a virtual coin.
         Usage: flip"""
-        await self.bot.say('The coin toss revealed... ' + random.choice(['Heads', 'Tails'] + '!'))
+        await self.bot.say('The coin toss revealed... ' + random.choice(['Heads', 'Tails']) + '!')
 
     @commands.command(aliases=['dice', 'rolldice', 'rolld', 'droll', 'diceroll'])
     async def roll(self, dice: str):
