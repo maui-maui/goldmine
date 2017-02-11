@@ -228,7 +228,7 @@ class Admin(Cog):
             await self.store.set_prop(ctx.message, *prop, jprefix)
             await self.bot.say(':white_check_mark:')
         else:
-            oprefix = await self.store.get_cmdfix(ctx.message)
+            oprefix = self.store.get_cmdfix(ctx.message)
             await self.bot.say('**Current%s command prefix is: **`%s`' % (sk, oprefix))
 
     async def progress(self, msg: discord.Message, begin_txt: str):

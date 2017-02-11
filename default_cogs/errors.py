@@ -42,7 +42,7 @@ class Errors(Cog):
             except KeyError:
                 cmdfix = myself.name[0].lower() + '.'
         else:
-            cmdfix = await self.store.get_cmdfix(ctx.message)
+            cmdfix = self.store.get_cmdfix(ctx.message)
         cproc = ctx.message.content.split()[0]
         cprocessed = bdel(cproc, cmdfix)
         c_key = str(exp)

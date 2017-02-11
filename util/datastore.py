@@ -73,32 +73,30 @@ class DataStore():
             await asyncio.sleep(self.commit_interval * 60)
             await self.commit()
 
-    async def get_cmdfix(self, msg):
+    def get_cmdfix(self, msg):
         """Easy method to retrieve the command prefix."""
-        if not msg.server:
+        if msg.server is None:
             return self.store['properties']['global']['command_prefix']
         try:
             return self.store['properties']['by_server'][msg.server.id]['command_prefix']
         except KeyError:
             return self.store['properties']['global']['command_prefix']
 
-    async def get_props_s(self, msg):
+    def get_props_s(self, msg):
         """Get the server properties of a message."""
         try:
             return self.store['properties']['by_server'][msg.server.id]
         except (KeyError, AttributeError):
-            self.store['properties']['by_server'][msg.server.id] = {}
             return {}
 
-    async def get_props_u(self, msg):
+    def get_props_u(self, msg):
         """Get the user properties of a message."""
         try:
             return self.store['properties']['by_user'][msg.author.id]
         except KeyError:
-            self.store['properties']['by_user'][msg.author.id] = {}
             return {}
 
-    async def set_prop(self, msg, scope: str, prop: str, content):
+    def set_prop(self, msg, scope: str, prop: str, content):
         try:
             t_scope = self.store['properties'][scope]
         except (KeyError, AttributeError):
@@ -114,20 +112,22 @@ class DataStore():
                 raise AttributeError('Invalid scope specified. Valid scopes are by_user, by_server, and global.')
             self.store['properties'][scope] = t_scope
 
-    async def get_prop(self, msg, prop: str, hint=[]):
+    def get_prop(self, msg, prop: str, hint=[]):
         """Get the final property referenced in msg's scope."""
         try: # User
-            thing = await self.get_props_u(msg)
+            thing = self.get_props_u(msg)
             return thing[prop]
         except (KeyError, AttributeError):
             try: # Server
-                thing = await self.get_props_s(msg)
+                thing = self.get_props_s(msg)
                 return thing[prop]
             except (KeyError, AttributeError):
                 try:
                     return self.store['properties']['global'][prop]
                 except (KeyError, AttributeError):
                     if prop.startswith('profile_'):
-                        return self.store['properties']['global']['profile'].copy()
+                        thing = self.store['properties']['global']['profile'].copy()
+                        self.store['properties']['by_user'][msg.author.id]['profile_' + msg.server.id] = thing
+                        return thing
                     else:
                         raise KeyError(str)

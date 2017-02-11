@@ -189,6 +189,7 @@ class GoldBot(commands.Bot):
             self.store.store['owner_id'] = self.owner_user.id
         else:
             self.store.store['owner_id'] = self.user.id
+            self.owner_user = self.user
         self.logger.info('Owner information automatically filled.')
         if not self.selfbot:
             await self.send_message(self.owner_user, "I've just started up!\nThe time is **%s**." % datetime.now().strftime(absfmt))
@@ -207,8 +208,8 @@ class GoldBot(commands.Bot):
             prefix_convo = False
             do_logic = msg.author.id == self.user.id
         else:
-            cmdfix = await self.store.get_cmdfix(msg)
-            prefix_convo = (await self.store.get_prop(msg, 'prefix_answer')) in bool_true
+            cmdfix = self.store.get_cmdfix(msg)
+            prefix_convo = (self.store.get_prop(msg, 'prefix_answer')) in bool_true
             do_logic = msg.author.id != self.user.id
         prefix_help = (msg.server.id if msg.server else None) != '110373943822540800' # DBots
         lbname = bname.lower()
