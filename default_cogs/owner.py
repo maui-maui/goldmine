@@ -148,6 +148,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                             err += f'`[WARN]` Couldn\'t broadcast to server **{i.name}**\n'
                             satisfied = True
                         c_count += 1
+                await asyncio.sleep(0.175)
         if err:
             await self.bot.say(err)
 
