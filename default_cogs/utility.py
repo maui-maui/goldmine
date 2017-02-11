@@ -875,7 +875,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
     async def ttspam(self, ctx, *, text: str):
         """Spam a message with TTS. **This may get you banned from servers.**
         Usage: ttspam [message]"""
-        await echeck_perms(ctx, ('bot_owner',))
+        await or_check_perms(ctx, ('send_tts_messages', 'manage_messages'))
         m = await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
         await asyncio.sleep(0.1)
         await self.bot.delete_message(m)

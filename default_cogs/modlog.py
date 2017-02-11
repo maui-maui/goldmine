@@ -11,6 +11,7 @@ from .cog import Cog
 def modevent(orig):
     @functools.wraps(orig)
     async def event_wrap(self, *args, **kwargs):
+        if self.bot.selfbot: return
         print('might invoke')
         scope = self
         if args[0].server.id in scope.bot.store['mod_map']:
