@@ -59,12 +59,12 @@ class GameNight(Cog):
             return
         self.games[ctx.message.channel.id] = game
         await self.bot.say(f''':clap: Now hosting a **meme war** for `{topic}`! :clap:
-We need at least 4 participants. ({ctx.message.author.mention} is already in.)
+We need at least 3 participants. ({ctx.message.author.mention} is already in.)
 Everyone, you have 1 minute to join! Just use `{ctx.prefix}gamenight join`.''')
         await asyncio.sleep(60)
         game['recruiting'] = False
         r_mention = ''
-        if len(game['players']) >= 4:
+        if len(game['players']) >= 3:
             await self.bot.say('⚠ **Stopped due to insufficent number of participants.**')
             del self.games[ctx.message.channel.id]
             return

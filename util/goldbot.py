@@ -46,9 +46,9 @@ class GoldBot(commands.Bot):
         self.loop = asyncio.get_event_loop()
         self.perm_mask = '1609825363' # 66321741 = full
         self.game = {
-            'name': 'Dragon Essence',
-            'type': 1,
-            'url': 'https://www.twitch.tv/dragon5232'
+            'name': 'with you',
+            'type': 0,
+            'url': 'https://www.twitch.tv/'
         }
         self.status = 'online'
         self.presence = {}
