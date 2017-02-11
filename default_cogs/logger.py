@@ -47,15 +47,18 @@ class Logger(Cog):
         t_len = 0
         for channel in self.log:
             ct = '\n'.join(self.log[channel])
-            t_len += len(ct)
-            coro = async_write(os.path.join(self.bot.dir, 'data', 'logger', channel + '.log'),
-                              'ab', b'\n' + ct.encode('utf-8'), self.loop)
-            if background:
-                self.loop.create_task(coro)
-            else:
-                await coro
+            lct = len(ct)
+            t_len += lct
+            if lct:
+                coro = async_write(os.path.join(self.bot.dir, 'data', 'logger', channel + '.log'),
+                                   'ab', b'\n' + ct.encode('utf-8'), self.loop)
+                if background:
+                    self.loop.create_task(coro)
+                else:
+                    await coro
         self.log = {}
-        self.bot.logger.info(f'Wrote {t_len} characters of chatlogs!')
+        if t_len:
+            self.bot.logger.info(f'Wrote {t_len} characters of chatlogs!')
         return t_len
 
     async def writer(self):
