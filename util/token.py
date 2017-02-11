@@ -65,4 +65,4 @@ HOWEVER, if you want me to run as a selfbot, just answer \'self\' for this.''')
     except KeyboardInterrupt:
         print('\nYou pressed Ctrl-C... Ok, exiting setup.')
         exit(0)
-is_bot = 'mfa.' not in bot_token[0]
+is_bot = not (('mfa.' in bot_token[0]) or (len(bot_token) > 1))
