@@ -129,7 +129,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                                                 channel=ctx.message.channel,
                                                 check=lambda m: m.content.lower().startswith('yes'))):
                 return
-        for i in self.bot.servers:
+        for i in self.bot.servers[:]:
             text = broadcast_text.replace('%prefix%', get_prefix(i))
             if i.id in self.dstore['nobroadcast']:
                 pass
@@ -139,7 +139,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                 except discord.Forbidden:
                     satisfied = False
                     c_count = 0
-                    try_channels = list(i.channels)
+                    try_channels = list(i.channels)[:]
                     channel_count = len(try_channels) - 1
                     while not satisfied:
                         with suppress(discord.Forbidden, discord.HTTPException):
