@@ -11,6 +11,7 @@ from util.datastore import DataStore
 from util.const import *
 from util.func import dprint, _get_variable
 from util.fake import FakeObject
+import distutils.dir_util
 import util.token as token
 import util.dynaimport as di
 for mod in ['asyncio', 'random', 'inspect', 'subprocess', 'os', 'sys', 'gc',
@@ -149,6 +150,11 @@ class GoldBot(commands.Bot):
         self.event_calls = {}
         self.app_info = None
         self.owner_user = None
+        if 'utils_revision' not in self.store.store:
+            self.store['utils_revision'] = 1
+        if self.store.store['utils_revision'] < 2:
+            distutils.dir_util.copy_tree(os.path.join(cur_dir, 'default_cogs', 'utils'), os.path.join(cur_dir, 'cogs', 'utils') + os.path.sep)
+            self.store['utils_revision'] = 2
         super().__init__(**options)
         self.commands = {}
         self.selfbot = False
