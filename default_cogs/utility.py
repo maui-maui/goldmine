@@ -55,7 +55,7 @@ class Utility(Cog):
                 await self.bot.delete_message(ctx.message)
             except discord.Forbidden:
                 pass
-        await self.bot.say(stuffs)#.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere'))
+        await self.bot.say('\u200b' + stuffs.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')[:2000])
 
     async def math_task(self, code: str):
         eval_exc = self.loop.run_in_executor(None, self.bot.asteval.eval, code)
