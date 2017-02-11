@@ -8,7 +8,7 @@ import util.dynaimport as di
 from .cog import Cog
 
 for mod in ['asyncio', 'random', 'io', 'subprocess', 'textwrap', 'async_timeout',
-            'discord']:
+            'discord', 'math', 'os']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
@@ -22,9 +22,23 @@ try:
 except Exception:
     Decoder = None
 
+options = {
+    'default_search': 'ytsearch',
+    'quiet': True,
+    'source_address': '0.0.0.0',
+    'format': 'bestaudio/best',
+    'extractaudio': True,
+    'outtmpl': '%(id)s',
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': True,
+    'no_warnings': True,
+    'outtmpl': 'data/voice/cache/%(id)s'
+}
+# >​
 class VoiceEntry:
     """Class to represent an entry in the standard voice queue."""
-    def __init__(self, message, player, jukebox, override_name=None):
+    def __init__(self, message, player, jukebox=False, override_name=None):
         self.requester = message.author
         self.channel = message.channel
         self.player = player
@@ -32,17 +46,17 @@ class VoiceEntry:
         self.name = override_name
 
     def __str__(self):
-        fmt = '**{0}**'
+        fmt = '**{}**'
         p = self.player
         tags = []
         fmt = fmt.format(self.get_name())
         try:
             if p.uploader:
-                tags.append('uploader *{0}*'.format(p.uploader))
+                tags.append('uploader *{}*'.format(p.uploader))
         except AttributeError:
             pass
         if self.requester:
-            tags.append('requester *{0}*'.format(self.requester.display_name))
+            tags.append('requester *{}*'.format(self.requester.display_name))
         try:
             if p.duration:
                 tags.append('duration *{0[0]}m, {0[1]}s*'.format(divmod(p.duration, 60)))
@@ -152,7 +166,7 @@ class VoiceState:
             self.current.player.start()
             if self.current.jukebox:
                 if not self.current.player.title == 'translate_tts':
-                    k_str = 'JUKEBOX FOR **' + self.current.player.title + '**\n'
+                    k_str = 'Jukebox for **' + self.current.player.title + '**\n'
                     juke_m = await self.bot.send_message(self.current.channel, k_str)
                     juke_cells = [':red_circle:', ':large_blue_circle:', ':green_heart:', ':diamond_shape_with_a_dot_inside:']
                     sq_dia = 9
@@ -312,10 +326,6 @@ class Voice(Cog):
         https://rg3.github.io/youtube-dl/supportedsites.html
         Usage: play [song/video name]"""
         state = self.get_voice_state(ctx.message.server)
-        opts = {
-            'default_search': 'ytsearch',
-            'quiet': True,
-        }
 
         if state.voice is None:
             success = await ctx.invoke(self.summon)
@@ -332,7 +342,7 @@ class Voice(Cog):
         pg_task = self.loop.create_task(self.progress(status, 'Loading'))
         state.voice.encoder_options(sample_rate=48000, channels=2)
         try:
-            player = await state.voice.create_ytdl_player(song, ytdl_options=opts, after=state.toggle_next)
+            player = await state.voice.create_ytdl_player(song, ytdl_options=options, after=state.toggle_next)
         except Exception as e:
             n = type(e).__name__
             if n.endswith('DownloadError') or n.endswith('IndexError'):
@@ -347,7 +357,7 @@ class Voice(Cog):
             return
 
         player.volume = 0.7
-        entry = VoiceEntry(ctx.message, player, False)
+        entry = VoiceEntry(ctx.message, player)
         was_empty = state.songs.empty()
         await state.songs.put(entry)
         if state.current:
@@ -415,10 +425,8 @@ class Voice(Cog):
     @commands.command(pass_context=True, no_pm=True, aliases=['next'])
     async def skip(self, ctx):
         """Vote to skip a song. The song requester can automatically skip.
-        3 skip votes are needed for the song to be skipped.
         Usage: skip
         """
-
         state = self.get_voice_state(ctx.message.server)
         if not state.is_playing():
             await self.bot.say('Not playing any music right now...')
@@ -426,16 +434,17 @@ class Voice(Cog):
 
         voter = ctx.message.author
         if voter == state.current.requester:
-            await self.bot.say('Requester of current song requested to skip - skipping song...')
+            await self.bot.say('Requester of song requested to skip, skipping...')
             state.skip()
         elif voter.id not in state.skip_votes:
             state.skip_votes.add(voter.id)
             total_votes = len(state.skip_votes)
-            if total_votes >= 3:
+            need_votes = math.ceil(len(state.voice.channel.voice_members) / 2)
+            if total_votes >= need_votes:
                 await self.bot.say('Skip vote passed, skipping song...')
                 state.skip()
             else:
-                await self.bot.say('Skip vote added, currently at [{}/3]'.format(total_votes))
+                await self.bot.say('Skip vote added, currently at [{}/{}]'.format(total_votes, need_votes))
         else:
             await self.bot.say('You\'ve already voted to skip this song.')
 
@@ -473,7 +482,7 @@ class Voice(Cog):
         state.voice.encoder_options(sample_rate=16000, channels=1)
         player = state.voice.create_stream_player(stream, after=state.toggle_next)
         player.volume = 1.0
-        entry = VoiceEntry(ctx.message, player, False, override_name='Speech')
+        entry = VoiceEntry(ctx.message, player, override_name='Speech')
         await state.songs.put(entry)
         await self.bot.say('Queued ' + str(entry))
         state.voice.encoder_options(sample_rate=48000, channels=2)
@@ -484,7 +493,7 @@ class Voice(Cog):
         Usage: speak [message]"""
         state = self.get_voice_state(ctx.message.server)
         opts = {
-            'quiet': True,
+            **options,
             'user-agent': 'stagefright/1.2 (Linux;Android 5.0)',
             'referer': 'https://translate.google.com/'
         }
@@ -519,7 +528,7 @@ class Voice(Cog):
             await self.bot.say('Adding to voice queue:```' + intxt + '```**It may take up to *10 seconds* to queue.**')
             player = await state.voice.create_ytdl_player(base_url + '?' + urlencode(g_args), ytdl_options=opts, after=state.toggle_next)
             player.volume = 0.75
-            entry = VoiceEntry(ctx.message, player, False)
+            entry = VoiceEntry(ctx.message, player)
             await state.songs.put(entry)
             await self.bot.say('Queued **Speech**! :smiley:')
             await asyncio.sleep(1)
@@ -593,7 +602,7 @@ class Voice(Cog):
         state.voice.encoder_options(sample_rate=48000, channels=2)
         player = state.voice.create_stream_player(io.BytesIO(self.recording_data[ctx.message.server.id]), after=state.toggle_next)
         player.volume = 0.7
-        entry = VoiceEntry(ctx.message, player, False, override_name='Voice Recording from ' + ctx.message.server.name)
+        entry = VoiceEntry(ctx.message, player, override_name='Voice Recording from ' + ctx.message.server.name)
         await state.songs.put(entry)
         await self.bot.say('Queued ' + str(entry))
 
@@ -636,5 +645,13 @@ class Voice(Cog):
             self.bot.unload_extension('default_cogs.voice')
 
 def setup(bot):
+    paths = (
+        ('data', 'voice'),
+        ('data', 'voice', 'cache'),
+    )
+    for p in paths:
+        rpath = os.path.join(bot.dir, *p)
+        if not os.path.exists(rpath):
+            os.makedirs(rpath)
     c = Voice(bot)
     bot.add_cog(c)
