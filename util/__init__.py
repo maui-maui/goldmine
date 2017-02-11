@@ -2,4 +2,4 @@
 __all__ = ['safe_math', 'goldbot', 'perms', 'quote', 'datastore', 'ranks', 'const',
            'proformatter', 'func', 'fake', 'commands', 'google', 'json',
            'token', 'asizeof', 'pykemon', 'autocorrect', 'dynaimport', 'mclib', 'screen',
-           'teeworlds']
+           'teeworlds', 'cleverbot']
