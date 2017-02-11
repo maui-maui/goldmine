@@ -16,7 +16,7 @@ class Luck(Cog):
         Usage: choose [choice 1] [choice 2] [choice 3] [etc...]"""
         await self.bot.say(random.choice(choices))
 
-    @commands.command(aliases=['flipcoin', 'coin', 'coinflip'])
+    @commands.command(aliases=['flipcoin', 'coin', 'coinflip', 'cointoss', 'tosscoin'])
     async def flip(self):
         """Flip a virtual coin.
         Usage: flip"""
