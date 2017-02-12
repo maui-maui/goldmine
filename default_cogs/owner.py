@@ -129,7 +129,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                                                 channel=ctx.message.channel,
                                                 check=lambda m: m.content.lower().startswith('yes'))):
                 return
-        for i in self.bot.servers[:]:
+        for i in list(self.bot.servers)[:]:
             text = broadcast_text.replace('%prefix%', get_prefix(i))
             if i.id in self.dstore['nobroadcast']:
                 pass
