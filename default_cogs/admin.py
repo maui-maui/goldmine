@@ -6,7 +6,7 @@ from util.const import muted_perms
 import util.dynaimport as di
 from .cog import Cog
 
-for mod in ['asyncio', 'random', 'discord']:
+for mod in ['asyncio', 'random', 'discord', 'math']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
@@ -30,13 +30,13 @@ class Admin(Cog):
             detected = True
         elif len(count) == 1:
             if count[0] == 'infinite':
-                limit = 1750
+                limit = 1600
                 detected = True
             else:
                 try:
-                    limit = int(count[0]) + 1
-                    if limit > 1751:
-                        await self.bot.say(ctx.message.author.mention + ' **You can only clean messages by user or 1-1750!**')
+                    limit = math.abs(int(count[0])) + 1
+                    if limit > 1600:
+                        await self.bot.say(ctx.message.author.mention + ' **You can only clean messages by user or 1-1600!**')
                         return
                     detected = True
                 except ValueError:
@@ -94,8 +94,14 @@ class Admin(Cog):
         except discord.Forbidden:
             await self.bot.say(ctx.message.author.mention + ' **I don\'t have enough permissions to do that here 😢**')
             return
+        except discord.HTTPException as e:
+            if '14 days old' in str(e):
+                await self.bot.say('I can only purge messages under 14 days old :sob:')
+                return
+            else:
+                raise e
         dn = len(deleted)
-        del_msg = await self.bot.say('👏 I\'ve finished, deleting {0} message{1}!'.format(dn, ('' if dn == 1 else 's')))
+        del_msg = await self.bot.say('👏 I\'ve finished, deleting {0} message{1}!'.format((dn if dn else 'no'), ('' if dn == 1 else 's')))
         await asyncio.sleep(2.8)
         await self.bot.delete_message(del_msg)
 
