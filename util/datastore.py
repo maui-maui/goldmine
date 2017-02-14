@@ -86,7 +86,8 @@ class DataStore():
         """Get the server properties of a message."""
         try:
             return self.store['properties']['by_server'][msg.server.id]
-        except (KeyError, AttributeError):
+        except KeyError:
+            self.store['properties']['by_server'][msg.server.id] = {}
             return {}
 
     def get_props_u(self, msg):
@@ -115,13 +116,11 @@ class DataStore():
     def get_prop(self, msg, prop: str, hint=[]):
         """Get the final property referenced in msg's scope."""
         try: # User
-            thing = self.get_props_u(msg)
-            return thing[prop]
-        except (KeyError, AttributeError):
+            return self.get_props_u(msg)[prop]
+        except KeyError:
             try: # Server
-                thing = self.get_props_s(msg)
-                return thing[prop]
-            except (KeyError, AttributeError):
+                return self.get_props_s(msg)[prop]
+            except KeyError:
                 try:
                     return self.store['properties']['global'][prop]
                 except KeyError as e:
