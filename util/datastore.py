@@ -87,7 +87,10 @@ class DataStore():
         try:
             return self.store['properties']['by_server'][msg.server.id]
         except KeyError:
-            self.store['properties']['by_server'][msg.server.id] = {}
+            self.store['properties']['by_server'][msg.server.id] = {
+                'name': msg.server.name,
+                'orig_members': len(msg.server.members)
+            }
             return {}
 
     def get_props_u(self, msg):
