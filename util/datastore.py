@@ -124,10 +124,12 @@ class DataStore():
             except (KeyError, AttributeError):
                 try:
                     return self.store['properties']['global'][prop]
-                except (KeyError, AttributeError):
+                except KeyError as e:
                     if prop.startswith('profile_'):
                         thing = self.store['properties']['global']['profile'].copy()
+                        if msg.author.id not in self.store['properties']['by_user']:
+                            self.store['properties']['by_user'][msg.author.id] = {}
                         self.store['properties']['by_user'][msg.author.id]['profile_' + msg.server.id] = thing
                         return thing
                     else:
-                        raise KeyError(str)
+                        raise e
