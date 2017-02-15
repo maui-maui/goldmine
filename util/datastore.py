@@ -2,6 +2,7 @@
 import asyncio
 import os
 import sys
+import discord
 import util.json as json
 from util.commands import CommandInvokeError
 from properties import storage_backend
@@ -120,10 +121,10 @@ class DataStore():
         """Get the final property referenced in msg's scope."""
         try: # User
             return self.get_props_u(msg)[prop]
-        except KeyError:
+        except (KeyError, AttributeError):
             try: # Server
                 return self.get_props_s(msg)[prop]
-            except KeyError:
+            except (KeyError, AttributeError):
                 try:
                     return self.store['properties']['global'][prop]
                 except KeyError as e:
