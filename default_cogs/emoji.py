@@ -67,9 +67,7 @@ class Emoji(Cog):
         await echeck_perms(ctx, ('bot_owner',))
         _em = emojis
         r = list(range(0, math.ceil(len(emojis) / 2000)))
-        print('r ' + str(r))
         for i in r:
-            print('i ' + str(i))
             await self.bot.say(_em[:2000])
             _em = _em[2000:]
 

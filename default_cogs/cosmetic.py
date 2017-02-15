@@ -95,7 +95,6 @@ Testing multi line
         pager = commands.Paginator(prefix='', suffix='')
         pager.add_line('**Listing all character sets defined with samples.**')
         for i in self.al_aliases:
-            print('A ' + i)
             tmp = await self.stylize(i, 'abcdefghijklmnopqrstuvwxyz')
             pager.add_line('**{0}**: `{1}`'.format(i, tmp))
         pager.add_line('**Invoke with `[p][name of set] [message here]`.** For example: `!math_bold hello world`.')

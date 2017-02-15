@@ -399,7 +399,7 @@ class GoldBot(commands.Bot):
                 else:
                     raise e # didn't mean to catch that
             elif self.selfbot and (destination.id == self.user.id):
-                print('Sending to ourselves. what??')
+                self.logger.warning('Sending to ourselves. what??')
                 destination = _get_variable('_internal_channel')
                 channel_id, guild_id = await self._resolve_destination(destination)
                 data = await self.http.send_message(channel_id, content, guild_id=guild_id, tts=tts, embed=embed)

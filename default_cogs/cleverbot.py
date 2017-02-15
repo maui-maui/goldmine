@@ -33,6 +33,7 @@ class Cleverbot(Cog):
         self.cleverbutt_latest = {}
         self.cleverbutt_replied_to = set()
         super().__init__(bot)
+        self.logger = self.logger.getChild('cleverbot')
 
     def __unload(self):
         try:

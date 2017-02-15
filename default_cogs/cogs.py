@@ -40,6 +40,7 @@ class Cogs(Cog):
 
     def __init__(self, bot):
         super().__init__(bot)
+        self.logger = self.logger.getChild('cogs')
         self.path = 'data/downloader/'
         self.file_path = 'data/downloader/repos.json'
         # {name:{url,cog1:{installed},cog1:{installed}}}
@@ -593,11 +594,11 @@ class Cogs(Cog):
 
         to_path = os.path.join("cogs/", cog + ".py")
 
-        print("Copying {}...".format(cog))
+        self.logger.info('Copying %s...', cog)
         shutil.copy(path, to_path)
 
         if os.path.exists(cog_data_path):
-            print("Copying {}'s data folder...".format(cog))
+            self.logger.info('Copying %s\'s data folder...', cog)
             distutils.dir_util.copy_tree(cog_data_path,
                                          os.path.join('data/', cog))
         self.repos[repo_name][cog]['INSTALLED'] = True
@@ -670,7 +671,7 @@ class Cogs(Cog):
                     invalid.append(repo)
                     continue
                 except Exception as e:
-                    print(e) # TODO: Proper logging
+                    self.logger.error(e)
                     continue
 
         for repo in invalid:

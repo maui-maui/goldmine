@@ -26,6 +26,7 @@ class Owner(Cog):
         self.last_broadcasts = {}
         self.dc_funcs = DiscordFuncs(bot)
         super().__init__(bot)
+        self.logger = self.logger.getChild('owner')
 
     @commands.command(pass_context=True, aliases=['rawupdate', 'rupdate'])
     async def update(self, ctx):

@@ -6,6 +6,9 @@ from .cog import Cog
 
 class Moderation(Cog):
     """Some moderation at least."""
+    def __init__(self, bot):
+        super().__init__(bot)
+        self.logger = self.logger.getChild('automod')
 
     async def on_message(self, msg):
         if self.bot.selfbot: return
@@ -15,12 +18,15 @@ class Moderation(Cog):
                 try:
                     await self.bot.delete_message(msg)
                 except discord.Forbidden:
-                    self.logger.warning('Couldn\'t delete iOS crash message in ' + msg.server.name + ', sent by ' + str(msg.author))
+                    self.logger.warning('Couldn\'t delete iOS crash message in ' + \
+                                        msg.server.name + ', sent by ' + str(msg.author))
                     return
-                await self.bot.send_message(msg.channel, msg.author.mention + ' **:japanese_goblin: Stop crashing iOS users!**')
+                await self.bot.send_message(msg.channel, msg.author.mention + \
+                                            ' **:japanese_goblin: Stop crashing iOS users!**')
         if msg.content.lower() == 'kys':
             if msg.server.id != '110373943822540800': # DBots
-                await self.bot.msend(msg, 'Ay ' + msg.author.mention + ', follow your own advice first, :ok_hand::question:')
+                await self.bot.msend(msg, 'Ay ' + msg.author.mention + \
+                                     ', follow your own advice first, :ok_hand::question:')
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

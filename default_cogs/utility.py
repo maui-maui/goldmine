@@ -34,6 +34,7 @@ class Utility(Cog):
     def __init__(self, bot):
         self.stopwatches = {}
         super().__init__(bot)
+        self.logger = self.logger.getChild('utility')
 
     @commands.command(pass_context=True, no_pm=True)
     async def icon(self, ctx):

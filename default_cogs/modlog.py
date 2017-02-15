@@ -12,7 +12,6 @@ def modevent(orig):
     @functools.wraps(orig)
     async def event_wrap(self, *args, **kwargs):
         if self.bot.selfbot: return
-        print('might invoke')
         scope = self
         if args[0].server.id in scope.bot.store['mod_map']:
             target = args[0].server.get_channel(scope.bot.store['mod_map'][args[0].server.id])
@@ -47,7 +46,6 @@ class ModLog(Cog):
 
     @modevent
     async def on_message_delete(self, target, msg):
-        print('invoked')
         au = (msg.author.avatar_url if msg.author.avatar_url else msg.author.default_avatar_url)
         emb = discord.Embed(color=int('0x%06X' % random.randint(5, 255**3-1), 16))
         emb.title = 'Message by **' + str(msg.author) + '** deleted'

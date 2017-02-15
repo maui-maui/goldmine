@@ -206,6 +206,7 @@ class Voice(Cog):
         else:
             self.opus_decoder = None
         super().__init__(bot)
+        self.logger = self.logger.getChild('voice')
         self.disconnect_task = self.loop.create_task(self.disconnect_bg_task())
 
     def get_voice_state(self, server):

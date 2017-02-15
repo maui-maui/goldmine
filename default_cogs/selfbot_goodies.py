@@ -25,6 +25,7 @@ class SelfbotGoodies(Cog):
         self.start_time = datetime.now()
         self.web_render = None
         super().__init__(bot)
+        self.logger = self.logger.getChild('stuff')
 
     def __unload(self):
         if self.web_render:

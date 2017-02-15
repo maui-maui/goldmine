@@ -10,6 +10,9 @@ goodbye = ''':eyes: **{0}** has just left this server. Bye!
 **{1.name}** just lost a {2}. We'll miss you!'''
 class Welcome(Cog):
     """Welcomes and goodbyes. 🤗"""
+    def __init__(self, bot):
+        super().__init__(bot)
+        self.logger = self.logger.getChild('welcome')
 
     async def on_member_join(self, member: discord.Member):
         """On_member_join event for newly joined members."""

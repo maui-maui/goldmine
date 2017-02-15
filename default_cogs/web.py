@@ -19,6 +19,7 @@ class Web(Cog):
     """The awesome web dashboard."""
     def __init__(self, bot):
         super().__init__(bot)
+        self.logger = self.logger.getChild('web')
         self.port = 8085
         self.host = '127.0.0.1'
         self.app = None
@@ -43,10 +44,10 @@ class Web(Cog):
         self.logger.info('debug ALSO starting japronto 8090 not')
 
     async def init_app(self, app):
-        print('INIT APP')
+        self.logger.info('Initializing app...')
         @app.route('/')
         async def test(req):
-            print('i gotta req /')
+            self.logger.info('Got request at /')
             return response.text('hello')
             return response.file(webroot('index.html'))
 
