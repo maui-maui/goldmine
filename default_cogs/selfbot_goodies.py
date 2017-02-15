@@ -87,7 +87,7 @@ class SelfbotGoodies(Cog):
     async def on_not_command(self, msg):
         if msg.author.id != self.bot.user.id: return
         if msg.content.startswith('Here are your substitutions:\n`#1`'): return
-        if msg.content.startswith('```') or msg.content.endswith('```'): return
+        if msg.content.startswith('`') or msg.content.endswith('`'): return
         if msg.content.endswith('\u200b'): return
         content = copy.copy(msg.content)
         for sub, rep in self.dstore['subs'].items():

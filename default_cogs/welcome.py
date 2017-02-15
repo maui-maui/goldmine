@@ -18,12 +18,6 @@ class Welcome(Cog):
         """On_member_join event for newly joined members."""
         if self.bot.selfbot: return
         target = member.server
-        cemotes = member.server.emojis
-        em_string = ''
-        if cemotes:
-            em_string = 'Try some custom emotes: ' + ' '.join([str(i) for i in cemotes]) + '! '
-            if len(em_string) >= (1980 - len(welcome)):
-                em_string = ''
         bc = self.store.get_prop(member, 'broadcast_join')
         cmdfix = self.store.get_prop(member, 'command_prefix')
         if str(bc).lower() in bool_true:

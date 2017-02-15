@@ -26,8 +26,9 @@ class Errors(Cog):
     async def on_error(self, ev_name, *ev_args, **ev_kwargs):
         kw_args = ', ' + (', '.join([k + '=' + str(ev_kwargs[k]) for k in ev_kwargs])) if ev_kwargs else ''
         self.logger.error(f'Event handler {ev_name} errored! Called with ' +
-                          (', '.join([bdel(str(i), 'Command raised an exception: ') for i in ev_args]) if ev_args else 'nothing') + kw_args)
-        traceback.print_exc()
+                          (', '.join([bdel(str(i), 'Command raised an exception: ') \
+                          for i in ev_args]) if ev_args else 'nothing') + kw_args)
+        self.logger.error(traceback.format_exc())
 
     async def on_command_error(self, exp, ctx):
         try:
@@ -61,12 +62,17 @@ class Errors(Cog):
             self.logger.error(str(ctx.message.author) + ' in ' + location + ': command \'' + cprocessed + '\' not found')
         elif isinstance(exp, commands.CommandInvokeError):
             self.logger.error(str(ctx.message.author) + ' in ' + location + f': [cmd {cprocessed}] ' + bc_key)
-            traceback.print_exception(type(exp.original), exp.original, exp.original.__traceback__)
+            self.logger.error('Traceback (most recent call last):\n' + ''.join(traceback.format_tb(exp.original.__traceback__)) \
+                              + type(exp.original).__name__ + ': ' + str(exp.original))
         elif isinstance(exp, commands.CommandPermissionError):
             self.logger.error(str(ctx.message.author) + ' in ' + location + f': Not enough permissions for ' + ctx.message.content[:150])
+        elif isinstance(exp, commands.MissingRequiredArgument) or \
+             isinstance(exp, commands.BadArgument) or isinstance(exp, commands.TooManyArguments):
+            self.logger.error(str(ctx.message.author) + ' in ' + location + f': [cmd {cprocessed}] Argument error. ' + str(exp))
         else:
             self.logger.error(str(ctx.message.author) + ' in ' + location + f': [cmd {cprocessed}] ' + str(exp) + ' (%s)' % type(exp).__name__)
-            traceback.print_exception(type(exp), exp, exp.__traceback__)
+            self.logger.error('Traceback (most recent call last):\n' + ''.join(traceback.format_tb(exp.__traceback__)) \
+                              + type(exp).__name__ + ': ' + str(exp))
 
         if isinstance(exp, commands.NoPrivateMessage):
             await self.csend(ctx, npm_fmt.format(ctx.message.author, cprocessed, cmdfix))
@@ -107,7 +113,7 @@ class Errors(Cog):
                     key = bdel(bc_key, 'BAD REQUEST')
                     if key.endswith('Cannot send an empty message'):
                         await self.csend(ctx, emp_msg.format(ctx.message.author, cprocessed, cmdfix))
-                    elif c_key.startswith('Command raised an exception: HTTPException: BAD REQUEST (status code: 400)'):
+                    elif c_key.endswith('BAD REQUEST (status code: 400)'):
                         if (eprefix == 'dm') and (ctx.command.name == 'user'):
                             await self.csend(ctx, '**No matching users, try again! Name, nickname, name#0000 (discriminator), or ID work. Spaces do, too!**')
                         else:
