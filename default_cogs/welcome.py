@@ -5,7 +5,7 @@ from util.const import bool_true
 from .cog import Cog
 
 welcome = '''Welcome {0.mention} to **{1.name}**. Have a good time here! :wink:
-{2}Learn more about me with `{3}help`.'''
+Learn more about me with `{2}help`.'''
 goodbye = ''':eyes: **{0}** has just left this server. Bye!
 **{1.name}** just lost a {2}. We'll miss you!'''
 class Welcome(Cog):
@@ -22,7 +22,7 @@ class Welcome(Cog):
         cmdfix = self.store.get_prop(member, 'command_prefix')
         if str(bc).lower() in bool_true:
             try:
-                await self.bot.send_message(target, welcome.format(member, target, em_string, cmdfix))
+                await self.bot.send_message(target, welcome.format(member, target, cmdfix))
             except discord.Forbidden:
                 self.logger.warning(f'Couldn\'t announce join of {member} to {member.server}')
 
