@@ -6,7 +6,7 @@ from .cog import Cog
 
 welcome = '''Welcome {0.mention} to **{1.name}**. Have a good time here! :wink:
 Learn more about me with `{2}help`.'''
-goodbye = ''':eyes: **{0}** has just left this server. Bye!
+goodbye = '''**{0}** has just left this server. Bye!
 **{1.name}** just lost a {2}. We'll miss you!'''
 class Welcome(Cog):
     """Welcomes and goodbyes. 🤗"""
