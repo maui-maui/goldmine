@@ -6,7 +6,7 @@ from util.const import muted_perms
 import util.dynaimport as di
 from .cog import Cog
 
-for mod in ['asyncio', 'random', 'discord', 'math']:
+for mod in ['asyncio', 'random', 'discord']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
@@ -15,10 +15,10 @@ class Admin(Cog):
     Can be extremely powerful, use with caution!
     """
 
-    @commands.command(pass_context=True, aliases=['clear', 'purge', 'prune', 'clean'], no_pm=True)
-    async def nuke(self, ctx, *count):
-        """NUKES a channel by deleting all messages!
-        Usage: nuke"""
+    @commands.command(pass_context=True, aliases=['clear', 'nuke', 'prune', 'clean'], no_pm=True)
+    async def purge(self, ctx, *count):
+        """Purge a channel of messages.
+        Usage: purge"""
         if self.bot.selfbot:
             await self.bot.say('**That command doesn\'t work in selfbot mode, due to a Discord restriction.**')
             return
@@ -34,7 +34,7 @@ class Admin(Cog):
                 detected = True
             else:
                 try:
-                    limit = math.abs(int(count[0])) + 1
+                    limit = abs(int(count[0])) + 1
                     if limit > 1600:
                         await self.bot.say(ctx.message.author.mention + ' **You can only clean messages by user or 1-1600!**')
                         return
