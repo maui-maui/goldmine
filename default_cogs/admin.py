@@ -1,5 +1,4 @@
 """Definition of the bot's Admin module.'"""
-from __future__ import print_function
 from contextlib import suppress
 from util.perms import or_check_perms, echeck_perms, check_perms
 from util.const import muted_perms
@@ -260,7 +259,7 @@ class Admin(Cog):
         Usage: mute [person's name]"""
         await or_check_perms(ctx, ['mute_members', 'manage_roles', 'manage_channels', 'manage_messages'])
         status = await self.bot.say('Muting... 🌚')
-        pg_task = self.loop.create_task(self.progress(status, 'Muting'))
+        pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Muting'), timeout=30, loop=self.loop))
         try:
             ch_perms = discord.PermissionOverwrite(**{p: False for p in muted_perms})
             for channel in ctx.message.server.channels:
@@ -280,7 +279,7 @@ class Admin(Cog):
         Usage: unmute [person's name]"""
         await or_check_perms(ctx, ['mute_members', 'manage_roles', 'manage_channels', 'manage_messages'])
         status = await self.bot.say('Unmuting... 🌚')
-        pg_task = self.loop.create_task(self.progress(status, 'Unmuting'))
+        pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Unmuting'), timeout=30, loop=self.loop))
         role_map = {r.name: r for r in member.roles}
         try:
             if 'Muted' in role_map:

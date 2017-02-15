@@ -339,7 +339,7 @@ class Voice(Cog):
             return
 
         status = await self.bot.say('Loading... 🌚')
-        pg_task = self.loop.create_task(self.progress(status, 'Loading'))
+        pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Loading'), timeout=30, loop=self.loop))
         state.voice.encoder_options(sample_rate=48000, channels=2)
         try:
             player = await state.voice.create_ytdl_player(song, ytdl_options=options, after=state.toggle_next)
@@ -570,7 +570,7 @@ class Voice(Cog):
         with assert_msg(ctx, '**This server does not have a recording!**'):
             check(ctx.message.server.id in self.bot.pcm_data)
         status = await self.bot.say('Hmm, let me think... 🌚')
-        pg_task = self.loop.create_task(self.progress(status, 'Hmm, let me think'))
+        pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Hmm, let me think'), timeout=30, loop=self.loop))
         sr_data = sr.AudioData(self.recording_data[ctx.message.server.id], 48000, 2)
         try:
             with async_timeout.timeout(16):
