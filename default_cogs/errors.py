@@ -64,7 +64,7 @@ class Errors(Cog):
             self.logger.error(str(ctx.message.author) + ' in ' + location + f': [cmd {cprocessed}] ' + bc_key)
             self.logger.error('Traceback (most recent call last):\n' + ''.join(traceback.format_tb(exp.original.__traceback__)) \
                               + type(exp.original).__name__ + ': ' + str(exp.original))
-        elif isinstance(exp, commands.CommandPermissionError):
+        elif isinstance(exp, commands.CommandPermissionError) or isinstance(exp, commands.OrCommandPermissionError):
             self.logger.error(str(ctx.message.author) + ' in ' + location + f': Not enough permissions for ' + ctx.message.content[:150])
         elif isinstance(exp, commands.MissingRequiredArgument) or \
              isinstance(exp, commands.BadArgument) or isinstance(exp, commands.TooManyArguments):
