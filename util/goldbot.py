@@ -347,7 +347,7 @@ class GoldBot(commands.Bot):
                            s(time_days[0]), s(time_days[1]), s(time_hrs[1]), s(time_mins[1]))
         return final
 
-    async def send_message(self, destination, content=None, *, tts=False, embed=None):
+    async def send_message(self, destination, content=None, *, tts=False, embed=None, filter=True):
         """Sends a message to the destination given with the content given."""
         channel_id, guild_id = await self._resolve_destination(destination)
         if content:
@@ -361,7 +361,8 @@ class GoldBot(commands.Bot):
                 content = content[:2000 - len(truncate_msg)] + truncate_msg
             elif len(content) <= 1999:
                 if self.selfbot:
-                    content += '\u200b'
+                    if filter:
+                        content += '\u200b'
         if embed:
             embed = embed.to_dict()
         try:
