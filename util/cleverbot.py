@@ -24,7 +24,7 @@ class Cleverbot:
     PROTOCOL = "http://"
     RESOURCE = "/webservicemin"
 
-    def __init__(self, uc='777'):
+    def __init__(self, uc='UseOfficialAPI'):
         """Cleverbot requests that bots identify themselves when
         connecting to the service. You must pass an identifying string
         for your bot when you create the connection.
@@ -39,7 +39,7 @@ class Cleverbot:
         self.uc = uc
 
         self.SERVICE_URL = self.PROTOCOL + self.HOST + self.RESOURCE + \
-                           "?uc=" + self.uc + "&botapi=see%20www.cleverbot.com%2Fapis&t=18205"
+                           "?uc=" + self.uc + "&t=7295&re=yes&"
 
         self.headers = {
             'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)',
