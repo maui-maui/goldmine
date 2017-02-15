@@ -16,7 +16,7 @@ class DiscordBots(Cog):
     def __init__(self, bot):
         self.http = None
         super().__init__(bot)
-        self.logger = self.logger.getChild('bot_stats')
+        self.logger = self.logger.getChild('stats')
         self.loop.create_task(self.init_http())
 
     def __unload(self):
