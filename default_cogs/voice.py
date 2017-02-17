@@ -353,8 +353,11 @@ class Voice(Cog):
                 return False
             else:
                 raise e
-        if player.duration > 8600:
-            await self.bot.say(':warning: Song can\'t be longer than 2h22m.')
+        try:
+            if player.duration > 8600:
+                await self.bot.say(':warning: Song can\'t be longer than 2h22m.')
+                return
+        except TypeError: # livestream, no duration
             return
 
         player.volume = 0.7
