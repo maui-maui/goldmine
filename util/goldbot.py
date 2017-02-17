@@ -191,7 +191,7 @@ class GoldBot(commands.Bot):
             self.store.store['owner_id'] = self.user.id
             self.owner_user = self.user
         self.logger.info('Owner information automatically filled.')
-        if not self.selfbot:
+        if (not self.selfbot) and len(self.servers) >= 75:
             await self.send_message(self.owner_user, "I've just started up!\nThe time is **%s**." % datetime.now().strftime(absfmt))
 
     async def on_message(self, msg):
