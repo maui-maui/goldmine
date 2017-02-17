@@ -8,6 +8,7 @@ from util.cleverbot import Cleverbot as RealCleverbot
 #        return """Cleverbot updated, and I'm now unable to use it.
 #I'll be rolling out a custom solution soon. Stay tuned, and sorry for any inconvenience caused!"""
 import util.commands as commands
+from util.perms import or_check_perms
 from util.func import bdel
 from .cog import Cog
 
