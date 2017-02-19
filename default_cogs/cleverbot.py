@@ -1,39 +1,32 @@
 """Good ol' Cleverbot."""
 import asyncio
 import random
-from util.cleverbot import Cleverbot as RealCleverbot
-#class RealCleverbot:
-#    @staticmethod
-#    def ask(m):
-#        return """Cleverbot updated, and I'm now unable to use it.
-#I'll be rolling out a custom solution soon. Stay tuned, and sorry for any inconvenience caused!"""
+from util.cleverbot import CleverBot
 import util.commands as commands
 from util.perms import or_check_perms
 from util.func import bdel
 from .cog import Cog
 
 try:
-    from d_props import cleverbot_name as BOT_API
+    from d_props import clever_auth
 except ImportError:
-    BOT_API = 'Goldmine'
+    clever_auth = ()
 
 class Cleverbot(Cog):
     """Good ol' Cleverbot."""
-    BOTNAME = BOT_API
     def __init__(self, bot):
+        super().__init__(bot)
         try:
-            self.cb = RealCleverbot()
-        except Exception as e:
-            bot.logger.error('Couldn\'t initialize Cleverbot! Got ' + type(e).__name__ + ': ' + str(e))
-            class PlaceholderCleverbot:
+            self.cb = CleverBot(*clever_auth, loop=self.loop)
+        except TypeError:
+            class FakeClever:
                 @staticmethod
-                def ask(m):
-                    return 'The Cleverbot system failed to start.'
-            self.cb = PlaceholderCleverbot()
+                async def ask():
+                    return 'The bot owner hasn\'t set up Cleverbot.'
+            self.cb = FakeClever
         self.cleverbutt_timers = set()
         self.cleverbutt_latest = {}
         self.cleverbutt_replied_to = set()
-        super().__init__(bot)
         self.logger = self.logger.getChild('cleverbot')
 
     def __unload(self):
@@ -42,18 +35,10 @@ class Cleverbot(Cog):
         except Exception:
             pass
 
-    async def on_ready(self):
-        try:
-            #await self.cb.async_init()
-            pass
-        except asyncio.TimeoutError:
-            self.logger.warning('Couldn\'t get cookies for Cleverbot, so it probably won\'t work.')
-
     async def askcb(self, query):
         """Cleverbot query helper."""
         try:
-            return await self.loop.run_in_executor(None, self.cb.ask, query)
-            #return await self.cb.ask(query)
+            return await self.cb.ask(query)
         except IndexError:
             return 'Couldn\'t get a response from Cleverbot.'
 
