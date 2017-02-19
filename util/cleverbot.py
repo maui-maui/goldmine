@@ -9,6 +9,7 @@ class CleverBot:
             'user': user,
             'key': key
         }
+        self.conversation = []
         if loop is None:
             loop = asyncio.get_event_loop()
         if async_init:
@@ -23,12 +24,14 @@ class CleverBot:
 
     async def ask(self, text):
         self.body['text'] = text
+        self.conversation.append(text)
 
         async with self.session.post('https://cleverbot.io/1.0/ask',
                                      data=self.body) as resp:
             r = await resp.json()
 
         if r['status'] == 'success':
+            self.conversation.append(r['response'])
             return r['response']
         else:
-            return False
+            return 'Hmm, my brain doesn\'t seem to be working right now.'
