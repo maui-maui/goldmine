@@ -1,4 +1,4 @@
-"""Cleverbot.io API library."""
+"""Aiohttp cleverbot.io API library."""
 import json
 import asyncio
 import aiohttp
