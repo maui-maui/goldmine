@@ -102,6 +102,10 @@ class Cleverbot(Cog):
 
     async def on_pm(self, msg):
         """PM replying logic."""
+        if msg.content.startswith('`'):
+            if 'REPL' in self.bot.cogs:
+                if msg.channel.id in self.bot.cogs['REPL'].sessions:
+                    return
         await self.bot.send_typing(msg.channel)
         c = msg.content
         for m in msg.mentions:
