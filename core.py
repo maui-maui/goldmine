@@ -13,7 +13,6 @@ __main__.core_file = __file__
 from util.token import bot_token, is_bot
 from convert_to_old_syntax import rc_files, cur_dir
 from util.goldbot import GoldBot
-from util.datastore import initialize as init_store
 from util.const import description, default_cogs
 from util.proformatter import RichFormatter
 
@@ -22,7 +21,6 @@ logger = logging.getLogger('bot')
 handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
-init_store()
 
 if not discord.opus.is_loaded():
     # Windows: opus.dll (auto provided)
