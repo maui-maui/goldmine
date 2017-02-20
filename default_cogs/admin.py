@@ -277,7 +277,7 @@ class Admin(Cog):
     async def unmute(self, ctx, *, member: discord.Member):
         """Unmute someone on voice and text chat.
         Usage: unmute [person's name]"""
-        await or_check_perms(ctx, ['mute_members', 'manage_roles', 'manage_channels', 'manage_messages'])
+        await or_check_perms(ctx, ('mute_members', 'manage_roles', 'manage_channels', 'manage_messages'))
         status = await self.bot.say('Unmuting... 🌚')
         pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Unmuting'), timeout=30, loop=self.loop))
         role_map = {r.name: r for r in member.roles}
@@ -295,6 +295,20 @@ class Admin(Cog):
             pg_task.cancel()
             await self.bot.delete_message(status)
             await self.bot.say('**I don\'t have enough permissions to do that!**')
+
+    @commands.command(pass_context=True, no_pm=True)
+    async def ban(self, ctx, *, member: discord.Member):
+        """Ban someone from the server.
+        Usage: ban [member]"""
+        await echeck_perms(ctx, ('ban_members',))
+        await self.bot.say(':hammer: **Are you sure you want to ban ' + member.mention + '?**')
+        if not (await self.bot.wait_for_message(timeout=6.0, author=ctx.message.author,
+                                                channel=ctx.message.channel,
+                                                check=lambda m: m.content.lower().startswith('y'))):
+            await self.bot.say('Not banning.')
+            return
+        await self.bot.ban(member)
+        await self.bot.say(':hammer: Banned. It was just about time.')
 
 def setup(bot):
     c = Admin(bot)
