@@ -9,3 +9,4 @@ future
 asteval
 elizabeth
 qrcode
+bson

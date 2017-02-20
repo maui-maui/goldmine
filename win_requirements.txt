@@ -13,3 +13,4 @@ pillow
 elizabeth
 qrcode
 pyscreenshot
+bson

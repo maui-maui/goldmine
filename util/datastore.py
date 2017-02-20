@@ -2,26 +2,19 @@
 import asyncio
 import os
 import sys
-import discord
 import util.json as json
+import util.dynaimport as di
 from util.commands import CommandInvokeError
 from properties import storage_backend
-
-def initialize():
-    """Initialize the data store, if needed."""
-#    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'storage.json'), 'w+') as storefile:
-#        try:
-#            json.loads('' + storefile.read())
-#        except json.decoder.JSONDecodeError:
-#            storefile.write(json.dumps(orig_store, separators=(',', ':')))
-    pass
+bson = di.load('bson')
 
 class DataStore():
     """The data store central."""
     exts = {
         'json': 'json',
         'leveldb': 'ldb',
-        'pickle': 'db'
+        'pickle': 'db',
+        'bson': 'bson'
     }
     def __init__(self, backend, path=None, join_path=True, commit_interval=3):
         self.dir = os.path.dirname(os.path.abspath(sys.modules['__main__'].core_file))
@@ -40,12 +33,22 @@ class DataStore():
         if self.backend == 'json':
             try:
                 with open(self.path, 'r') as storefile:
-                    self.store = json.loads('' + storefile.read())
+                    self.store = json.loads(storefile.read())
             except FileNotFoundError:
                 print('Creating storage file...')
                 with open(self.path, 'a') as f, open(os.path.join(self.dir, 'assets', 'emp_storage.json')) as df:
                     orig = df.read()
                     f.write(orig)
+                self.store = json.loads(orig)
+        elif self.backend == 'bson':
+            try:
+                with open(self.path, 'rb') as storefile:
+                    self.store = bson.loads(storefile.read())
+            except FileNotFoundError:
+                print('Creating storage file...')
+                with open(self.path, 'ab') as f, open(os.path.join(self.dir, 'assets', 'emp_storage.json')) as df:
+                    orig = df.read()
+                    f.write(bson.dumps(orig))
                 self.store = json.loads(orig)
 
     def __getitem__(self, item: str):
@@ -57,16 +60,31 @@ class DataStore():
     def __len__(self):
         return len(self.store)
 
+    def __contains__(self, item):
+        return item in self.store
+
+    def keys(self):
+        return self.store.keys()
+    def values(self):
+        return self.store.values()
+
     async def read(self):
         """Re-read the datastore from disk, discarding changes."""
         if self.backend == 'json':
             with open(self.path, 'r') as storefile:
-                self.store = json.loads('' + storefile.read())
+                self.store = json.loads(storefile.read())
+        elif self.backend == 'bson':
+            with open(self.path, 'rb') as storefile:
+                self.store = bson.loads(storefile.read())
 
     async def commit(self):
         """Commit the current datastore to disk."""
-        with open(self.path, 'w') as storefile:
-            storefile.write(json.dumps(self.store))
+        if self.backend == 'json':
+            with open(self.path, 'w+') as storefile:
+                storefile.write(json.dumps(self.store))
+        elif self.backend == 'bson':
+            with open(self.path, 'wb+') as storefile:
+                storefile.write(bson.dumps(self.store))
 
     async def commit_task(self):
         """Continous background task for comitting datastore."""

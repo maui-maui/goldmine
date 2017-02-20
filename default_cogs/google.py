@@ -41,6 +41,7 @@ class Google(Cog):
         if self.gclient:
             fql = await self.gclient.search(query)
             if fql:
+                self.bot.store['google_cache'][query] = fql
                 r = fql[0]
                 emb.title = r['title']
                 emb.description = r['snippet']
@@ -54,9 +55,12 @@ class Google(Cog):
             if fql:
                 emb.description = '\u200b'
                 emb.add_field(name='Link', value=fql[0])
+                self.bot.store['google_cache'][query] = fql
             else:
                 emb.description = 'Nothing was found.'
         await self.bot.say(embed=emb)
 
 def setup(bot):
+    if 'google_cache' not in bot.store:
+        bot.store['google_cache'] = {}
     bot.add_cog(Google(bot))
