@@ -2,11 +2,25 @@
 import random
 import discord
 import util.commands as commands
-from util.google import search
+from util.google_old import search
+from util.google import GoogleClient
 from .cog import Cog
+
+try:
+    from d_props import google_api_key as GOOGLE_API_KEY
+except ImportError:
+    GOOGLE_API_KEY = None
 
 class Google(Cog):
     """Google. We all need it at some point."""
+    CSE_ID = '011887893391472424519:xf_tuvgfrgk'
+
+    def __init__(self, bot):
+        super().__init__(bot)
+        if GOOGLE_API_KEY:
+            self.gclient = GoogleClient(GOOGLE_API_KEY, self.CSE_ID)
+        else:
+            self.gclient = None
 
     async def s_google(self, query, num=3):
         """A method of querying Google safe for async."""
@@ -22,16 +36,26 @@ class Google(Cog):
             await self.bot.reply('you need to specify some search terms!')
             return
         m = ''
-        fql = await self.s_google(query, num=2)
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title='Search Results')
-        emb.description = '\u200b'
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
         emb.set_author(icon_url='https://raw.githubusercontent.com/Armored-Dragon/goldmine/master/assets/icon-google.png', name='Google', url='https://google.com/')
-        if fql:
-            emb.add_field(name='Link', value=fql[0], inline=False)
-            if len(fql) > 1:
-                emb.add_field(name='Another Link', value=fql[1], inline=False)
+        if self.gclient:
+            fql = await self.gclient.search(query)
+            if fql:
+                r = fql[0]
+                emb.title = r['title']
+                emb.description = r['snippet']
+                emb.add_field(name='Link', value=r['link'])
+            else:
+                emb.title = 'Google Search'
+                emb.description = 'Nothing was found.'
         else:
-            emb.description += 'Nothing was found.'
+            fql = await self.s_google(query, num=1)
+            emb.title = 'Google Search'
+            if fql:
+                emb.description = '\u200b'
+                emb.add_field(name='Link', value=fql[0])
+            else:
+                emb.description = 'Nothing was found.'
         await self.bot.say(embed=emb)
 
 def setup(bot):
