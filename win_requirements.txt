@@ -9,7 +9,6 @@ future
 asteval
 cchardet
 psutil
-cozmo[camera]
 pillow
 elizabeth
 qrcode
