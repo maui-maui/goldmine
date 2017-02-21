@@ -13,7 +13,7 @@ class Help(Cog):
         """Show the bot's help.
         Usage: help"""
         if ctx.invoked_with.startswith('p'):
-            await or_check_perms(ctx, ['bot_admin', 'manage_server', 'manage_messages', 'manage_channels'])
+            or_check_perms(ctx, ['bot_admin', 'manage_server', 'manage_messages', 'manage_channels'])
         try:
             if ctx.message.server.me:
                 target = ctx.message.server.me

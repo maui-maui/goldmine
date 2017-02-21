@@ -2,7 +2,7 @@
 import asyncio
 from util.commands.errors import CommandPermissionError, OrCommandPermissionError
 
-async def check_perms(ctx, perms_required):
+def check_perms(ctx, perms_required):
     """Check permissions required for an action."""
     perms_satisfied = 0
     sender = ctx.message.author
@@ -36,16 +36,16 @@ async def check_perms(ctx, perms_required):
                 pass
     return len(perms_required) == perms_satisfied
 
-async def echeck_perms(ctx, perms_required):
+def echeck_perms(ctx, perms_required):
     """Easy wrapper for permission checking."""
-    if not await check_perms(ctx, perms_required):
+    if not check_perms(ctx, perms_required):
         raise CommandPermissionError(perms_required, message=ctx.message.content)
 
-async def or_check_perms(ctx, perms_ok):
+def or_check_perms(ctx, perms_ok):
     """Easy wrapper for permission checking."""
     results = set()
     for perm in perms_ok:
-        res = await check_perms(ctx, [perm])
+        res = check_perms(ctx, [perm])
         results.add(res)
     if not any(results):
         raise OrCommandPermissionError(perms_ok, message=ctx.message.content)

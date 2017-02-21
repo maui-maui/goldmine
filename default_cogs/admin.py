@@ -21,7 +21,7 @@ class Admin(Cog):
         if self.bot.selfbot:
             await self.bot.say('**That command doesn\'t work in selfbot mode, due to a Discord restriction.**')
             return
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
         mode = 'count'
         detected = False
         if not count:
@@ -108,7 +108,7 @@ class Admin(Cog):
     async def admintest(self, ctx):
         """Check to see if you're registered as a bot admin.
         Usage: admintest'"""
-        tmp = await check_perms(ctx, ('bot_admin',))
+        tmp = check_perms(ctx, ('bot_admin',))
         if tmp:
             await self.bot.say(ctx.message.author.mention + ' You are a bot admin! :smiley:')
         else:
@@ -118,7 +118,7 @@ class Admin(Cog):
     async def addadmin(self, ctx, *rrtarget: str):
         """Add a user to the bot admin list.
         Usage: addadmin [user]"""
-        tmp = await check_perms(ctx, ('bot_admin',))
+        tmp = check_perms(ctx, ('bot_admin',))
         if not rrtarget:
             await self.bot.say('**You need to specify a name, nickname, name#0000, mention, or ID!**')
             return
@@ -150,7 +150,7 @@ class Admin(Cog):
     async def rmadmin(self, ctx, *rrtarget: str):
         """Remove a user from the bot admin list.
         Usage: rmadmin [user]"""
-        tmp = await check_perms(ctx, ('bot_admin',))
+        tmp = check_perms(ctx, ('bot_admin',))
         if not rrtarget:
             await self.bot.say('**You need to specify a name, nickname, name#discriminator, or ID!**')
             return
@@ -214,7 +214,7 @@ class Admin(Cog):
     async def setprop(self, ctx, pname: str, *, value: str):
         """Set the value of a property on server level.
         Usage: setprop [property name] [value]"""
-        await echeck_perms(ctx, ('manage_server',))
+        echeck_perms(ctx, ('manage_server',))
         self.store.set_prop(ctx.message, 'by_server', pname, value)
         await self.bot.say(':white_check_mark:')
 
@@ -228,7 +228,7 @@ class Admin(Cog):
             sk = ''
             prop = ('global', 'selfbot_prefix')
         if prefix:
-            await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
+            or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
             jprefix = ' '.join(prefix)
             self.store.set_prop(ctx.message, *prop, jprefix)
             await self.bot.say(':white_check_mark:')
@@ -257,7 +257,7 @@ class Admin(Cog):
     async def mute(self, ctx, *, member: discord.Member):
         """Mute someone on voice and text chat.
         Usage: mute [person's name]"""
-        await or_check_perms(ctx, ['mute_members', 'manage_roles', 'manage_channels', 'manage_messages'])
+        or_check_perms(ctx, ['mute_members', 'manage_roles', 'manage_channels', 'manage_messages'])
         status = await self.bot.say('Muting... 🌚')
         pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Muting'), timeout=30, loop=self.loop))
         try:
@@ -277,7 +277,7 @@ class Admin(Cog):
     async def unmute(self, ctx, *, member: discord.Member):
         """Unmute someone on voice and text chat.
         Usage: unmute [person's name]"""
-        await or_check_perms(ctx, ('mute_members', 'manage_roles', 'manage_channels', 'manage_messages'))
+        or_check_perms(ctx, ('mute_members', 'manage_roles', 'manage_channels', 'manage_messages'))
         status = await self.bot.say('Unmuting... 🌚')
         pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Unmuting'), timeout=30, loop=self.loop))
         role_map = {r.name: r for r in member.roles}
@@ -300,7 +300,7 @@ class Admin(Cog):
     async def ban(self, ctx, *, member: discord.Member):
         """Ban someone from the server.
         Usage: ban [member]"""
-        await echeck_perms(ctx, ('ban_members',))
+        echeck_perms(ctx, ('ban_members',))
         await self.bot.say(':hammer: **Are you sure you want to ban ' + member.mention + '?**')
         if not (await self.bot.wait_for_message(timeout=6.0, author=ctx.message.author,
                                                 channel=ctx.message.channel,
