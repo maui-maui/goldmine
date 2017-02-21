@@ -68,7 +68,7 @@ class Quotes(Cog):
             'id': 0,
             'quote': 'The bot has encountered an internal error.',
             'author': 'Goldmine',
-            'author_ids': [self.bot.user.id],
+            'author_ids': [''],
             'date': fmt_time
         }
         mauthor = target
@@ -76,7 +76,7 @@ class Quotes(Cog):
         q_template['author'] = mauthor.display_name
         if mauthor.display_name != mauthor.name:
             q_template['author'] += ' (' + mauthor.name + ')'
-        q_template['author_ids'] = [mauthor.id]
+        q_template['author_ids'] = [mauthor.id, ctx.message.author.id]
         q_template['id'] = len(self.dstore['quotes']) # +1 for next id, but len() counts from 1
         self.dstore['quotes'].append(q_template)
         await self.bot.reply(f'you added quote **#{q_template["id"] + 1}**!')
@@ -117,7 +117,7 @@ class Quotes(Cog):
             await self.bot.reply(f'quote **#{qindex}** doesn\'t already exist!')
             return
         mauthor = ctx.message.author
-        _pcheck = await check_perms(ctx, ('bot_owner',))
+        _pcheck = await check_perms(ctx, ('bot_admin',))
         if (mauthor.id == q_target['author_ids'][0]) or (_pcheck):
             del self.dstore['quotes'][qindex - 1]
             await self.bot.reply(f'you deleted quote **#{qindex}**!')
