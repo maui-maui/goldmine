@@ -60,14 +60,18 @@ class Quotes(Cog):
     async def quoteadd(self, ctx, target: discord.User, *, text: str):
         """Add a quote.
         Usage: quoteadd [member] [text here]"""
-        if len(text) > 500:
+        if len(text) > 360:
             await self.bot.reply('your text is too long!')
             return
+        if target == self.bot.user:
+            if not (await check_perms(ctx, ('bot_owner',))):
+                await self.bot.reply('you can\'t add a quote as me!')
+                return
         fmt_time = [int(i) for i in time.strftime("%m/%d/%Y").split('/')]
         q_template = {
             'id': 0,
-            'quote': 'The bot has encountered an internal error.',
-            'author': 'Goldmine',
+            'quote': 'Say-whaaaa?',
+            'author': ctx.message.author.display_name,
             'author_ids': [''],
             'date': fmt_time
         }
@@ -85,7 +89,7 @@ class Quotes(Cog):
     async def quotemod(self, ctx, qindex: int, *, text: str):
         """Edit an existing quote.
         Usage: quotemod [quote number] [new text here]"""
-        if len(text) > 500:
+        if len(text) > 360:
             await self.bot.reply('your text is too long!')
             return
         if qindex < 0:
