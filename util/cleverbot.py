@@ -21,7 +21,6 @@ class CleverBot:
             j = await r.json()
             self.body['nick'] = j['nick']
 
-
     async def ask(self, text):
         self.body['text'] = text
         self.conversation.append(text)
