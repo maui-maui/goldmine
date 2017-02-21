@@ -100,7 +100,7 @@ class Quotes(Cog):
         except IndexError:
             await self.bot.reply('that quote doesn\'t already exist!')
             return
-        if not check_perms(ctx, ('bot_admin',))):
+        if not check_perms(ctx, ('bot_admin',)):
             if ctx.message.author.id not in q_template['author_ids']:
                 await self.bot.reply('you need more permissions!')
                 return
