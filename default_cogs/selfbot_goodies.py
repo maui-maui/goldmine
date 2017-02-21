@@ -35,7 +35,7 @@ class SelfbotGoodies(Cog):
     async def screenshot(self, ctx):
         """Take a screenshot.
         Usage: screenshot"""
-        await echeck_perms(ctx, ('bot_owner',))
+        echeck_perms(ctx, ('bot_owner',))
         if have_pil and (sys.platform not in ['linux', 'linux2']):
             grabber = ImageGrab
         else:
@@ -50,7 +50,7 @@ class SelfbotGoodies(Cog):
     async def msg_rate(self, ctx):
         """Get the message rate.
         Usage: msg_rate"""
-        await echeck_perms(ctx, ('bot_owner',))
+        echeck_perms(ctx, ('bot_owner',))
         msg = await self.bot.say('Please wait...')
         start_time = datetime.now()
         m = {'messages': 0}
@@ -69,7 +69,7 @@ class SelfbotGoodies(Cog):
     async def render(self, ctx, *, webpage: str):
         """Render a webpage to image.
         Usage: render [url]"""
-        await echeck_perms(ctx, ('bot_owner',))
+        echeck_perms(ctx, ('bot_owner',))
         await self.bot.say(':warning: Not yet working.'
                            'Type `yes` within 6 seconds to proceed and maybe crash your bot.')
         if not (await self.bot.wait_for_message(timeout=6.0, author=ctx.message.author,
@@ -104,7 +104,7 @@ class SelfbotGoodies(Cog):
     async def sub(self, ctx):
         """Message substitution manager.
         Usage: sub {stuff}"""
-        await echeck_perms(ctx, ('bot_owner',))
+        echeck_perms(ctx, ('bot_owner',))
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 

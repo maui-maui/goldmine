@@ -468,7 +468,7 @@ class Voice(Cog):
     async def picospeak(self, ctx, *, tospeak: str):
         """Uses the SVOX pico TTS engine to speak a message.
         Usage: picospeak [message]"""
-        await or_check_perms(ctx, ('bot_owner',))
+        or_check_perms(ctx, ('bot_owner',))
         state = self.get_voice_state(ctx.message.server)
 
         if state.voice is None:
@@ -541,7 +541,7 @@ class Voice(Cog):
     async def recording(self, ctx):
         """Manage voice recording, recognition, and playback.
         Usage: recording"""
-        await or_check_perms(ctx, ('bot_owner',))
+        or_check_perms(ctx, ('bot_owner',))
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
@@ -549,7 +549,7 @@ class Voice(Cog):
     async def record_toggle(self, ctx):
         """Toggle (start/stop) voice recording.
         Usage: recording toggle"""
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'move_members'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'move_members'])
         state = self.get_voice_state(ctx.message.server)
         if state.voice is None:
             success = await ctx.invoke(self.summon)
@@ -568,7 +568,7 @@ class Voice(Cog):
     async def record_recog(self, ctx):
         """Speech recognize the current voice recording.
         Usage: recording recog"""
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'move_members'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'move_members'])
         with assert_msg(ctx, '**The bot owner has not set up this feature!**'):
             check(self.opus_decoder != None)
         with assert_msg(ctx, '**This server does not have a recording!**'):

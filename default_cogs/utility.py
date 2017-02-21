@@ -66,7 +66,7 @@ class Utility(Cog):
     async def cmd_eval(self, ctx, *, code: str):
         """Evaluate some code, or a math expression.
         Usage: eval [code/expression]"""
-        await or_check_perms(ctx, ('bot_admin',))
+        or_check_perms(ctx, ('bot_admin',))
         code = bdel(bdel(code, '```python').strip('`'), '```py')
         for key in eval_blocked:
             if re.search(key, code):
@@ -204,8 +204,8 @@ class Utility(Cog):
             except AttributeError:
                 tg_ctx = None
             else:
-                c_srv = await check_perms(tg_ctx, ('manage_server',))
-                c_sown = await check_perms(tg_ctx, ('server_owner',))
+                c_srv = check_perms(tg_ctx, ('manage_server',))
+                c_sown = check_perms(tg_ctx, ('server_owner',))
             c_own = target.id == self.bot.owner_user.id
             c_adm = target.id in self.dstore['bot_admins']
             is_server = isinstance(target, discord.Member)
@@ -758,7 +758,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
     async def ocr(self, ctx):
         """OCR an image.
         Usage: ocr [attach an image]"""
-        await or_check_perms(ctx, ('bot_owner',))
+        or_check_perms(ctx, ('bot_owner',))
         if not have_pil:
             await self.bot.say('The bot owner hasn\'t set up this feature!')
             return False
@@ -876,7 +876,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
     async def ttspam(self, ctx, *, text: str):
         """Spam a message with TTS. **This may get you banned from servers.**
         Usage: ttspam [message]"""
-        await or_check_perms(ctx, ('send_tts_messages', 'manage_messages'))
+        or_check_perms(ctx, ('send_tts_messages', 'manage_messages'))
         m = await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
         await asyncio.sleep(0.1)
         await self.bot.delete_message(m)

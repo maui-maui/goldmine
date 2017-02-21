@@ -64,7 +64,7 @@ class Quotes(Cog):
             await self.bot.reply('your text is too long!')
             return
         if target == self.bot.user:
-            if not (await check_perms(ctx, ('bot_owner',))):
+            if not check_perms(ctx, ('bot_owner',))):
                 await self.bot.reply('you can\'t add a quote as me!')
                 return
         fmt_time = [int(i) for i in time.strftime("%m/%d/%Y").split('/')]
@@ -100,7 +100,7 @@ class Quotes(Cog):
         except IndexError:
             await self.bot.reply('that quote doesn\'t already exist!')
             return
-        if not (await check_perms(ctx, ('bot_admin',))):
+        if not check_perms(ctx, ('bot_admin',))):
             if ctx.message.author.id not in q_template['author_ids']:
                 await self.bot.reply('you need more permissions!')
                 return
@@ -121,7 +121,7 @@ class Quotes(Cog):
             await self.bot.reply(f'quote **#{qindex}** doesn\'t already exist!')
             return
         mauthor = ctx.message.author
-        _pcheck = await check_perms(ctx, ('bot_admin',))
+        _pcheck = check_perms(ctx, ('bot_admin',))
         if (mauthor.id == q_target['author_ids'][0]) or (_pcheck):
             del self.dstore['quotes'][qindex - 1]
             await self.bot.reply(f'you deleted quote **#{qindex}**!')

@@ -138,7 +138,7 @@ class Cleverbot(Cog):
     async def cleverbutt_kickstart(self, ctx, *msg: str):
         """Kickstart / start cleverbutts conversation
         Usage: cleverbutt start {optional: message}"""
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages'])
         c_map = {c.name: c for c in ctx.message.server.channels}
         if 'cleverbutts' in c_map:
             ch = c_map['cleverbutts']

@@ -22,7 +22,7 @@ class GameNight(Cog):
     async def stop(self, ctx):
         """Stop the current game night session.
         Usage: gamenight stop"""
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
         if ctx.message.channel.id in self.games:
             game = self.games[ctx.message.channel.id]
             if game['role']:
@@ -40,7 +40,7 @@ class GameNight(Cog):
     async def memewar(self, ctx, *, topic: str):
         """Start a meme war on a topic.
         Usage: gamenight memewar [topic]"""
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
         game = {
             'active': False,
             'topic': topic,
@@ -89,7 +89,7 @@ Leaders: when you're ready, select a winner (and end the round) with `{ctx.prefi
     @gamenight.command(pass_context=True)
     async def topic(self, ctx, *, topic: str):
         """Start the current round with a topic."""
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
         if ctx.message.channel.id in self.games:
             try:
                 await self.bot.delete_message(ctx.message)
@@ -113,7 +113,7 @@ Leaders: when you're ready, select a winner (and end the round) with `{ctx.prefi
     async def winner(self, ctx, *, winner: discord.Member):
         """Select a winner for a game night session.
         Usage: gamenight winner [winner]"""
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
         if ctx.message.channel.id in self.games:
             try:
                 await self.bot.delete_message(ctx.message)
@@ -161,7 +161,7 @@ Leaders: when you're ready, select a winner (and end the round) with `{ctx.prefi
 
     @gamenight.command(pass_context=True)
     async def start(self, ctx):
-        await or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
+        or_check_perms(ctx, ['manage_server', 'manage_channels', 'manage_messages', 'manage_roles'])
         await self.bot.say(f':clap: Use `{ctx.prefix}gamenight memewar [topic]` for now.')
 
 def setup(bot):
