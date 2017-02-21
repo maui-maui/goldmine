@@ -64,7 +64,7 @@ class Quotes(Cog):
             await self.bot.reply('your text is too long!')
             return
         if target == self.bot.user:
-            if not check_perms(ctx, ('bot_owner',))):
+            if not check_perms(ctx, ('bot_owner',)):
                 await self.bot.reply('you can\'t add a quote as me!')
                 return
         fmt_time = [int(i) for i in time.strftime("%m/%d/%Y").split('/')]
