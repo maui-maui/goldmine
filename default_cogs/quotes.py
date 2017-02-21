@@ -60,6 +60,9 @@ class Quotes(Cog):
     async def quoteadd(self, ctx, target: discord.User, *, text: str):
         """Add a quote.
         Usage: quoteadd [member] [text here]"""
+        if len(text) > 500:
+            await self.bot.reply('your text is too long!')
+            return
         fmt_time = [int(i) for i in time.strftime("%m/%d/%Y").split('/')]
         q_template = {
             'id': 0,
@@ -69,7 +72,7 @@ class Quotes(Cog):
             'date': fmt_time
         }
         mauthor = target
-        q_template['quote'] = text.replace('\n', ' ')
+        q_template['quote'] = text.replace('\n', ' ').replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')
         q_template['author'] = mauthor.display_name
         if mauthor.display_name != mauthor.name:
             q_template['author'] += ' (' + mauthor.name + ')'
@@ -82,6 +85,9 @@ class Quotes(Cog):
     async def quotemod(self, ctx, qindex: int, *, text: str):
         """Edit an existing quote.
         Usage: quotemod [quote number] [new text here]"""
+        if len(text) > 500:
+            await self.bot.reply('your text is too long!')
+            return
         if qindex < 0:
             await self.bot.reply('there aren\'t negative quotes!')
             return
@@ -90,14 +96,11 @@ class Quotes(Cog):
         except IndexError:
             await self.bot.reply('that quote doesn\'t already exist!')
             return
-        mauthor = ctx.message.author
-        q_template['quote'] = text.replace('\n', ' ')
-        if mauthor.id not in q_template['author_ids']:
-            q_template['author'] += ', ' + mauthor.display_name
-            if mauthor.display_name != mauthor.name:
-                q_template['author'] += ' (' + mauthor.name + ')'
-        q_template['author_ids'].extend([mauthor.id])
-        q_template['date'] = [int(i) for i in time.strftime("%m/%d/%Y").split('/')]
+        if not (await check_perms(ctx, ('bot_admin',))):
+            if ctx.message.author.id not in q_template['author_ids']:
+                await self.bot.reply('you need more permissions!')
+                return
+        q_template['quote'] = text.replace('\n', ' ').replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')
         self.dstore['quotes'][qindex - 1] = q_template
         await self.bot.reply(f'you edited quote **#{qindex}**!')
 
