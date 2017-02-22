@@ -243,7 +243,7 @@ class Utility(Cog):
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
         ach = s.channels
-        chlist = [len(ach), 0, 0, '👀']
+        chlist = [len(ach), 0, 0, '']
         for i in ach:
             at = str(i.type)
             if at == 'text':
@@ -263,7 +263,7 @@ class Utility(Cog):
             r_embed.set_image(url=iurl)
         r_embed.add_field(name='ID', value=s.id)
         r_embed.add_field(name='Members', value=len(s.members))
-        r_embed.add_field(name='Channels', value=ch_fmt.format(*[str(i) for i in chlist]))
+        r_embed.add_field(name='Channels', value=ch_fmt.format(*[str(i) for i in chlist])[:-5])
         r_embed.add_field(name='Roles', value=len(s.roles))
         r_embed.add_field(name='Custom Emojis', value=len(s.emojis))
         r_embed.add_field(name='Region (Location)', value=str(s.region).replace('-', ' ').title().replace('Eu ', 'EU ').replace('Us ', 'US ').replace('Vip', 'VIP '))
