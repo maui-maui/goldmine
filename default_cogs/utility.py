@@ -253,7 +253,11 @@ class Utility(Cog):
         iurl = s.icon_url
         s_reg = str(s.region)
         r_embed = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
-        r_embed.set_author(name=s.name, url='https://blog.khronodragon.com/', icon_url=(iurl if iurl else avatar_link))
+        if iurl:
+            thing = {'url': iurl}
+        else:
+            thing = {}
+        r_embed.set_author(name=s.name, **thing, icon_url=(iurl if iurl else avatar_link))
         r_embed.set_footer(text=str(target), icon_url=avatar_link)
         if iurl:
             r_embed.set_image(url=iurl)
@@ -265,7 +269,6 @@ class Utility(Cog):
         r_embed.add_field(name='Region (Location)', value=str(s.region).replace('-', ' ').title().replace('Eu ', 'EU ').replace('Us ', 'US ').replace('Vip', 'VIP '))
         r_embed.add_field(name='Owner', value=str(s.owner))
         r_embed.add_field(name='Default Channel', value=f'<#{s.default_channel.id}>\n(#{s.default_channel.name})')
-        r_embed.add_field(name='Icon URL', value=(iurl if iurl else 'None 😦'))
         r_embed.add_field(name='Admins Need 2FA', value=('Yes' if s.mfa_level else 'No'))
         r_embed.add_field(name='Verification Level', value=v_level_map[str(s.verification_level)])
         await self.bot.say(embed=r_embed)
