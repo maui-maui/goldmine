@@ -5,7 +5,9 @@ import copy
 import sys
 import re
 import textwrap
+import random
 from datetime import datetime
+import discord
 import util.commands as commands
 from util.perms import echeck_perms
 import util.dynaimport as di
@@ -151,6 +153,25 @@ class SelfbotGoodies(Cog):
             await self.bot.say('Deleted substitution `' + name + '`.')
         except KeyError:
             await self.bot.say('No such substitution.')
+
+    def get_nitro_embed(self):
+        emb = discord.Embed(color=0x505e80, description='Discord Nitro is **required** to view this message.')
+        emb.set_thumbnail(url='https://images-ext-2.discordapp.net/eyJ1cmwiOiJodHRwczovL2Nkbi5kaXNjb3'
+                              'JkYXBwLmNvbS9lbW9qaXMvMjY0Mjg3NTY5Njg3MjE2MTI5LnBuZyJ9.2'
+                              '6ZJzd3ReEjyptc_N8jX-00oFGs')
+        emb.set_author(name='Discord Nitro Message', icon_url='https://images-ext-1.discordapp.net/eyJ1'
+                                       'cmwiOiJodHRwczovL2Nkbi5kaXNjb3JkYXBwLmNvbS9lbW9qaXMvMjYz'
+                                       'MDQzMDUxMzM5OTA3MDcyLnBuZyJ9.-pis3JTckm9LcASNN16DaKy9qlI')
+        return emb
+
+    @commands.command(hidden=True)
+    async def nitro_sendto(self, *, channel: discord.Channel):
+        """Send a fake Nitro message embed to a channel.
+        Usage: nitro_sendto [channel]"""
+        emb = self.get_nitro_embed()
+        await self.bot.send_typing(channel)
+        await asyncio.sleep(random.uniform(0.1, 1.2))
+        await self.bot.send_message(channel, embed=emb)
 
 def setup(bot):
     if 'subs' not in bot.store.store:

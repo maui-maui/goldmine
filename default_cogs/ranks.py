@@ -77,7 +77,8 @@ class Ranks(Cog):
                         names = []
                 _i += 1
             if not targets:
-                await self.bot.say('**No matching users, try again! Name, nickname, name#0000 (discriminator), or ID work. Spaces do, too!**')
+                await self.bot.say('**No matching users, try again! Name, nickname, '
+                                   'name#0000 (discriminator), or ID work. Spaces do, too!**')
                 return
         else:
             targets.append(ctx.message.author)
@@ -92,7 +93,8 @@ TOTAL EXPERIENCE: {4}**
             prof = self.store.get_prop(target, 'profile_' + target.server.id)
             rlevel = rank.xp_level(prof['exp'])
             await self.bot.say(stat_fmt.format(target, str(rlevel[0]), str(int(rlevel[1])),
-                                               str(int((rlevel[0] + 1) * lvl_base)), str(prof['exp']), ('your' if target.author.id == ctx.message.author.id else str(target.author) + "'s")))
+                                               str(int((rlevel[0] + 1) * lvl_base)), str(prof['exp']),
+                                               ('your' if target.author.id == ctx.message.author.id else str(target.author) + "'s")))
 
 def setup(bot):
     bot.add_cog(Ranks(bot))
