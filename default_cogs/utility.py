@@ -243,7 +243,7 @@ class Utility(Cog):
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
         ach = s.channels
-        chlist = [len(ach), 0, 0, '👀']
+        chlist = [len(ach), 0, 0, '']
         for i in ach:
             at = str(i.type)
             if at == 'text':
@@ -253,19 +253,22 @@ class Utility(Cog):
         iurl = s.icon_url
         s_reg = str(s.region)
         r_embed = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
-        r_embed.set_author(name=s.name, url='https://blog.khronodragon.com/', icon_url=(iurl if iurl else avatar_link))
+        if iurl:
+            thing = {'url': iurl}
+        else:
+            thing = {}
+        r_embed.set_author(name=s.name, **thing, icon_url=(iurl if iurl else avatar_link))
         r_embed.set_footer(text=str(target), icon_url=avatar_link)
         if iurl:
             r_embed.set_image(url=iurl)
         r_embed.add_field(name='ID', value=s.id)
         r_embed.add_field(name='Members', value=len(s.members))
-        r_embed.add_field(name='Channels', value=ch_fmt.format(*[str(i) for i in chlist]))
+        r_embed.add_field(name='Channels', value=ch_fmt.format(*[str(i) for i in chlist])[:-5])
         r_embed.add_field(name='Roles', value=len(s.roles))
         r_embed.add_field(name='Custom Emojis', value=len(s.emojis))
         r_embed.add_field(name='Region (Location)', value=str(s.region).replace('-', ' ').title().replace('Eu ', 'EU ').replace('Us ', 'US ').replace('Vip', 'VIP '))
         r_embed.add_field(name='Owner', value=str(s.owner))
         r_embed.add_field(name='Default Channel', value=f'<#{s.default_channel.id}>\n(#{s.default_channel.name})')
-        r_embed.add_field(name='Icon URL', value=(iurl if iurl else 'None 😦'))
         r_embed.add_field(name='Admins Need 2FA', value=('Yes' if s.mfa_level else 'No'))
         r_embed.add_field(name='Verification Level', value=v_level_map[str(s.verification_level)])
         await self.bot.say(embed=r_embed)
