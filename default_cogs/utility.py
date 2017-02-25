@@ -817,8 +817,10 @@ Server Owner\'s ID: `{0.server.owner.id}`
         """Get a random comic from xkcd.
         Usage: xkcd random"""
         comic = await xkcd.random_comic()
-        img_bytes = BytesIO((await comic.fetch()))
-        await self.bot.upload(img_bytes, content=comic.title, filename='comic.png')
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title=comic.title)
+        emb.set_image(url=comic.image_link)
+        emb.set_footer(text=comic.alt_text)
+        await self.bot.say(embed=emb)
 
     @commands.cooldown(1, 4, type=commands.BucketType.user)
     @cmd_xkcd.command(name='latest')
@@ -826,8 +828,10 @@ Server Owner\'s ID: `{0.server.owner.id}`
         """Get the latest comic from xkcd.
         Usage: xkcd latest"""
         comic = await xkcd.latest_comic()
-        img_bytes = BytesIO((await comic.fetch()))
-        await self.bot.upload(img_bytes, content=comic.title, filename='comic.png')
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title=comic.title)
+        emb.set_image(url=comic.image_link)
+        emb.set_footer(text=comic.alt_text)
+        await self.bot.say(embed=emb)
 
     @commands.cooldown(1, 4, type=commands.BucketType.user)
     @cmd_xkcd.command(name='number')
@@ -839,8 +843,10 @@ Server Owner\'s ID: `{0.server.owner.id}`
         except xkcd.InvalidComic:
             await self.bot.say(':warning: That comic doesn\'t exist.')
             return
-        img_bytes = BytesIO((await comic.fetch()))
-        await self.bot.upload(img_bytes, content=comic.title, filename='comic.png')
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title=comic.title)
+        emb.set_image(url=comic.image_link)
+        emb.set_footer(text=comic.alt_text)
+        await self.bot.say(embed=emb)
 
     @commands.command(aliases=['zws', 'u200b', '200b'])
     async def zwsp(self, number: int=1):
