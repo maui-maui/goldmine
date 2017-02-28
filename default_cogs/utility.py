@@ -890,8 +890,8 @@ Server Owner\'s ID: `{0.server.owner.id}`
         await asyncio.sleep(0.1)
         await self.bot.delete_message(m)
     
-    @commands.command(aliases=['ip', 'rdns', 'reverse_dns', 'reversedns'])
-    async def ipinfo(self, *, ip: str):
+    @commands.command(pass_context=True, aliases=['ip', 'rdns', 'reverse_dns', 'reversedns'])
+    async def ipinfo(self, ctx, *, ip: str):
         """Get the GeoIP and rDNS data for an IP.
         Usage: ipinfo [ip/domain]"""
         emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
@@ -919,7 +919,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.add_field(name='Longitude', value=data_res['longitude'])
         emb.add_field(name='Latitude', value=data_res['latitude'])
         emb.add_field(name='Metro Code', value=data_res['metro_code'])
-        await self.bot.say(embed=emb)
+        await self.bot.send_message(ctx.message.channel, embed=emb)
 
 def setup(bot):
     c = Utility(bot)
