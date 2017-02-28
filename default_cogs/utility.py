@@ -1,4 +1,4 @@
-"""Definition of the bot's Utility module.'"""
+"""Definition of the bot's Utility module."""
 from contextlib import suppress
 from collections import OrderedDict
 from datetime import datetime, timedelta
@@ -14,7 +14,7 @@ from .cog import Cog
 
 for mod in ['asyncio', 'random', 're', 'sys', 'time', 'textwrap', 'unicodedata',
             'aiohttp', 'async_timeout', 'discord', 'asteval', 'os', 'elizabeth',
-            'qrcode', 'warnings', 'tesserocr', 'contextlib', 'base64']:
+            'qrcode', 'warnings', 'tesserocr', 'contextlib', 'base64', 'socket']:
     globals()[mod] = di.load(mod)
 json = di.load('util.json')
 commands = di.load('util.commands')
@@ -889,6 +889,37 @@ Server Owner\'s ID: `{0.server.owner.id}`
         m = await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
         await asyncio.sleep(0.1)
         await self.bot.delete_message(m)
+    
+    @commands.command(aliases=['ip', 'rdns', 'reverse_dns', 'reversedns'])
+    async def ipinfo(self, *, ip: str):
+        """Get the GeoIP and rDNS data for an IP.
+        Usage: ipinfo [ip/domain]"""
+        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
+        target = self.bot.user
+        au = target.avatar_url
+        avatar_link = (au if au else target.default_avatar_url)
+        emb.set_author(icon_url=avatar_link, name='IP Data')
+        async with aiohttp.ClientSession(loop=self.loop) as sess:
+            with async_timeout.timeout(5):
+                async with sess.get('https://freegeoip.net/json/' + ip) as r:
+                    data_res = await r.json()
+        rdns = 'Failed to fetch'
+        try:
+            with async_timeout.timeout(6):
+                rdns = await self.loop.run_in_executor(None, socket.gethostbyaddr, data_res['ip'])
+        except Exception:
+            pass
+        emb.add_field(name='IP', value=data_res['ip'])
+        emb.add_field(name='Reverse DNS', value=rdns[0])
+        emb.add_field(name='Country', value=data_res['country_name'] + ' (%s)' % data_res['country_code'])
+        emb.add_field(name='Region', value=data_res['region_name'] + ' (%s)' % data_res['region_code'])
+        emb.add_field(name='City', value=data_res['city'])
+        emb.add_field(name='ZIP Code', value=data_res['zip_code'])
+        emb.add_field(name='Timezone', value=data_res['time_zone'])
+        emb.add_field(name='Longitude', value=data_res['longitude'])
+        emb.add_field(name='Latitude', value=data_res['latitude'])
+        emb.add_field(name='Metro Code', value=data_res['metro_code'])
+        await self.bot.say(embed=emb)
 
 def setup(bot):
     c = Utility(bot)
