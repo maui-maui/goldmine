@@ -232,12 +232,12 @@ class Voice(Cog):
                             state.current.player.stop()
                             state.current.player.process.kill()
                             if state.current.player.process.poll() is None:
-                                state.current.player.process.communicate()
+                                self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.communicate))
                         for p in state.songs._queue:
                             p.stop()
                             p.process.kill()
                             if p.process.poll() is None:
-                                p.process.communicate()
+                                self.loop.create_task(self.loop.run_in_executor(None, p.process.communicate))
                         await state.voice.disconnect()
                         del self.voice_states[sid]
                         print('Pruned a voice state! Server ID: ' + sid + \
