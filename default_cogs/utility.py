@@ -906,11 +906,11 @@ Server Owner\'s ID: `{0.server.owner.id}`
         rdns = 'Failed to fetch'
         try:
             with async_timeout.timeout(6):
-                rdns = await self.loop.run_in_executor(None, socket.gethostbyaddr, data_res['ip'])
+                rdns = (await self.loop.run_in_executor(None, socket.gethostbyaddr, data_res['ip']))[0]
         except Exception:
             pass
         emb.add_field(name='IP', value=data_res['ip'])
-        emb.add_field(name='Reverse DNS', value=rdns[0])
+        emb.add_field(name='Reverse DNS', value=rdns)
         emb.add_field(name='Country', value=data_res['country_name'] + ' (%s)' % data_res['country_code'])
         region_val = data_res['region_name'] + ' (%s)' % data_res['region_code']
         emb.add_field(name='Region', value=(region_val if region_val != ' ()' else 'Not specified'))
