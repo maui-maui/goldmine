@@ -221,16 +221,30 @@ class Voice(Cog):
     async def disconnect_bg_task(self):
         """Background task to disconnect from voice channels if idle."""
         while True:
-            for sid in self.voice_states:
-                state = self.voice_states[sid]
-                music = state.songs._queue
-                if not state.current:
-                    if not music:
+            for sid, state in list(self.voice_states.items())[:]:
+                thing = False
+                if state.voice:
+                    if len([m for m in state.voice.channel.voice_members if not \
+                            (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]) < 1:
                         state.speech_player.cancel()
                         state.audio_player.cancel()
-                        del self.voice_states[sid]
+                        if state.current:
+                            state.current.player.stop()
+                            state.current.player.process.kill()
+                        for p in state.songs._queue:
+                            p.stop()
+                            p.process.kill()
                         await state.voice.disconnect()
-            await asyncio.sleep(100)
+                        del self.voice_states[sid]
+                        print('Pruned a voice state! Server ID: ' + sid + \
+                              ', server name: ' + state.voice.channel.server.name)
+                else:
+                    state.speech_player.cancel()
+                    state.audio_player.cancel()
+                    del self.voice_states[sid]
+                    print('Pruned a ghost voice state! Server ID: ' + sid)
+            await asyncio.sleep(300) # every 5 min
+        print('Dbg main loop aborted')
 
     async def create_voice_client(self, channel):
         """Create a new voice client on a specified channel."""
