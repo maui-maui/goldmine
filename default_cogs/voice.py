@@ -1,4 +1,5 @@
-"""Definition of the bot's Voice module.'"""
+"""Definition of the bot's Voice module."""
+from datetime import datetime
 from urllib.parse import urlencode
 from gtts_token import gtts_token
 from util.perms import or_check_perms
@@ -28,7 +29,6 @@ options = {
     'source_address': '0.0.0.0',
     'format': 'bestaudio/best',
     'extractaudio': True,
-    'outtmpl': '%(id)s',
     'noplaylist': True,
     'nocheckcertificate': True,
     'ignoreerrors': True,
@@ -45,7 +45,7 @@ class VoiceEntry:
         self.jukebox = jukebox
         self.name = override_name
 
-    def __str__(self):
+    def __str__(self) -> str:
         fmt = '**{}**'
         p = self.player
         tags = []
@@ -83,7 +83,7 @@ class VoiceEntry:
                 return _seg2()
         except AttributeError:
             return _seg2()
-    def get_desc(self):
+    def get_desc(self) -> str:
         fmt = ''
         p = self.player
         tags = []
@@ -105,25 +105,17 @@ class VoiceEntry:
             fmt = 'No details specified!'
         return fmt
 
-class SpeechEntry:
-    """Class to represent an entry in the speech voice queue."""
-    def __init__(self, player):
-        self.player = player
-
 class VoiceState:
     """Class for handling any voice-related actions."""
     def __init__(self, bot):
         self.current = None
-        self.currents = None
         self.voice = None
         self.bot = bot
         self.play_next_song = asyncio.Event()
-        self.play_next_speech = asyncio.Event()
         self.songs = asyncio.Queue()
-        self.speeches = asyncio.Queue()
-        self.skip_votes = set() # a set of user_ids that voted
+        self.skip_votes = set()
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
-        self.speech_player = self.bot.loop.create_task(self.speech_player_task())
+        self.create_time = datetime.now()
 
     def is_playing(self):
         """Check if anything is currently playing."""
@@ -138,11 +130,6 @@ class VoiceState:
         """Get the current player object."""
         return self.current.player
 
-    @property
-    def players(self):
-        """Get the current speech player object."""
-        return self.currents.player
-
     def skip(self):
         """Skip the currently playing song."""
         self.skip_votes.clear()
@@ -152,10 +139,6 @@ class VoiceState:
     def toggle_next(self):
         """Play the next song in queue."""
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
-
-    def toggle_next_speech(self):
-        """Play the next speech line in queue."""
-        self.bot.loop.call_soon_threadsafe(self.play_next_speech.set)
 
     async def audio_player_task(self):
         """Handle the queue and playing of voice entries."""
@@ -183,15 +166,6 @@ class VoiceState:
             else:
                 await self.play_next_song.wait()
 
-    async def speech_player_task(self):
-        """Handle the queue and playing of speech entries."""
-        while True:
-            self.play_next_speech.clear()
-            self.currents = await self.speeches.get()
-            self.currents.player.start()
-            await self.play_next_speech.wait()
-
-# ----------------------------------------------------
 class Voice(Cog):
     """Voice related commands.
     Works in multiple servers at once.
@@ -223,6 +197,8 @@ class Voice(Cog):
         while True:
             for sid, state in list(self.voice_states.items())[:]:
                 thing = False
+                if (datetime.now() - state.create_time).total_seconds() < 300:
+                    continue # 5 mins
                 if state.voice:
                     if len([m for m in state.voice.channel.voice_members if not \
                             (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]) < 1:
