@@ -112,7 +112,7 @@ class Help(Cog):
             pages.append(emb)
         pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
         destination = ctx.message.author
-        if chars <= 1500:
+        if chars < 1000:
             destination = ctx.message.channel
         if len(pages) > 1:
             destination = ctx.message.author
