@@ -9,6 +9,10 @@ try:
     from ex_props import discord_bots_token
 except ImportError:
     discord_bots_token = None
+try:
+    from ex_props import discordlist_token
+except ImportError:
+    discordlist_token = None
 
 class DiscordBots(Cog):
     """Reporter of server stats to services like Discord Bots."""
@@ -26,7 +30,10 @@ class DiscordBots(Cog):
         self.http = aiohttp.ClientSession()
 
     async def update(self):
-        """Report the current server count to bots.discord.pw."""
+        """Report the current server count to bot lists."""
+        await self.update_dbots()
+        await self.update_discordlist()
+    async def update_dbots(self):
         if not discord_bots_token:
             self.logger.warning('Tried to contact Discord Bots, but no token set!')
             return False
@@ -43,6 +50,23 @@ class DiscordBots(Cog):
                     self.logger.info('Successfully sent Discord Bots our guild count ' + resp_key)
                 else:
                     self.logger.warning('Failed sending our guild count to Discord Bots! ' + resp_key)
+    async def update_discordlist(self):
+        if not discordlist_token:
+            self.logger.warning('Tried to contact DiscordList, but no token set!')
+            return False
+        data = {
+            'token': discordlist_token,
+            'servers': len(self.bot.servers)
+        }
+        dest = 'https://bots.discordlist.net/api'
+        headers = {'Content-Type': 'application/json'}
+        with async_timeout.timeout(6):
+            async with self.http.post(dest, data=json.dumps(data), headers=headers) as r:
+                resp_key = f'(got {r.status} {r.reason})'
+                if r.status == 200:
+                    self.logger.info('Successfully sent DiscordList our guild count ' + resp_key)
+                else:
+                    self.logger.warning('Failed sending our guild count to DiscordList! ' + resp_key)
 
     async def on_ready(self):
         await self.update()
