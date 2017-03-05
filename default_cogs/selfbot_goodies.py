@@ -8,6 +8,7 @@ import textwrap
 import random
 from datetime import datetime
 import aiohttp
+import async_timeout
 import discord
 import util.commands as commands
 from util.perms import echeck_perms
