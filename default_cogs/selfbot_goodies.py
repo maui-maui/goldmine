@@ -7,6 +7,7 @@ import re
 import textwrap
 import random
 from datetime import datetime
+import aiohttp
 import discord
 import util.commands as commands
 from util.perms import echeck_perms
