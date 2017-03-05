@@ -128,15 +128,12 @@ class REPL(Cog):
             '_internal_author': msg.author,
         }
         is_shell = False
-        valid_flags = ['public', 'asteval', 'py', 'split', 'shell']
+        valid_flags = ['public', 'asteval', 'py', 'split', 'shell', 'restrict']
         for flag in flags:
             if flag not in valid_flags:
                 await self.bot.say(f'Flag `{flag}` is invalid. Valid flags are `{", ".join(valid_flags)}`.')
                 return
         if 'public' in flags:
-            del variables['self']
-            del variables['bot']
-            del variables['ctx'].bot
             checks = {}
             ex_check = lambda m: ((m.author.id != self.bot.user.id) if not self.bot.selfbot else True) and (not m.author.bot) and (not m.content.endswith('\u200b'))
         else:
@@ -144,6 +141,10 @@ class REPL(Cog):
                 'author': msg.author
             }
             ex_check = lambda m: not m.content.endswith('\u200b')
+        if 'restrict' in flags:
+            del variables['self']
+            del variables['bot']
+            del variables['ctx'].bot
         use_asteval = 'asteval' in flags
         truncate = 'split' not in flags
         if 'py' in flags:
