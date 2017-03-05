@@ -173,6 +173,32 @@ class SelfbotGoodies(Cog):
         await asyncio.sleep(random.uniform(0.1, 1.2))
         await self.bot.send_message(channel, embed=emb)
 
+    @commands.command(pass_context=True)
+    async def add_emote(self, ctx, _emote: str):
+        """Add a Twitch, FrankerFaceZ, BetterTTV, or Discord emote to the current server.
+        Usage: add_emote [name of emote]"""
+        echeck_perms(ctx, ('bot_owner',))
+        emote = _emote.replace(':', '')
+        ext = 'png'
+        async with aiohttp.ClientSession(loop=self.loop) as session:
+            with async_timeout.timeout(13):
+                try:
+                    async with session.get('https://static-cdn.jtvnw.net/emoticons/v1/' + str(self.bot.emotes['twitch'][emote]['image_id']) + '/1.0') as resp:
+                        emote_img = await resp.read()
+                except KeyError: # let's try frankerfacez
+                    try:
+                        async with session.get('https://cdn.frankerfacez.com/emoticon/' + str(self.bot.emotes['ffz'][emote]) + '/1') as resp:
+                            emote_img = await resp.read()
+                    except KeyError: # let's try BetterTTV
+                        try:
+                            async with session.get(self.bot.emotes['bttv'][emote]) as resp:
+                                emote_img = await resp.read()
+                        except KeyError: # let's try Discord
+                            await self.bot.say('**No such emote!** I can fetch from Twitch, FrankerFaceZ, BetterTTV, or Discord (soon).')
+                            return False
+        result = await self.bot.create_custom_emoji(ctx.message.server, name=emote, image=emote_img)
+        await self.bot.say('Added. ' + str(result))
+
 def setup(bot):
     if 'subs' not in bot.store.store:
         bot.store.store['subs'] = {}
