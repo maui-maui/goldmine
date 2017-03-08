@@ -2,6 +2,8 @@
 from __future__ import print_function
 from importlib import import_module as imp
 import distutils.dir_util
+import json
+import json.decoder
 from contextlib import suppress
 from util.perms import echeck_perms, check_perms
 from util.func import bdel, DiscordFuncs, _set_var, _import, _del_var, snowtime, assert_msg, check
@@ -13,7 +15,6 @@ for mod in ['random', 'functools', 'zipfile', 'io', 'copy', 'subprocess',
             'asyncio']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
-json = di.load('util.json')
 
 def gimport(mod_name, name=None, attr=None):
     return exec(_import(mod_name, var_name=name, attr_name=attr))
