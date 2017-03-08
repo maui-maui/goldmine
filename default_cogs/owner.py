@@ -13,6 +13,7 @@ for mod in ['random', 'functools', 'zipfile', 'io', 'copy', 'subprocess',
             'asyncio']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
+json = di.load('util.json')
 
 def gimport(mod_name, name=None, attr=None):
     return exec(_import(mod_name, var_name=name, attr_name=attr))
@@ -428,6 +429,30 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         time_elapsed = datetime.now() - start_time
         time_elapsed = time_elapsed.total_seconds()
         await self.bot.edit_message(msg, 'I seem to be getting ' + str(round(m['messages'] / time_elapsed, 2)) + ' messages per second.')
+
+    @commands.command(pass_context=True, aliases=['sembed', 'jembed', 'edata'])
+    async def embed_from_json(self, ctx, *, js_text: str):
+        """Send an embed from JSON.
+        Usage: embed_from_json [json]"""
+        echeck_perms(ctx, ('bot_owner',))
+        class SemiEmbed:
+            def __init__(self, obj):
+                self.obj = obj
+            def to_dict(self):
+                return self.obj
+        try:
+            embed_obj = json.loads(js_text)
+        except json.decoder.JSONDecodeError:
+            await self.bot.say(':warning: **Invalid JSON data!**')
+        else:
+            sembed = SemiEmbed(embed_obj)
+            try:
+                await self.bot.say(embed=sembed)
+            except discord.HTTPException as e:
+                if '400' in str(e):
+                    await self.bot.say(':warning: **Couldn\'t send embed, check your data!**')
+                else:
+                    raise e
 
 def setup(bot):
     c = Owner(bot)
