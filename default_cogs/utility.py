@@ -922,6 +922,15 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.add_field(name='Metro Code', value=(data_res['metro_code'] if data_res['metro_code'] != 0 else 'Not specified'))
         await self.bot.send_message(ctx.message.channel, embed=emb)
 
+    @commands.command()
+    async def dial(self, *, number: str):
+        """Dial someone on the phone!
+        Usage: dial [phone number]"""
+        self.logger.info('Dialing ' + number + '...')
+        await self.bot.say(':telephone: **Dialing {}...**'.format(number))
+        await asyncio.sleep((random.randint(1, 3) + random.uniform(0, 1)) * random.uniform(0.4, 1.6) + random.uniform(0, 1))
+        await self.bot.say('**No answer.**')
+
 def setup(bot):
     c = Utility(bot)
     bot.add_cog(c)

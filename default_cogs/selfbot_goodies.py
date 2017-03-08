@@ -51,25 +51,6 @@ class SelfbotGoodies(Cog):
         await self.bot.upload(img_bytes, filename='screenshot.png', content='This is *probably* what my screen looks like right now.')
 
     @commands.command(pass_context=True)
-    async def msg_rate(self, ctx):
-        """Get the message rate.
-        Usage: msg_rate"""
-        echeck_perms(ctx, ('bot_owner',))
-        msg = await self.bot.say('Please wait...')
-        start_time = datetime.now()
-        m = {'messages': 0}
-        async def msg_task(m):
-            while True:
-                await self.bot.wait_for_message()
-                m['messages'] += 1
-        task = self.loop.create_task(msg_task(m))
-        await asyncio.sleep(8)
-        task.cancel()
-        time_elapsed = datetime.now() - start_time
-        time_elapsed = time_elapsed.total_seconds()
-        await self.bot.edit_message(msg, 'I seem to be getting ' + str(round(m['messages'] / time_elapsed, 2)) + ' messages per second.')
-
-    @commands.command(pass_context=True)
     async def render(self, ctx, *, webpage: str):
         """Render a webpage to image.
         Usage: render [url]"""
