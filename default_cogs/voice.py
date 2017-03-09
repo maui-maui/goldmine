@@ -59,7 +59,7 @@ class VoiceEntry:
             tags.append('requester *{}*'.format(self.requester.display_name))
         try:
             if p.duration:
-                tags.append('duration *{0[0]}m, {0[1]}s*'.format(map(int, divmod(p.duration, 60))))
+                tags.append('duration *{0[0]}m, {0[1]}s*'.format(list(map(int, divmod(p.duration, 60)))))
         except AttributeError:
             pass
         if tags:
@@ -96,7 +96,7 @@ class VoiceEntry:
             tags.append('Requester: *{0}*'.format(self.requester.display_name))
         try:
             if p.duration:
-                tags.append('Duration: *{0[0]}m, {0[1]}s*'.format(map(int, divmod(p.duration, 60))))
+                tags.append('Duration: *{0[0]}m, {0[1]}s*'.format(list(map(int, divmod(p.duration, 60)))))
         except AttributeError:
             pass
         if tags:
