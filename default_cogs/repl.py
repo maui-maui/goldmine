@@ -128,7 +128,8 @@ class REPL(Cog):
             '_internal_author': msg.author,
         }
         is_shell = False
-        valid_flags = ['public', 'asteval', 'py', 'split', 'shell', 'restrict']
+        stringify = str
+        valid_flags = ['public', 'asteval', 'split', 'shell', 'restrict', 'repr']
         for flag in flags:
             if flag not in valid_flags:
                 await self.bot.say(f'Flag `{flag}` is invalid. Valid flags are `{", ".join(valid_flags)}`.')
@@ -147,11 +148,10 @@ class REPL(Cog):
             del variables['ctx'].bot
         use_asteval = 'asteval' in flags
         truncate = 'split' not in flags
-        if 'py' in flags:
-            await self.bot.say('⚠ Flag `py` is not implemented yet!')
-            return
         if 'shell' in flags:
             is_shell = True
+        if 'repr' in flags:
+            stringify = repr
 
         if msg.channel.id in self.sessions:
             await self.bot.say('Already running a REPL session in this channel. Exit it with `quit`.')
