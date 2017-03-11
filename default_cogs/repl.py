@@ -184,7 +184,7 @@ class REPL(Cog):
                 result = await self.asteval_iface(cleaned)
                 if inspect.isawaitable(result):
                     result = await result
-                fmt = str(result) + '\n'
+                fmt = stringify(result) + '\n'
             elif is_shell:
                 try:
                     result = await self.loop.run_in_executor(None, platform_shell, cleaned)
@@ -225,10 +225,10 @@ class REPL(Cog):
                 else:
                     value = stdout.getvalue()
                     if result is not None:
-                        fmt = f'{value}{result}\n'
+                        fmt = value + stringify(result) + '\n'
                         variables['last'] = result
                     elif value:
-                        fmt = f'{value}\n'
+                        fmt = value + '\n'
             try:
                 if fmt is not None:
                     fmt = fmt.replace(self.root_path, 'bot_path')
