@@ -78,7 +78,7 @@ class Owner(Cog):
 #        for i in self.bot.servers:
 #            await self.bot.send_message(i.default_channel, 'This bot (' + self.bname + ') is now restarting!')
         self.bot.store_writer.cancel()
-        await self.store.commit()
+        await self.bot.store.commit()
         if ctx.invoked_with != 'update':
             await self.bot.say('I\'ll try to restart. Hopefully I come back alive :stuck_out_tongue:')
         self.logger.info('The bot is now restarting!')
@@ -92,7 +92,7 @@ class Owner(Cog):
         """Commit the current datastore.
         Usage: dcommit"""
         echeck_perms(ctx, ('bot_owner',))
-        await self.store.commit()
+        await self.bot.store.commit()
         await self.bot.say('**Commited the current copy of the datastore!**')
 
     @commands.command(pass_context=True, aliases=['dread', 'storeread', 'readstore', 'load_store', 'read_store'], hidden=True)
@@ -103,7 +103,7 @@ class Owner(Cog):
         await self.bot.say('**ARE YOU SURE YOU WANT TO LOAD THE DATASTORE?** *yes, no*')
         resp = await self.bot.wait_for_message(channel=ctx.message.channel, author=ctx.message.author)
         if resp.content.lower() == 'yes':
-            await self.store.read()
+            await self.bot.store.read()
             await self.bot.say('**Read the datastore from disk, overwriting current copy!**')
         else:
             await self.bot.say('**Didn\'t say yes, aborting.**')
@@ -205,7 +205,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         Usage: rawsetprop [scope] [property name] [value]"""
         echeck_perms(ctx, ('bot_admin',))
         try:
-            self.store.set_prop(ctx.message, scope, pname, value)
+            self.bot.store.set_prop(ctx.message, scope, pname, value)
         except Exception:
             await self.bot.say('⚠ An error occured.')
             return

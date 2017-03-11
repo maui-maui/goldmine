@@ -18,19 +18,19 @@ class Ranks(Cog):
         if msg.channel.is_private: return
         if msg.author.bot: return
         prof_name = 'profile_' + msg.server.id
-        prof = self.store.get_prop(msg, prof_name)
+        prof = self.bot.store.get_prop(msg, prof_name)
         prof['exp'] += math.ceil(((len(msg.content) / 6) * 1.5) + random.randint(0, 14))
         new_level = rank.xp_level(prof['exp'])[0]
         if self.bot.status != 'invisible':
             if self.bot.selfbot: return
             if new_level > prof['level']:
-                bclu = self.store.get_prop(msg, 'broadcast_level_up')
+                bclu = self.bot.store.get_prop(msg, 'broadcast_level_up')
                 if isinstance(bclu, str):
                     bclu = bclu.lower()
                 if bclu in bool_true:
                     await self.bot.msend(msg, '**Hooray!** {0.mention} has just *advanced* to **level {1}**.'.format(msg.author, str(new_level)))
         prof['level'] = new_level
-        self.store.set_prop(msg, 'by_user', prof_name, prof)
+        self.bot.store.set_prop(msg, 'by_user', prof_name, prof)
 
     @commands.command(pass_context=True, aliases=['xp', 'level', 'lvl', 'exp', 'levels'], no_pm=True)
     async def rank(self, ctx, *users: str):
@@ -90,7 +90,7 @@ TOTAL EXPERIENCE: {4}**
 '''
         for r_tgt in targets:
             target = FakeMessageMember(r_tgt)
-            prof = self.store.get_prop(target, 'profile_' + target.server.id)
+            prof = self.bot.store.get_prop(target, 'profile_' + target.server.id)
             rlevel = rank.xp_level(prof['exp'])
             await self.bot.say(stat_fmt.format(target, str(rlevel[0]), str(int(rlevel[1])),
                                                str(int((rlevel[0] + 1) * lvl_base)), str(prof['exp']),
