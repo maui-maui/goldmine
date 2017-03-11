@@ -207,7 +207,7 @@ class Utility(Cog):
                 c_srv = check_perms(tg_ctx, ('manage_server',))
                 c_sown = check_perms(tg_ctx, ('server_owner',))
             c_own = target.id == self.bot.owner_user.id
-            c_adm = target.id in self.dstore['bot_admins']
+            c_adm = target.id in self.bot.store['bot_admins']
             is_server = isinstance(target, discord.Member)
             if c_own:
                 b_roles.append('Bot Owner')
@@ -533,7 +533,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         Usage: rcolor"""
         col_rgb = [random.randint(1, 255) for i in range(0, 3)]
         col_str = '0x%02X%02X%02X' % (col_rgb[0], col_rgb[1], col_rgb[2])
-        await self.bot.say(embed=discord.Embed(color=int(col_str, 16), title='Hex: ' + col_str.replace('0x', '#') + ' | RGB: ' + ', '.join([str(c) for c in col_rgb])))
+        await self.bot.say(embed=discord.Embed(color=int(col_str, 16), title='Hex: ' + col_str.replace('0x', '#') + ' | RGB: ' + ', '.join([str(c) for c in col_rgb]) + ' | Integer: ' + str(int(col_str, 16))))
 
     @commands.command(aliases=['character', 'char', 'cinfo', 'unicode'])
     async def charinfo(self, *, uchars: str):
@@ -705,7 +705,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
                 'server_members': len(ctx.message.server.members),
                 'channel': ctx.message.channel.name
             })
-        self.dstore['owner_messages'].append(msg_object)
+        self.bot.store['owner_messages'].append(msg_object)
         await self.bot.say(':thumbsup: Message recorded.')
 
     @commands.command(pass_context=True, aliases=['randomprofle', 'randomprof', 'rprof', 'rp', 'randp'])
@@ -921,6 +921,15 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.add_field(name='Latitude', value=data_res['latitude'])
         emb.add_field(name='Metro Code', value=(data_res['metro_code'] if data_res['metro_code'] != 0 else 'Not specified'))
         await self.bot.send_message(ctx.message.channel, embed=emb)
+
+    @commands.command()
+    async def dial(self, *, number: str):
+        """Dial someone on the phone!
+        Usage: dial [phone number]"""
+        self.logger.info('Dialing ' + number + '...')
+        await self.bot.say(':telephone: **Dialing {}...**'.format(number))
+        await asyncio.sleep((random.randint(1, 3) + random.uniform(0, 1)) * random.uniform(0.4, 1.6) + random.uniform(0, 1))
+        await self.bot.say('**No answer.**')
 
 def setup(bot):
     c = Utility(bot)

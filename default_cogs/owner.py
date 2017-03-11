@@ -2,6 +2,8 @@
 from __future__ import print_function
 from importlib import import_module as imp
 import distutils.dir_util
+import json
+import json.decoder
 from contextlib import suppress
 from util.perms import echeck_perms, check_perms
 from util.func import bdel, DiscordFuncs, _set_var, _import, _del_var, snowtime, assert_msg, check
@@ -114,7 +116,7 @@ class Owner(Cog):
         echeck_perms(ctx, ('bot_owner',))
         err = ''
         def get_prefix(s):
-            props = self.dstore['properties']
+            props = self.bot.store['properties']
             servs = props['by_server']
             if s.id in servs:
                 if 'command_prefix' in servs[s.id]:
@@ -132,7 +134,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                 return
         for i in list(self.bot.servers)[:]:
             text = broadcast_text.replace('%prefix%', get_prefix(i))
-            if i.id in self.dstore['nobroadcast']:
+            if i.id in self.bot.store['nobroadcast']:
                 pass
             else:
                 try:
@@ -346,7 +348,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         if number:
             nums = number
         else:
-            nums = range(self.dstore.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
+            nums = range(self.bot.store.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
         for num in nums:
             msg = self.bot.store.store['owner_messages'][num]
             emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
@@ -409,6 +411,49 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                                                 check=lambda m: m.content.lower().startswith('yes'))):
             return
         await self.bot.logout()
+
+    @commands.command(pass_context=True)
+    async def msg_rate(self, ctx):
+        """Get the message rate.
+        Usage: msg_rate"""
+        echeck_perms(ctx, ('bot_owner',))
+        msg = await self.bot.say('Please wait...')
+        start_time = datetime.now()
+        m = {'messages': 0}
+        async def msg_task(m):
+            while True:
+                await self.bot.wait_for_message()
+                m['messages'] += 1
+        task = self.loop.create_task(msg_task(m))
+        await asyncio.sleep(8)
+        task.cancel()
+        time_elapsed = datetime.now() - start_time
+        time_elapsed = time_elapsed.total_seconds()
+        await self.bot.edit_message(msg, 'I seem to be getting ' + str(round(m['messages'] / time_elapsed, 2)) + ' messages per second.')
+
+    @commands.command(pass_context=True, aliases=['sembed', 'jembed', 'edata'])
+    async def embed_from_json(self, ctx, *, js_text: str):
+        """Send an embed from JSON.
+        Usage: embed_from_json [json]"""
+        echeck_perms(ctx, ('bot_owner',))
+        class SemiEmbed:
+            def __init__(self, obj):
+                self.obj = obj
+            def to_dict(self):
+                return self.obj
+        try:
+            embed_obj = json.loads(js_text)
+        except json.decoder.JSONDecodeError:
+            await self.bot.say(':warning: **Invalid JSON data!**')
+        else:
+            sembed = SemiEmbed(embed_obj)
+            try:
+                await self.bot.say(embed=sembed)
+            except discord.HTTPException as e:
+                if '400' in str(e):
+                    await self.bot.say(':warning: **Couldn\'t send embed, check your data!**')
+                else:
+                    raise e
 
 def setup(bot):
     c = Owner(bot)

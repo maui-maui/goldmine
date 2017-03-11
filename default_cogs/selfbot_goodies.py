@@ -51,25 +51,6 @@ class SelfbotGoodies(Cog):
         await self.bot.upload(img_bytes, filename='screenshot.png', content='This is *probably* what my screen looks like right now.')
 
     @commands.command(pass_context=True)
-    async def msg_rate(self, ctx):
-        """Get the message rate.
-        Usage: msg_rate"""
-        echeck_perms(ctx, ('bot_owner',))
-        msg = await self.bot.say('Please wait...')
-        start_time = datetime.now()
-        m = {'messages': 0}
-        async def msg_task(m):
-            while True:
-                await self.bot.wait_for_message()
-                m['messages'] += 1
-        task = self.loop.create_task(msg_task(m))
-        await asyncio.sleep(8)
-        task.cancel()
-        time_elapsed = datetime.now() - start_time
-        time_elapsed = time_elapsed.total_seconds()
-        await self.bot.edit_message(msg, 'I seem to be getting ' + str(round(m['messages'] / time_elapsed, 2)) + ' messages per second.')
-
-    @commands.command(pass_context=True)
     async def render(self, ctx, *, webpage: str):
         """Render a webpage to image.
         Usage: render [url]"""
@@ -94,7 +75,7 @@ class SelfbotGoodies(Cog):
         if msg.content.startswith('`') or msg.content.endswith('`'): return
         if msg.content.endswith('\u200b'): return
         content = copy.copy(msg.content)
-        for sub, rep in self.dstore['subs'].items():
+        for sub, rep in self.bot.store['subs'].items():
             regexp = r'\b[\*_~]*' + sub + r'[\*_~]*\b'
             replacement = rep
             try:
@@ -116,8 +97,8 @@ class SelfbotGoodies(Cog):
     async def add(self, replace: str, *, sub: str):
         """Add a substitution.
         Usage: sub add [from] [to]"""
-        if replace not in self.dstore['subs']:
-            self.dstore['subs'][replace] = sub
+        if replace not in self.bot.store['subs']:
+            self.bot.store['subs'][replace] = sub
             await self.bot.say('Substitution added!')
         else:
             await self.bot.say(':warning: `' + replace + '` is already a substitution!')
@@ -126,10 +107,10 @@ class SelfbotGoodies(Cog):
     async def list(self):
         """List the substitutions.
         Usage: sub list"""
-        if len(self.dstore['subs']) >= 1:
+        if len(self.bot.store['subs']) >= 1:
             pager = commands.Paginator(prefix='', suffix='')
             pager.add_line('Here are your substitutions:')
-            for idx, (name, replacement) in enumerate(self.dstore['subs'].items()):
+            for idx, (name, replacement) in enumerate(self.bot.store['subs'].items()):
                 pager.add_line('`#' + str(idx + 1) + '`: ' + name + ' **→** ' + replacement)
             for page in pager.pages:
                 await self.bot.say(page)
@@ -141,7 +122,7 @@ class SelfbotGoodies(Cog):
         """Edit a substitution.
         Usage: sub edit [substitution] [new content]"""
         try:
-            self.dstore['subs'][name] = content
+            self.bot.store['subs'][name] = content
             await self.bot.say('Edited substitution `' + name + '`.')
         except KeyError:
             await self.bot.say('No such substitution.')
@@ -151,7 +132,7 @@ class SelfbotGoodies(Cog):
         """Remove a substitution.
         Usage: sub remove [substitution]"""
         try:
-            del self.dstore['subs'][name]
+            del self.bot.store['subs'][name]
             await self.bot.say('Deleted substitution `' + name + '`.')
         except KeyError:
             await self.bot.say('No such substitution.')

@@ -138,8 +138,8 @@ class Admin(Cog):
             return
         if tmp:
             aentry = target
-            if aentry not in self.dstore['bot_admins']:
-                self.dstore['bot_admins'].append(aentry)
+            if aentry not in self.bot.store['bot_admins']:
+                self.bot.store['bot_admins'].append(aentry)
                 await self.bot.say('The user specified has successfully been added to the bot admin list!')
             else:
                 await self.bot.say('The user specified is already a bot admin!')
@@ -169,7 +169,7 @@ class Admin(Cog):
         if tmp:
             aentry = target
             try:
-                self.dstore['bot_admins'].remove(aentry)
+                self.bot.store['bot_admins'].remove(aentry)
             except ValueError:
                 await self.bot.say('The user specified is not a bot admin!')
             else:
@@ -182,7 +182,7 @@ class Admin(Cog):
         """List all bot admins defined.
         Usage: adminlist"""
         alist = ''
-        for i in self.dstore['bot_admins']:
+        for i in self.bot.store['bot_admins']:
             nid = ''
             try:
                 _name = ctx.message.server.get_member(i)

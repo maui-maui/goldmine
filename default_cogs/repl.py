@@ -8,14 +8,13 @@ import util.dynaimport as di
 from .cog import Cog
 
 for mod in ['asyncio', 're', 'os', 'sys', 'io', 'traceback', 'inspect',
-            'asteval', 'async_timeout', 'discord', 'subprocess', 'contextlib']:
+            'async_timeout', 'discord', 'subprocess', 'contextlib']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
 class REPL(Cog):
     def __init__(self, bot):
         self.sessions = set()
-        self.asteval = asteval.Interpreter(use_numpy=False)
         self.root_path = os.path.dirname(os.path.abspath(sys.modules['__main__'].core_file))
         super().__init__(bot)
 

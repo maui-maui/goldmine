@@ -46,6 +46,13 @@ class Google(Cog):
                 emb.title = r['title']
                 emb.description = r['snippet']
                 emb.add_field(name='Link', value=r['link'])
+                try:
+                    emb.set_image(url=r['pagemap']['metatags'][0]['og:image'])
+                except KeyError:
+                    try:
+                        emb.set_image(url=r['pagemap']['metatags'][0]['twitter:image'])
+                    except KeyError:
+                        pass
             else:
                 emb.title = 'Google Search'
                 emb.description = 'Nothing was found.'
