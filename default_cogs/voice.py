@@ -417,8 +417,23 @@ class Voice(Cog):
             await state.voice.disconnect()
             await self.bot.say('Stopped.')
         except:
-            await self.bot.say('Couldn\'t stop.')
+            await self.bot.say('Couldn\'t stop. Use `force_disconnect` if this doesn\'t work.')
             pass
+
+    @commands.command(pass_context=True, no_pm=True)
+    async def force_disconnect(self, ctx):
+        """Force disconnect from the current server's voice channel.
+        Useful when the stop command doesn't work.
+        Usage: force_disconnect"""
+        match_clients = [c for c in self.bot.voice_clients if c.channel is not None \
+                         and c.channel.server.id == ctx.message.server.id]
+        if match_clients:
+            if match_clients[0].is_connected():
+                await match_clients[0].disconnect()
+            else:
+                await self.bot.say('I found a voice client, but it\'s not connected.')
+        else:
+            await self.bot.say('I\'m not connected to any channels here.')
 
     @commands.command(pass_context=True, no_pm=True, aliases=['next'])
     async def skip(self, ctx):
