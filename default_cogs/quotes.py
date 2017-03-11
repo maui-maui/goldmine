@@ -15,13 +15,13 @@ class Quotes(Cog):
     async def quote(self, *args):
         """Reference a quote.
         Usage: quote {quote number}"""
-        if not self.dstore['quotes']:
+        if not self.bot.store['quotes']:
             await self.bot.say('There are no quotes. Add some first!')
             return
         try:
             qindx = args[0]
         except IndexError:
-            qindx = random.randint(1, self.dstore['quotes'].__len__())
+            qindx = random.randint(1, self.bot.store['quotes'].__len__())
         try:
             qindex = int(qindx)
         except ValueError:
@@ -31,7 +31,7 @@ class Quotes(Cog):
             await self.bot.reply('there aren\'t negative or zero quotes!')
             return
         try:
-            await self.bot.say(quote.qrender(self.dstore['quotes'][qindex - 1], qindex - 1, self.bot))
+            await self.bot.say(quote.qrender(self.bot.store['quotes'][qindex - 1], qindex - 1, self.bot))
         except IndexError:
             await self.bot.reply('that quote doesn\'t exist!')
 
@@ -40,14 +40,14 @@ class Quotes(Cog):
         """List all the quotes.
         Usage: quotelist"""
         # maybe PM this
-        if not self.dstore['quotes']:
+        if not self.bot.store['quotes']:
             await self.bot.say('There are no quotes. Add some first!')
             return
         show_pages = [i for i in rshow_pages]
         pager = commands.Paginator(prefix='', suffix='', max_size=1595)
         if not show_pages:
             show_pages = (1,)
-        for n, i in enumerate(self.dstore['quotes']):
+        for n, i in enumerate(self.bot.store['quotes']):
             qout = quote.qrender(i, n, self.bot)
             pager.add_line(qout)
         for page_n in show_pages:
@@ -81,8 +81,8 @@ class Quotes(Cog):
         if mauthor.display_name != mauthor.name:
             q_template['author'] += ' (' + mauthor.name + ')'
         q_template['author_ids'] = [mauthor.id, ctx.message.author.id]
-        q_template['id'] = len(self.dstore['quotes']) # +1 for next id, but len() counts from 1
-        self.dstore['quotes'].append(q_template)
+        q_template['id'] = len(self.bot.store['quotes']) # +1 for next id, but len() counts from 1
+        self.bot.store['quotes'].append(q_template)
         await self.bot.reply(f'you added quote **#{q_template["id"] + 1}**!')
 
     @commands.command(pass_context=True, aliases=['quoteedit', 'modquote', 'editquote'])
@@ -96,7 +96,7 @@ class Quotes(Cog):
             await self.bot.reply('there aren\'t negative quotes!')
             return
         try:
-            q_template = self.dstore['quotes'][qindex - 1]
+            q_template = self.bot.store['quotes'][qindex - 1]
         except IndexError:
             await self.bot.reply('that quote doesn\'t already exist!')
             return
@@ -105,7 +105,7 @@ class Quotes(Cog):
                 await self.bot.reply('you need more permissions!')
                 return
         q_template['quote'] = text.replace('\n', ' ').replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')
-        self.dstore['quotes'][qindex - 1] = q_template
+        self.bot.store['quotes'][qindex - 1] = q_template
         await self.bot.reply(f'you edited quote **#{qindex}**!')
 
     @commands.command(pass_context=True, aliases=['rmquote', 'quoterm', 'delquote'])
@@ -116,14 +116,14 @@ class Quotes(Cog):
             await self.bot.reply('there aren\'t negative quotes!')
             return
         try:
-            q_target = self.dstore['quotes'][qindex - 1]
+            q_target = self.bot.store['quotes'][qindex - 1]
         except IndexError:
             await self.bot.reply(f'quote **#{qindex}** doesn\'t already exist!')
             return
         mauthor = ctx.message.author
         _pcheck = check_perms(ctx, ('bot_admin',))
         if (mauthor.id == q_target['author_ids'][0]) or (_pcheck):
-            del self.dstore['quotes'][qindex - 1]
+            del self.bot.store['quotes'][qindex - 1]
             await self.bot.reply(f'you deleted quote **#{qindex}**!')
         else:
             await self.bot.reply(f'you can\'t delete quote **#{qindex}** because you didn\'t write it. Sorry!')

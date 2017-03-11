@@ -6,5 +6,3 @@ class Cog:
         self.bot = bot
         self.logger = bot.logger
         self.loop = bot.loop
-        self.store = bot.store
-        self.dstore = bot.store.store

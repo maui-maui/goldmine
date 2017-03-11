@@ -116,7 +116,7 @@ class Owner(Cog):
         echeck_perms(ctx, ('bot_owner',))
         err = ''
         def get_prefix(s):
-            props = self.dstore['properties']
+            props = self.bot.store['properties']
             servs = props['by_server']
             if s.id in servs:
                 if 'command_prefix' in servs[s.id]:
@@ -134,7 +134,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                 return
         for i in list(self.bot.servers)[:]:
             text = broadcast_text.replace('%prefix%', get_prefix(i))
-            if i.id in self.dstore['nobroadcast']:
+            if i.id in self.bot.store['nobroadcast']:
                 pass
             else:
                 try:
@@ -348,7 +348,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         if number:
             nums = number
         else:
-            nums = range(self.dstore.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
+            nums = range(self.bot.store.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
         for num in nums:
             msg = self.bot.store.store['owner_messages'][num]
             emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))

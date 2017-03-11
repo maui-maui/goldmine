@@ -207,7 +207,7 @@ class Utility(Cog):
                 c_srv = check_perms(tg_ctx, ('manage_server',))
                 c_sown = check_perms(tg_ctx, ('server_owner',))
             c_own = target.id == self.bot.owner_user.id
-            c_adm = target.id in self.dstore['bot_admins']
+            c_adm = target.id in self.bot.store['bot_admins']
             is_server = isinstance(target, discord.Member)
             if c_own:
                 b_roles.append('Bot Owner')
@@ -705,7 +705,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
                 'server_members': len(ctx.message.server.members),
                 'channel': ctx.message.channel.name
             })
-        self.dstore['owner_messages'].append(msg_object)
+        self.bot.store['owner_messages'].append(msg_object)
         await self.bot.say(':thumbsup: Message recorded.')
 
     @commands.command(pass_context=True, aliases=['randomprofle', 'randomprof', 'rprof', 'rp', 'randp'])

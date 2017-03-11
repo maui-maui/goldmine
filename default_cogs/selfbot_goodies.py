@@ -75,7 +75,7 @@ class SelfbotGoodies(Cog):
         if msg.content.startswith('`') or msg.content.endswith('`'): return
         if msg.content.endswith('\u200b'): return
         content = copy.copy(msg.content)
-        for sub, rep in self.dstore['subs'].items():
+        for sub, rep in self.bot.store['subs'].items():
             regexp = r'\b[\*_~]*' + sub + r'[\*_~]*\b'
             replacement = rep
             try:
@@ -97,8 +97,8 @@ class SelfbotGoodies(Cog):
     async def add(self, replace: str, *, sub: str):
         """Add a substitution.
         Usage: sub add [from] [to]"""
-        if replace not in self.dstore['subs']:
-            self.dstore['subs'][replace] = sub
+        if replace not in self.bot.store['subs']:
+            self.bot.store['subs'][replace] = sub
             await self.bot.say('Substitution added!')
         else:
             await self.bot.say(':warning: `' + replace + '` is already a substitution!')
@@ -107,10 +107,10 @@ class SelfbotGoodies(Cog):
     async def list(self):
         """List the substitutions.
         Usage: sub list"""
-        if len(self.dstore['subs']) >= 1:
+        if len(self.bot.store['subs']) >= 1:
             pager = commands.Paginator(prefix='', suffix='')
             pager.add_line('Here are your substitutions:')
-            for idx, (name, replacement) in enumerate(self.dstore['subs'].items()):
+            for idx, (name, replacement) in enumerate(self.bot.store['subs'].items()):
                 pager.add_line('`#' + str(idx + 1) + '`: ' + name + ' **→** ' + replacement)
             for page in pager.pages:
                 await self.bot.say(page)
@@ -122,7 +122,7 @@ class SelfbotGoodies(Cog):
         """Edit a substitution.
         Usage: sub edit [substitution] [new content]"""
         try:
-            self.dstore['subs'][name] = content
+            self.bot.store['subs'][name] = content
             await self.bot.say('Edited substitution `' + name + '`.')
         except KeyError:
             await self.bot.say('No such substitution.')
@@ -132,7 +132,7 @@ class SelfbotGoodies(Cog):
         """Remove a substitution.
         Usage: sub remove [substitution]"""
         try:
-            del self.dstore['subs'][name]
+            del self.bot.store['subs'][name]
             await self.bot.say('Deleted substitution `' + name + '`.')
         except KeyError:
             await self.bot.say('No such substitution.')
