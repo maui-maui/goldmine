@@ -8,7 +8,7 @@ import util.dynaimport as di
 from .cog import Cog
 
 for mod in ['asyncio', 're', 'os', 'sys', 'io', 'traceback', 'inspect',
-            'asteval', 'async_timeout', 'discord', 'subprocess', 'contextlib']:
+            'async_timeout', 'discord', 'subprocess', 'contextlib']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
