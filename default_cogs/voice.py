@@ -202,7 +202,6 @@ class Voice(Cog):
                 if state.voice:
                     if len([m for m in state.voice.channel.voice_members if not \
                             (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]) < 1:
-                        state.speech_player.cancel()
                         state.audio_player.cancel()
                         if state.current:
                             state.current.player.stop()
@@ -219,7 +218,6 @@ class Voice(Cog):
                         print('Pruned a voice state! Server ID: ' + sid + \
                               ', server name: ' + state.voice.channel.server.name)
                 else:
-                    state.speech_player.cancel()
                     state.audio_player.cancel()
                     del self.voice_states[sid]
                     print('Pruned a ghost voice state! Server ID: ' + sid)
@@ -240,7 +238,6 @@ class Voice(Cog):
         for state in self.voice_states.values():
             try:
                 state.audio_player.cancel()
-                state.speech_player.cancel()
                 if state.voice:
                     self.bot.loop.create_task(state.voice.disconnect())
             except:
@@ -411,7 +408,6 @@ class Voice(Cog):
             player.stop()
 
         try:
-            state.speech_player.cancel()
             state.audio_player.cancel()
             del self.voice_states[server.id]
             await state.voice.disconnect()
