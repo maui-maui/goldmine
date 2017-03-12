@@ -9,7 +9,7 @@ class Help(Cog):
     """The essential cog, Help."""
     def __init__(self, bot):
         super().__init__(bot)
-        self.char_limit = 4000
+        self.char_limit = 3500
 
     @commands.command(pass_context=True, aliases=['halp', 'phelp', 'phalp'])
     async def help(self, ctx, *commands_or_cogs: str):
