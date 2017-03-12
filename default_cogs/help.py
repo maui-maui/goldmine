@@ -7,6 +7,9 @@ from .cog import Cog
 
 class Help(Cog):
     """The essential cog, Help."""
+    def __init__(self, bot):
+        super().__init__(bot)
+        self.char_limit = 4000
 
     @commands.command(pass_context=True, aliases=['halp', 'phelp', 'phalp'])
     async def help(self, ctx, *commands_or_cogs: str):
@@ -84,7 +87,7 @@ class Help(Cog):
             if not content:
                 content = 'No visible commands.'
             pre_len = sum([len(i) for i in field])
-            if chars + pre_len < 3500:
+            if chars + pre_len < self.char_limit:
                 if len(content) <= 1024:
                     emb.add_field(name=cog, value=content)
                 else:
