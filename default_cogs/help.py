@@ -124,6 +124,7 @@ class Help(Cog):
             try:
                 await self.bot.send_message(destination, embed=page)
             except discord.HTTPException:
+                self.bot._last_help_embeds = pages
                 await self.bot.send_message(destination, 'Error sending embed. Cogs/Commands: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
         if destination == ctx.message.author:
             if not ctx.message.channel.is_private:
