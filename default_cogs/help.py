@@ -84,7 +84,7 @@ class Help(Cog):
             if not content:
                 content = 'No visible commands.'
             pre_len = sum([len(i) for i in field])
-            if chars + pre_len < 6000:
+            if chars + pre_len < 3500:
                 if len(content) <= 1024:
                     emb.add_field(name=cog, value=content)
                 else:
