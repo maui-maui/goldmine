@@ -182,6 +182,18 @@ class SelfbotGoodies(Cog):
         result = await self.bot.create_custom_emoji(ctx.message.server, name=emote, image=emote_img)
         await self.bot.say('Added. ' + str(result))
 
+    @commands.command(pass_context=True)
+    async def gemote_msg(self, ctx, *, text: str):
+        """Send a message with emotes, bypassing the cross server emote restriction.
+        Usage: gemote_msg [message]"""
+        echeck_perms(ctx, ('bot_owner',))
+        emb = discord.Embed(color=random.randint(1, 255**3-1))
+        final = text[:]
+        for emoji in self.bot.get_all_emojis():
+            final = final.replace(':%s:' % emoji.name, str(emoji))
+        emb.description = final
+        await self.bot.say(embed=emb)
+
 def setup(bot):
     if 'subs' not in bot.store.store:
         bot.store.store['subs'] = {}
