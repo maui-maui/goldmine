@@ -383,23 +383,26 @@ class GoldBot(commands.Bot):
                         else:
                             return [k[0] for k in list(destination.server.me.permissions_in(destination)) if k[1]]
                     else:
-                        raise e
-                if 'embed_links' not in final_perms():
-                    e_text = '```md\n'
-                    if 'author' in embed:
-                        e_text += embed['author']['name'] + '\n\n'
-                    for kv in embed['fields']:
-                        e_text += kv['name'] + '\n-----------------------------------\n' + kv['value'] + '\n\n'
-                    if 'footer' in embed:
-                        e_text += embed['footer']['text'] + '\n\n'
-                    e_text += '⚠ I need the Embed Links permission to send embeds! ⚠```'
-                    data = await self.http.send_message(channel_id, (content if content else '') + '\n' + e_text, guild_id=guild_id, tts=tts, embed=None)
-                    channel = self.get_channel(data.get('channel_id'))
-                    message = self.connection._create_message(channel=channel, **data)
-                    return message
+                        raise e # 244929610146381824 244929610792304640 244929610607886337
+                e_text = '```md\n'
+                if 'author' in embed:
+                    e_text += embed['author']['name'] + '\n\n'
+                for kv in embed['fields']:
+                    e_text += kv['name'] + '\n-----------------------------------\n' + kv['value'] + '\n\n'
+                if 'footer' in embed:
+                    e_text += embed['footer']['text']
+                if 'embed_links' in final_perms():
+                    e_text += '```\n⚠ An error occured sending the embed. Contact the bot owner for more help.'
                 else:
-                    raise e # didn't mean to catch that
-            elif self.selfbot and (destination.id == self.user.id):
+                    e_text += '```\n⚠ I need the **Embed Links** permission to send embeds!'
+                try:
+                    data = await self.http.send_message(channel_id, (content if content else '') + '\n' + e_text, guild_id=guild_id, tts=tts, embed=None)
+                except discord.HTTPException:
+                    raise e
+                channel = self.get_channel(data.get('channel_id'))
+                message = self.connection._create_message(channel=channel, **data)
+                return message
+            elif self.selfbot and destination.id == self.user.id:
                 self.logger.warning('Sending to ourselves. what??')
                 destination = _get_variable('_internal_channel')
                 channel_id, guild_id = await self._resolve_destination(destination)
