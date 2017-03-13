@@ -7,6 +7,9 @@ from .cog import Cog
 
 class Help(Cog):
     """The essential cog, Help."""
+    def __init__(self, bot):
+        super().__init__(bot)
+        self.char_limit = 3500
 
     @commands.command(pass_context=True, aliases=['halp', 'phelp', 'phalp'])
     async def help(self, ctx, *commands_or_cogs: str):
@@ -84,7 +87,7 @@ class Help(Cog):
             if not content:
                 content = 'No visible commands.'
             pre_len = sum([len(i) for i in field])
-            if chars + pre_len < 6000:
+            if chars + pre_len < self.char_limit:
                 if len(content) <= 1024:
                     emb.add_field(name=cog, value=content)
                 else:
@@ -108,6 +111,7 @@ class Help(Cog):
                     for page in pager.pages:
                         emb.add_field(name=cog, value=page)
             chars += pre_len
+        self.logger.info('chars ' + str(chars))
         if not pages:
             pages.append(emb)
         pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
@@ -124,6 +128,7 @@ class Help(Cog):
             try:
                 await self.bot.send_message(destination, embed=page)
             except discord.HTTPException:
+                self.bot._last_help_embeds = pages
                 await self.bot.send_message(destination, 'Error sending embed. Cogs/Commands: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
         if destination == ctx.message.author:
             if not ctx.message.channel.is_private:
