@@ -36,7 +36,7 @@ class Google(Cog):
             await self.bot.reply('you need to specify some search terms!')
             return
         m = ''
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
+        emb = discord.Embed(color=random.randint(1, 255**3-1))
         emb.set_author(icon_url='https://raw.githubusercontent.com/Armored-Dragon/goldmine/master/assets/icon-google.png', name='Google', url='https://google.com/')
         if self.gclient:
             fql = await self.gclient.search(query)

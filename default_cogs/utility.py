@@ -721,7 +721,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
                     'surname']
         if not ctx.message.author.avatar_url:
             ctx.message.author.avatar_url = ctx.message.author.default_avatar_url
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
+        emb = discord.Embed(color=random.randint(1, 255**3-1))
         emb.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
         p = elizabeth.Personal()
         traits = {}
@@ -817,7 +817,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         """Get a random comic from xkcd.
         Usage: xkcd random"""
         comic = await xkcd.random_comic()
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title=comic.title)
+        emb = discord.Embed(color=random.randint(1, 255**3-1), title=comic.title)
         emb.set_image(url=comic.image_link)
         emb.set_footer(text=comic.alt_text)
         await self.bot.say(embed=emb)
@@ -828,7 +828,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         """Get the latest comic from xkcd.
         Usage: xkcd latest"""
         comic = await xkcd.latest_comic()
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title=comic.title)
+        emb = discord.Embed(color=random.randint(1, 255**3-1), title=comic.title)
         emb.set_image(url=comic.image_link)
         emb.set_footer(text=comic.alt_text)
         await self.bot.say(embed=emb)
@@ -843,7 +843,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         except xkcd.InvalidComic:
             await self.bot.say(':warning: That comic doesn\'t exist.')
             return
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title=comic.title)
+        emb = discord.Embed(color=random.randint(1, 255**3-1), title=comic.title)
         emb.set_image(url=comic.image_link)
         emb.set_footer(text=comic.alt_text)
         await self.bot.say(embed=emb)
@@ -894,7 +894,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
     async def ipinfo(self, ctx, *, ip: str):
         """Get the GeoIP and rDNS data for an IP.
         Usage: ipinfo [ip/domain]"""
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
+        emb = discord.Embed(color=random.randint(1, 255**3-1))
         target = self.bot.user
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)

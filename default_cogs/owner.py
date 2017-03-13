@@ -351,7 +351,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
             nums = range(self.bot.store.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
         for num in nums:
             msg = self.bot.store.store['owner_messages'][num]
-            emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16))
+            emb = discord.Embed(color=random.randint(1, 255**3-1))
             author = await self.bot.get_user_info(msg['user_id'])
             emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
             emb.description = msg['message']
@@ -377,7 +377,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         """Get the specific event calls.
         Usage: event_calls"""
         echeck_perms(ctx, ('bot_owner',))
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title='Event Calls')
+        emb = discord.Embed(color=random.randint(1, 255**3-1), title='Event Calls')
         emb.description = 'Here are all the event calls made.'
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
@@ -391,7 +391,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         """Get the specific command calls.
         Usage: command_calls"""
         echeck_perms(ctx, ('bot_owner',))
-        emb = discord.Embed(color=int('0x%06X' % random.randint(1, 255**3-1), 16), title='Command Calls')
+        emb = discord.Embed(color=random.randint(1, 255**3-1), title='Command Calls')
         emb.description = 'Here are all the command calls made.'
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))

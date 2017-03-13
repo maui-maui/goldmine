@@ -383,7 +383,7 @@ class GoldBot(commands.Bot):
                         else:
                             return [k[0] for k in list(destination.server.me.permissions_in(destination)) if k[1]]
                     else:
-                        raise e # 244929610146381824 244929610792304640 244929610607886337
+                        raise e
                 e_text = '```md\n'
                 if 'author' in embed:
                     e_text += embed['author']['name'] + '\n\n'
