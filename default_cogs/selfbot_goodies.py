@@ -190,7 +190,8 @@ class SelfbotGoodies(Cog):
         emb = discord.Embed(color=random.randint(1, 255**3-1))
         final = text[:]
         for emoji in self.bot.get_all_emojis():
-            final = final.replace(':%s:' % emoji.name, str(emoji))
+            final = final.replace(';_!:%s;_!:' % emoji.name, str(emoji))
+        final = final.replace(';_!:', ':')
         emb.description = final
         await self.bot.say(embed=emb)
 
