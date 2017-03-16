@@ -294,7 +294,7 @@ class Utility(Cog):
         ram = await self.bot.get_ram()
         got_conversion = ram[0]
         emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
-        emb.set_author(name=str(target), url='https://blog.khronodragon.com/', icon_url=avatar_link)
+        emb.set_author(name=str(target), url='https://khronodragon.com/', icon_url=avatar_link)
         emb.set_footer(text='Made in Python 3.6+ with Discord.py %s' % self.bot.lib_version, icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/400px-Python-logo-notext.svg.png')
         emb.add_field(name='Servers', value=len(self.bot.servers))
         emb.add_field(name='Author', value='Dragon5232#1841')
@@ -314,7 +314,8 @@ class Utility(Cog):
         emb.add_field(name='Custom Emojis', value=len(list(self.bot.get_all_emojis())))
         emb.add_field(name='Commands', value=str(len(self.bot.commands)))
         emb.add_field(name='ID', value=target.id)
-        emb.add_field(name='Invite Link', value='https://tiny.cc/goldbot')
+        if self.user.id == '239775420470394897':
+            emb.add_field(name='Invite Link', value='https://tiny.cc/goldbot')
         await self.bot.say(home_broadcast, embed=emb)
 
     @commands.cooldown(1, 9.5, type=commands.BucketType.server)
@@ -350,9 +351,9 @@ class Utility(Cog):
         for iid in ids:
             try:
                 int(iid)
-                if len(iid) == 18:
+                if len(iid) in range(16, 20):
                     if iid == self.bot.user.id:
-                        msg.append('https://discordapp.com/api/oauth2/authorize?client_id={0}&scope=bot&permissions={1} (<https://tiny.cc/goldbot> for short)'.format(iid, self.bot.perm_mask))
+                        msg.append('https://discordapp.com/api/oauth2/authorize?client_id={0}&scope=bot&permissions={1}'.format(iid, self.bot.perm_mask))
                     else:
                         msg.append('https://discordapp.com/api/oauth2/authorize?client_id=%s&scope=bot&permissions=502463606' % iid)
                 else:
