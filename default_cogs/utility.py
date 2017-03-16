@@ -314,7 +314,7 @@ class Utility(Cog):
         emb.add_field(name='Custom Emojis', value=len(list(self.bot.get_all_emojis())))
         emb.add_field(name='Commands', value=str(len(self.bot.commands)))
         emb.add_field(name='ID', value=target.id)
-        if self.user.id == '239775420470394897':
+        if self.bot.user.id == '239775420470394897':
             emb.add_field(name='Invite Link', value='https://tiny.cc/goldbot')
         await self.bot.say(home_broadcast, embed=emb)
 
