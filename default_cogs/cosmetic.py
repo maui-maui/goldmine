@@ -22,14 +22,6 @@ class Cosmetic(Cog):
         self.stop_anim = set()
         super().__init__(bot)
 
-    async def on_not_command(self, msg):
-        """Table flipping!"""
-        return # disabled for now
-        if self.bot.selfbot: return
-        if msg.author.id != self.bot.user.id:
-            if msg.content == '(╯°□°）╯︵ ┻━┻':
-                await self.bot.send_message(msg.channel, '┬─┬﻿ ノ( ゜-゜ノ)')
-
     @commands.command(aliases=['color', 'giveme', 'race'])
     async def role(self, role: str):
         """Set a public role on your account.
@@ -43,29 +35,6 @@ class Cosmetic(Cog):
         cemotes = ctx.message.author.server.emojis
         em_string = (' '.join([str(i) for i in cemotes]) if len(cemotes) >= 1 else 'This server has no custom emojis!')
         await self.bot.say(em_string)
-
-    @commands.command(pass_context=True)
-    async def etest(self, ctx):
-        """Test custom rich embeds.
-        Usage: etest"""
-        embed_data = {
-            'title': 'This is the title',
-            'description': '''This is the description
-Testing multi line
-:thinking:''',
-            'color': int('0x%06X' % random.randint(0, 256**3-1), 16)
-        }
-        r_embed = discord.Embed(**embed_data)
-        r_embed.set_thumbnail(url='https://discordapp.com/api/guilds/245387841432059904/icons/305ad4227eec49760731f38117c49af6.jpg') #top right
-        r_embed.set_image(url='https://discordapp.com/api/guilds/250304680159215616/icons/7d1bb7b626b7bdf15b838288fc6ed346.jpg') #bottom
-        r_embed.set_footer(text='Hi this is the footer text', icon_url='https://images.discordapp.net/icons/239772188649979904/b5a73c73e291e059a6bebdc9b98c6f89.jpg')
-        r_embed.set_author(name='Name Hi this is the header text / author', url='https://blog.khronodragon.com/', icon_url='https://images.discordapp.net/icons/239772188649979904/b5a73c73e291e059a6bebdc9b98c6f89.jpg')
-        for i in range(1, 4):
-            r_embed.add_field(name='Field ' + str(i), value='Test value for ' + str(i), inline=False)
-            for icount in range(1, 3):
-                r_embed.add_field(name='Field ' + str(i) + '.' + str(icount) + 'i', value='Test value for ' + str(i))
-            r_embed.add_field(name='Field ' + str(i), value='Test value for ' + str(i), inline=False)
-        await self.bot.say(embed=r_embed)
 
     @commands.command(aliases=['rev', 'mirror'])
     async def reverse(self, *, rmsg: str):
@@ -149,9 +118,8 @@ Testing multi line
     async def animlist(self):
         """List the packed animations I have saved.
         Usage: animlist"""
-        await self.bot.say('**Listing stored packed animations.**```\n' + '\n'.join(spinners) + '```')
+        await self.bot.say('**Listing stored packed animations.**\n```\n' + '\n'.join(spinners) + '```')
 
-#    @commands.cooldown(1, 4, type=commands.BucketType.user)
     @commands.command(pass_context=True, aliases=['random.cat', 'randomcat', 'rcat', 'cats', 'catrandom', 'random_cat'])
     async def cat(self, ctx):
         """Get a random cat! Because why not.
@@ -159,18 +127,11 @@ Testing multi line
         async with aiohttp.ClientSession(loop=self.loop) as session:
             with async_timeout.timeout(8):
                 async with session.get('http://random.cat/meow') as response:
-                    ret = await response.text()
-                try:
-                    async with session.get(json.loads(ret)['file']) as resp:
-                        img = await resp.read()
-                except (KeyError, ValueError, TypeError):
-                    await self.bot.say(f'**Failed to get a cat, maybe random.cat is down?**')
-                    return
-        img_bytes = io.BytesIO(img)
-        try:
-            await self.bot.send_file(ctx.message.channel, img_bytes, filename='random-cat.' + imghdr.what(img_bytes))
-        except TypeError:
-            await self.bot.say('Hmm, something went wrong with random.cat. Maybe try again?')
+                    ret = await response.json()
+        e = discord.Embed(color=random.randint(1, 255**3-1))
+        e.set_image(url=ret['file'])
+        await self.bot.say(embed=e)
+
     @commands.command(pass_context=True, aliases=['random.dog', 'randomdog', 'rdog', 'dogs', 'dograndom', 'random_dog'])
     async def dog(self, ctx):
         """Get a random dog! Because why not.
@@ -179,14 +140,9 @@ Testing multi line
             with async_timeout.timeout(8):
                 async with session.get('http://random.dog/woof') as response:
                     ret = await response.text()
-                try:
-                    async with session.get('http://random.dog/' + ret) as resp:
-                        img = await resp.read()
-                except (KeyError, ValueError, TypeError):
-                    await self.bot.say(f'**Failed to get a cat, maybe random.dog is down?**')
-                    return
-        img_bytes = io.BytesIO(img)
-        await self.bot.send_file(ctx.message.channel, img_bytes, filename='random-dog.' + imghdr.what(img_bytes))
+        e = discord.Embed(color=random.randint(1, 255**3-1))
+        e.set_image(url=ret.strip())
+        await self.bot.say(embed=e)
 
     @commands.command(pass_context=True, aliases=['temote', 'bemote', 'dcemote', 'getemote', 'fetchemote'])
     async def emote(self, ctx, _emote: str):

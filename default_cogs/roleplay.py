@@ -60,12 +60,13 @@ class Roleplay(Cog):
         Usage: mention [mention, nickname, DiscordTag, or username]"""
         await self.bot.say('Hey there, ' + target.mention + '!')
 
-    @commands.command(pass_context=True, aliases=['gif', 'soontm', 'tm'])
+    @commands.command(pass_context=True, aliases=['soontm', 'tm'])
     async def soon(self, ctx):
         """Feel the loading of 10000 years, aka Soon™.
         Usage: soon"""
-        with open('assets/soon.gif', 'rb') as image:
-            await self.bot.send_file(ctx.message.channel, image, filename='coming_soon.gif')
+        e = discord.Embed(color=random.randint(1, 255**3-1))
+        e.set_image(url='https://images.discordapp.net/.eJwFwdENhCAMANBdGIBiK2dxG4KIJGoN7X1dbnff-7nvON3qDrNHV4Cta5GxeTUZuVXfRNpZ89PVF7kgm-VyXPU2BYwYF6Y0cwgTcsAJMOFMxJESBqblQwgqcvvWd_d_AZ09IXY.TT-FWSP4uhuVeunhP1U44KnCPac')
+        await self.bot.say(embed=e)
 
 def setup(bot):
     c = Roleplay(bot)
