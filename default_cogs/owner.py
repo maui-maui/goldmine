@@ -382,8 +382,27 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         author = self.bot.user
         emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
         emb.add_field(name='Total', value=sum(self.bot.event_calls.values()))
-        for ev, count in reversed(sorted(self.bot.event_calls.items(), key=lambda i: i[1])):
-            emb.add_field(name=ev, value=count)
+        fmap = {
+            'Servers': '',
+            'Messages': '',
+            'Updates': '',
+            'Socket': '',
+            'Other': ''
+        }
+        for ev, count in self.bot.event_calls.items():
+            if ev.startswith('server'):
+                fmap['Servers'] += '**{}**: {}\n'.format(ev, count)
+            elif ev.endswith('update'):
+                fmap['Updates'] += '**{}**: {}\n'.format(ev, count)
+            elif 'message' in ev:
+                fmap['Messages'] += '**{}**: {}\n'.format(ev, count)
+            elif ev.startswith('socket'):
+                fmap['Socket'] += '**{}**: {}\n'.format(ev, count)
+            else:
+                fmap['Other'] += '**{}**: {}\n'.format(ev, count)
+        for name, value in fmap.items():
+            if value:
+                emb.add_field(name=name, value=value)
         await self.bot.say(embed=emb)
 
     @commands.command(pass_context=True, aliases=['ccalls', 'cmdcalls', 'commandcalls', 'cmd_calls'])

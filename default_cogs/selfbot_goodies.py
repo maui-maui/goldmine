@@ -10,6 +10,7 @@ from datetime import datetime
 import aiohttp
 import async_timeout
 import discord
+from util.commands.bot import ProContext
 import util.commands as commands
 from util.perms import echeck_perms
 import util.dynaimport as di
@@ -28,6 +29,8 @@ class SelfbotGoodies(Cog):
     def __init__(self, bot):
         self.start_time = datetime.now()
         self.web_render = None
+        self.re_cache = {}
+        self.google_re = r'[[(\w+)]]'
         super().__init__(bot)
         self.logger = self.logger.getChild('stuff')
 
@@ -76,7 +79,12 @@ class SelfbotGoodies(Cog):
         if msg.content.endswith('\u200b'): return
         content = copy.copy(msg.content)
         for sub, rep in self.bot.store['subs'].items():
-            regexp = r'\b[\*_~]*' + sub + r'[\*_~]*\b'
+            text_regexp = r'\b[\*_~]*' + sub + r'[\*_~]*\b'
+            if text_regexp in self.re_cache:
+                regexp = self.re_cache[text_regexp]
+            else:
+                regexp = re.compile(text_regexp)
+                self.re_cache[text_regexp] = regexp
             replacement = rep
             try:
                 content = re.sub(regexp, replacement, content)
@@ -84,6 +92,23 @@ class SelfbotGoodies(Cog):
                 self.logger.error('Substititons: Regexp error. ' + sub)
         if content != msg.content:
             await self.bot.edit_message(msg, content)
+        if 'Google' in self.bot.cogs:
+            g_matched = re.findall(self.google_re, content)
+            if g_matched:
+                for match in g_matched:
+                    query = match.group(1)
+                    view = StringView('%prefix%google ' + query)
+                    view.skip_string('%prefix%')
+                    cmd = view.get_word()
+                    tmp = {
+                        'bot': self.bot,
+                        'invoked_with': cmd,
+                        'message': msg,
+                        'view': view,
+                        'prefix': '%prefix%'
+                    }
+                    ctx = ProContext(**tmp)
+                    await self.bot.cogs['Google'].google.invoke(ctx)
 
     @commands.group(pass_context=True, aliases=['subs'])
     async def sub(self, ctx):
@@ -196,6 +221,6 @@ class SelfbotGoodies(Cog):
         await self.bot.say(embed=emb)
 
 def setup(bot):
-    if 'subs' not in bot.store.store:
-        bot.store.store['subs'] = {}
+    if 'subs' not in bot.store:
+        bot.store['subs'] = {}
     bot.add_cog(SelfbotGoodies(bot))

@@ -63,6 +63,9 @@ class DataStore():
     def __contains__(self, item):
         return item in self.store
 
+    def __iter__(self):
+        return iter(self.store)
+
     def keys(self):
         return self.store.keys()
     def values(self):

@@ -29,10 +29,10 @@ class DiscordBots(Cog):
     async def init_http(self):
         self.http = aiohttp.ClientSession()
 
-    async def update(self):
+    def update(self):
         """Report the current server count to bot lists."""
-        await self.update_dbots()
-        await self.update_discordlist()
+        return asyncio.gather(self.update_dbots(), self.update_discordlist(), loop=self.loop)
+
     async def update_dbots(self):
         if not discord_bots_token:
             self.logger.warning('Tried to contact Discord Bots, but no token set!')
@@ -50,6 +50,7 @@ class DiscordBots(Cog):
                     self.logger.info('Successfully sent Discord Bots our guild count (got 200 OK)')
                 else:
                     self.logger.warning('Failed sending our guild count to Discord Bots! ' + resp_key)
+
     async def update_discordlist(self):
         if not discordlist_token:
             self.logger.warning('Tried to contact DiscordList, but no token set!')
@@ -68,12 +69,12 @@ class DiscordBots(Cog):
                 else:
                     self.logger.warning('Failed sending our guild count to DiscordList! ' + resp_key)
 
-    async def on_ready(self):
-        await self.update()
-    async def on_server_join(self, server):
-        await self.update()
-    async def on_server_remove(self, server):
-        await self.update()
+    def on_ready(self):
+        return self.update()
+    def on_server_join(self, server):
+        return self.update()
+    def on_server_remove(self, server):
+        return self.update()
 
 def setup(bot):
     if bot.selfbot:
