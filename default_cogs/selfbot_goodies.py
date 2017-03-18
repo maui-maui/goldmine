@@ -10,7 +10,7 @@ from datetime import datetime
 import aiohttp
 import async_timeout
 import discord
-from util.commands.bot import ProContext
+from util.commands.bot import ProContext, StringView
 import util.commands as commands
 from util.perms import echeck_perms
 import util.dynaimport as di
@@ -30,7 +30,7 @@ class SelfbotGoodies(Cog):
         self.start_time = datetime.now()
         self.web_render = None
         self.re_cache = {}
-        self.google_re = r'[[(\w+)]]'
+        self.google_re = re.compile(r'[[[a-zA-Z0-9\s]+]]')
         super().__init__(bot)
         self.logger = self.logger.getChild('stuff')
 
@@ -96,7 +96,7 @@ class SelfbotGoodies(Cog):
             g_matched = re.findall(self.google_re, content)
             if g_matched:
                 for match in g_matched:
-                    query = match.group(1)
+                    query = match
                     view = StringView('%prefix%google ' + query)
                     view.skip_string('%prefix%')
                     cmd = view.get_word()
