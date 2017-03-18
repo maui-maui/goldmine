@@ -353,9 +353,9 @@ class Utility(Cog):
                 int(iid)
                 if len(iid) in range(16, 20):
                     if iid == self.bot.user.id:
-                        msg.append('https://discordapp.com/api/oauth2/authorize?client_id={0}&scope=bot&permissions={1}'.format(iid, self.bot.perm_mask))
+                        msg.append('https://discordapp.com/api/oauth2/authorize?client_id={}&scope=bot&permissions={}'.format(iid, self.bot.perm_mask))
                     else:
-                        msg.append('https://discordapp.com/api/oauth2/authorize?client_id=%s&scope=bot&permissions=502463606' % iid)
+                        msg.append('https://discordapp.com/api/oauth2/authorize?client_id=%s&scope=bot&permissions=3072' % iid)
                 else:
                     msg.append('**Invalid ID **`%s`** (must be 18 numbers)!**' % iid)
             except ValueError:
