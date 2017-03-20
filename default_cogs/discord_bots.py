@@ -1,6 +1,7 @@
 """Server stats reporting."""
 import util.json as json
 import aiohttp
+import asyncio
 import async_timeout
 import util.commands as commands
 from .cog import Cog
