@@ -69,12 +69,12 @@ class DiscordBots(Cog):
                 else:
                     self.logger.warning('Failed sending our guild count to DiscordList! ' + resp_key)
 
-    def on_ready(self):
-        return self.update()
-    def on_server_join(self, server):
-        return self.update()
-    def on_server_remove(self, server):
-        return self.update()
+    async def on_ready(self):
+        return await self.update()
+    async def on_server_join(self, server):
+        return await self.update()
+    async def on_server_remove(self, server):
+        return await self.update()
 
 def setup(bot):
     if bot.selfbot:
