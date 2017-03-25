@@ -318,17 +318,16 @@ class Utility(Cog):
             emb.add_field(name='Invite Link', value='https://tiny.cc/goldbot')
         await self.bot.say(home_broadcast, embed=emb)
 
-    @commands.cooldown(1, 9.5, type=commands.BucketType.server)
-    @commands.command(pass_context=True, aliases=['ping', 'pong', 'delay', 'net', 'network', 'lag', 'netlag'])
-    async def latency(self, ctx):
-        """Get the current network latency to Discord.
-        Usage: latency"""
+    @commands.cooldown(1, 3, type=commands.BucketType.server)
+    @commands.command(pass_context=True, aliases=['pong', 'delay', 'net', 'network', 'lag', 'netlag', 'latency'])
+    async def ping(self, ctx):
+        """Ping, pong!
+        Usage: ping"""
         begin_time = datetime.now()
-        msg = await self.bot.say('Getting latency... `0`')
-        for i in range(3):
-            await self.bot.edit_message(msg, 'Getting latency... `%s`' % str(i + 1))
+        msg = await self.bot.send_message(ctx.message.channel, '**Pong!** | I wonder how long this takes...')
+        await self.bot.edit_message(msg, '**Pong!** | Getting the time it takes for me to do this...')
         time_diff = datetime.now() - begin_time
-        await self.bot.edit_message(msg, 'Latency is: %sms.' % str(round((time_diff.total_seconds() / 4) * 1000, 2)))
+        await self.bot.edit_message(msg, '**Pong!** I responded in %sms.' % str(round((time_diff.total_seconds() / 2) * 1000, 2)))
 
     @commands.command(pass_context=True, aliases=['ram', 'memory', 'usage', 'mem', 'musage'])
     async def uptime(self, ctx):

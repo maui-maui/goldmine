@@ -5,6 +5,7 @@ import asyncio
 import os
 import sys
 import shutil
+import traceback
 from fnmatch import filter
 import discord
 from default_cogs.utils.dataIO import dataIO
@@ -110,7 +111,12 @@ def init_bot():
     for cog in default_cogs:
         if cog not in disabled_cogs:
             logger.info('Init: Loading cog: ' + cog)
-            bot.load_extension('default_cogs.' + cog)
+            try:
+                bot.load_extension('default_cogs.' + cog)
+            except Exception as e:
+                logger.error('Error loading cog %s.' % cog)
+                logger.error('Traceback (most recent call last):\n' + ''.join(traceback.format_tb(e.__traceback__)) \
+                        + type(e).__name__ + ': ' + str(e))
     if not os.path.exists(os.path.join(cur_dir, 'cogs', 'utils')):
         shutil.copytree(os.path.join(cur_dir, 'default_cogs', 'utils'), os.path.join(cur_dir, 'cogs', 'utils') + os.path.sep)
     logger.info('Init: Loading extra cogs')
@@ -127,6 +133,10 @@ def init_bot():
                         except ImportError:
                             logger.error('Could not load extra cog %s!', cog)
                             exit(1)
+                    except Exception as e:
+                        logger.error('Error loading extra cog %s.' % cog)
+                        logger.error('Traceback (most recent call last):\n' + ''.join(traceback.format_tb(e.__traceback__)) \
+                              + type(e).__name__ + ': ' + str(e))
     except FileNotFoundError:
         pass
     return bot
