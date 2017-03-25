@@ -100,7 +100,7 @@ async def io_flusher():
 
 def init_bot():
     """Initialize the bot."""
-    bot = GoldBot(command_prefix='!', description=description, formatter=RichFormatter(), pm_help=None)
+    bot = GoldBot(command_prefix='', description='', formatter=RichFormatter(), pm_help=None)
     __main__.send_cmd_help = bot.send_cmd_help
     logger.info('Init: Loading cogs')
     try:
