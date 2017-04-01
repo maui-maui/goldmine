@@ -939,7 +939,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
             with async_timeout.timeout(5):
                 async with sess.get('http://api.urbandictionary.com/v0/define', params={'term': term}) as r:
                     data_res = await r.json()
-        word = data_res[0]
+        word = data_res['list'][0]
         target = self.bot.user
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
