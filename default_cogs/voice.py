@@ -135,22 +135,7 @@ class VoiceState:
         """Handle the queue and playing of voice entries."""
         while True:
             self.play_next_song.clear()
-            if self.songs._queue:
-                self.current = await self.songs.get()
-            else:
-                if self.current:
-                    self.current.player.stop()
-                    self.current.player.process.kill()
-                    if self.current.player.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.communicate))
-                for p in self.songs._queue:
-                    p.stop()
-                    p.process.kill()
-                    if p.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, p.process.communicate))
-                await self.voice.disconnect()
-                del self.cog.voice_states[self.voice.channel.server.id]
-                return
+            self.current = await self.songs.get()
             await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
             self.current.player.start()
             await self.play_next_song.wait()
