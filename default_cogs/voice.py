@@ -128,12 +128,7 @@ class VoiceState:
 
     def toggle_next(self):
         """Play the next song in queue."""
-        if self.current:
-            self.current.player.stop()
-            self.current.player.process.kill()
-            if self.current.player.process.poll() is None:
-                self.bot.loop.create_task(self.bot.loop.run_in_executor(None,
-                                          self.current.player.process.communicate))
+        
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
     async def audio_player_task(self):
