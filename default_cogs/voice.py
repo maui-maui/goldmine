@@ -106,6 +106,7 @@ class VoiceState:
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
         self.create_time = datetime.now()
         self.cog = bot.cogs['Voice']
+        self.have_played = False
 
     def is_playing(self):
         """Check if anything is currently playing."""
@@ -128,17 +129,33 @@ class VoiceState:
 
     def toggle_next(self):
         """Play the next song in queue."""
-        
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
     async def audio_player_task(self):
         """Handle the queue and playing of voice entries."""
         while True:
             self.play_next_song.clear()
-            self.current = await self.songs.get()
+            if self.songs._queue or not have_played:
+                self.current = await self.songs.get()
+            else:
+                if self.current:
+                    self.current.player.stop()
+                    self.current.player.process.kill()
+                    if self.current.player.process.poll() is None:
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.communicate))
+                for p in self.songs._queue:
+                    p.stop()
+                    p.process.kill()
+                    if p.process.poll() is None:
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, p.process.communicate))
+                if self.voice:
+                    await self.voice.disconnect()
+                del self.cog.voice_states[self.voice.channel.server.id]
+                return
             await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
             self.current.player.start()
             await self.play_next_song.wait()
+            self.have_played = True
 
 class Voice(Cog):
     """Voice related commands.
