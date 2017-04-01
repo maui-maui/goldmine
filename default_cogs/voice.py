@@ -13,16 +13,6 @@ for mod in ['asyncio', 'random', 'io', 'subprocess', 'textwrap', 'async_timeout'
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
-try:
-    import speech_recognition as sr
-    r = sr.Recognizer()
-except Exception:
-    r = None
-try:
-    from opuslib import Decoder
-except Exception:
-    Decoder = None
-
 options = {
     'default_search': 'ytsearch',
     'quiet': True,
@@ -38,11 +28,10 @@ options = {
 # >​
 class VoiceEntry:
     """Class to represent an entry in the standard voice queue."""
-    def __init__(self, message, player, jukebox=False, override_name=None):
+    def __init__(self, message, player, override_name=None):
         self.requester = message.author
         self.channel = message.channel
         self.player = player
-        self.jukebox = jukebox
         self.name = override_name
 
     def __str__(self) -> str:
@@ -116,6 +105,7 @@ class VoiceState:
         self.skip_votes = set()
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
         self.create_time = datetime.now()
+        self.cog = bot.cogs['Voice']
 
     def is_playing(self):
         """Check if anything is currently playing."""
@@ -138,33 +128,37 @@ class VoiceState:
 
     def toggle_next(self):
         """Play the next song in queue."""
+        if self.current:
+            self.current.player.stop()
+            self.current.player.process.kill()
+            if self.current.player.process.poll() is None:
+                self.bot.loop.create_task(self.bot.loop.run_in_executor(None,
+                                          self.current.player.process.communicate))
         self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
     async def audio_player_task(self):
         """Handle the queue and playing of voice entries."""
         while True:
             self.play_next_song.clear()
-            self.current = await self.songs.get()
+            if self.songs._queue:
+                self.current = await self.songs.get()
+            else:
+                if self.current:
+                    self.current.player.stop()
+                    self.current.player.process.kill()
+                    if self.current.player.process.poll() is None:
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.communicate))
+                for p in self.songs._queue:
+                    p.stop()
+                    p.process.kill()
+                    if p.process.poll() is None:
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, p.process.communicate))
+                await self.voice.disconnect()
+                del self.cog.voice_states[self.voice.channel.server.id]
+                return
             await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
             self.current.player.start()
-            if self.current.jukebox:
-                if not self.current.player.title == 'translate_tts':
-                    k_str = 'Jukebox for **' + self.current.player.title + '**\n'
-                    juke_m = await self.bot.send_message(self.current.channel, k_str)
-                    juke_cells = [':red_circle:', ':large_blue_circle:', ':green_heart:', ':diamond_shape_with_a_dot_inside:']
-                    sq_dia = 9
-                    while not self.play_next_song.is_set(): # :red_circle: :large_blue_circle: :green_heart:
-                        lines = []
-                        for i in range(sq_dia):
-                            cells = []
-                            for i in range(sq_dia):
-                                cells.append(random.choice(sem_cells))
-                            lines.append(' '.join(cells))
-                        await self.bot.edit_message(juke_m, k_str + '\n'.join(lines))
-                        await asyncio.sleep(1.05)
-                    await self.bot.edit_message(juke_m, juke_m.content + '\nSorry, nothing here anymore!\n**FINISHED PLAYING SONG!**')
-            else:
-                await self.play_next_song.wait()
+            await self.play_next_song.wait()
 
 class Voice(Cog):
     """Voice related commands.
@@ -175,10 +169,7 @@ class Voice(Cog):
         self.tokenizer = gtts_token.Token()
         self.servers_recording = set()
         self.recording_data = {}
-        if Decoder:
-            self.opus_decoder = Decoder(48000, 2)
-        else:
-            self.opus_decoder = None
+        self.opus_decoder = None
         super().__init__(bot)
         self.logger = self.logger.getChild('voice')
         self.disconnect_task = self.loop.create_task(self.disconnect_bg_task())
@@ -215,14 +206,13 @@ class Voice(Cog):
                                 self.loop.create_task(self.loop.run_in_executor(None, p.process.communicate))
                         await state.voice.disconnect()
                         del self.voice_states[sid]
-                        print('Pruned a voice state! Server ID: ' + sid + \
+                        self.logger.info('Pruned a voice state! Server ID: ' + sid + \
                               ', server name: ' + state.voice.channel.server.name)
                 else:
                     state.audio_player.cancel()
                     del self.voice_states[sid]
-                    print('Pruned a ghost voice state! Server ID: ' + sid)
+                    self.logger.info('Pruned a ghost voice state! Server ID: ' + sid)
             await asyncio.sleep(300) # every 5 min
-        print('Dbg main loop aborted')
 
     async def create_voice_client(self, channel):
         """Create a new voice client on a specified channel."""
@@ -409,6 +399,16 @@ class Voice(Cog):
 
         try:
             state.audio_player.cancel()
+            if state.current:
+                state.current.player.stop()
+                state.current.player.process.kill()
+                if state.current.player.process.poll() is None:
+                    self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.communicate))
+            for p in state.songs._queue:
+                p.stop()
+                p.process.kill()
+                if p.process.poll() is None:
+                    self.loop.create_task(self.loop.run_in_executor(None, p.process.communicate))
             del self.voice_states[server.id]
             await state.voice.disconnect()
             await self.bot.say('Stopped.')
@@ -555,6 +555,17 @@ class Voice(Cog):
         """Toggle (start/stop) voice recording.
         Usage: recording toggle"""
         or_check_perms(ctx, ['manage_server', 'manage_channels', 'move_members'])
+        if 'dispatch' in inspect.signature(VoiceClient.__init__).parameters:
+            if not self.opus_decoder:
+                try:
+                    from opuslib import Decoder
+                    self.opus_decoder = Decoder(48000, 2)
+                except Exception:
+                    await self.bot.say('Feature not available!')
+                    return
+        else:
+            await self.bot.say('Feature not available!')
+            return
         state = self.get_voice_state(ctx.message.server)
         if state.voice is None:
             success = await ctx.invoke(self.summon)
@@ -568,28 +579,6 @@ class Voice(Cog):
         else:
             self.servers_recording.remove(sid)
             await self.bot.say('**Voice is no longer being recorded in this server!**')
-
-    @recording.command(pass_context=True, name='recognize', aliases=['recog', 'rec'])
-    async def record_recog(self, ctx):
-        """Speech recognize the current voice recording.
-        Usage: recording recog"""
-        or_check_perms(ctx, ['manage_server', 'manage_channels', 'move_members'])
-        with assert_msg(ctx, '**The bot owner has not set up this feature!**'):
-            check(self.opus_decoder != None)
-        with assert_msg(ctx, '**This server does not have a recording!**'):
-            check(ctx.message.server.id in self.bot.pcm_data)
-        status = await self.bot.say('Hmm, let me think... 🌚')
-        pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Hmm, let me think'), timeout=30, loop=self.loop))
-        sr_data = sr.AudioData(self.recording_data[ctx.message.server.id], 48000, 2)
-        try:
-            with async_timeout.timeout(16):
-                final = await self.loop.run_in_executor(None, r.recognize_sphinx, sr_data)
-        except asyncio.TimeoutError:
-            pg_task.cancel()
-            await self.bot.edit_message(status, '**It took too long to recognize your recording!**')
-            return
-        pg_task.cancel()
-        await self.bot.edit_message(status, 'I think you said: ' + final[:2000])
 
     @recording.command(pass_context=True, name='play', aliases=['echo', 'playback', 'dump'])
     async def record_play(self, ctx):
