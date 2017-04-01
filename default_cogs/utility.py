@@ -945,7 +945,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         avatar_link = (au if au else target.default_avatar_url)
         emb = discord.Embed(color=random.randint(0, 256**3-1), title=word['word'])
         emb.set_author(name='Urban Dictionary', url=word['permalink'], icon_url='https://images.discordapp.net/.eJwFwdsNwyAMAMBdGICHhUPIMpULiCAlGIHzUVXdvXdf9cxLHeoUGeswJreVeGa9hCfVoitzvQqNtnTi25AIpfMuXZaBDSM4G9wWAdA5vxuIAQNCQB9369F7a575pv7KLUnjTvOjR6_q9wdVRCZ_.BorCGmKDHUzN6L0CodSwX7Yv3kg')
-        emb.set_footer(text=','.join(data_res['tags']))
+        emb.set_footer(text=datetime.now().strftime(absfmt))
         emb.add_field(name='Definition', value=word['definition'], inline=False)
         emb.add_field(name='Example', value=word['example'], inline=False)
         emb.add_field(name='👍', value=word['thumbs_up'])
