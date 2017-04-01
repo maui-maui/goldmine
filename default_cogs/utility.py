@@ -217,7 +217,7 @@ class Utility(Cog):
                 b_roles.append('Server Admin')
             with suppress(ValueError, AttributeError):
                 t_roles.remove(target.server.default_role)
-            r_embed = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
+            r_embed = discord.Embed(color=random.randint(0, 256**3-1))
             r_embed.set_author(name=str(target), icon_url=avatar_link, url=avatar_link)
             r_embed.set_thumbnail(url=avatar_link) #top right
             r_embed.set_footer(text=str(target), icon_url=avatar_link)
@@ -252,7 +252,7 @@ class Utility(Cog):
                 chlist[2] += 1
         iurl = s.icon_url
         s_reg = str(s.region)
-        r_embed = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
+        r_embed = discord.Embed(color=random.randint(0, 256**3-1))
         if iurl:
             thing = {'url': iurl}
         else:
@@ -293,7 +293,7 @@ class Utility(Cog):
         up = await self.bot.format_uptime()
         ram = await self.bot.get_ram()
         got_conversion = ram[0]
-        emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
+        emb = discord.Embed(color=random.randint(0, 256**3-1))
         emb.set_author(name=str(target), url='https://khronodragon.com/', icon_url=avatar_link)
         emb.set_footer(text='Made in Python 3.6+ with Discord.py %s' % self.bot.lib_version, icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/400px-Python-logo-notext.svg.png')
         emb.add_field(name='Servers', value=len(self.bot.servers))
@@ -636,7 +636,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
             } # k = obf, r = reset
             state = ''
         desc = re.sub(r'\u00a7[4c6e2ab319d5f780lnokmr]', '', desc)
-        rc = int('0x%06X' % random.randint(0, 256**3-1), 16)
+        rc = random.randint(0, 256**3-1)
         emb = discord.Embed(title=server + ':' + str(port), description=desc, color=rc)
         try:
             target = ctx.message.server.me
@@ -930,6 +930,27 @@ Server Owner\'s ID: `{0.server.owner.id}`
         await self.bot.say(':telephone: **Dialing {}...**'.format(number))
         await asyncio.sleep((random.randint(1, 3) + random.uniform(0, 1)) * random.uniform(0.4, 1.6) + random.uniform(0, 1))
         await self.bot.say('**No answer.**')
+
+    @commands.command(aliases=['define'])
+    async def urban(self, *, term: str):
+        """Define something, according to Urban Dictionary.
+        Usage: urban [term]"""
+        async with aiohttp.ClientSession(loop=self.loop) as sess:
+            with async_timeout.timeout(5):
+                async with sess.get('http://api.urbandictionary.com/v0/define', params={'term': term}) as r:
+                    data_res = await r.json()
+        word = data_res[0]
+        target = self.bot.user
+        au = target.avatar_url
+        avatar_link = (au if au else target.default_avatar_url)
+        emb = discord.Embed(color=random.randint(0, 256**3-1), title=word['word'])
+        emb.set_author(name='Urban Dictionary', url=word['permalink'], icon_url='https://images.discordapp.net/.eJwFwdsNwyAMAMBdGICHhUPIMpULiCAlGIHzUVXdvXdf9cxLHeoUGeswJreVeGa9hCfVoitzvQqNtnTi25AIpfMuXZaBDSM4G9wWAdA5vxuIAQNCQB9369F7a575pv7KLUnjTvOjR6_q9wdVRCZ_.BorCGmKDHUzN6L0CodSwX7Yv3kg')
+        emb.set_footer(text=','.join(data_res['tags']))
+        emb.add_field(name='Definition', value=data_res['definition'], inline=False)
+        emb.add_field(name='Example', value=data_res['example'], inline=False)
+        emb.add_field(name='👍', value=word['thumbs_up'])
+        emb.add_field(name='👎', value=word['thumbs_down'])
+        await self.bot.say(embed=emb)
 
 def setup(bot):
     c = Utility(bot)

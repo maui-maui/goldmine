@@ -40,7 +40,7 @@ class Pokemon(Cog):
         desc = Description(desc_json)
         em_data = {
             'title': target.name.replace('-', ' '),
-            'color': int('0x%06X' % random.randint(0, 256**3-1), 16)
+            'color': random.randint(0, 256**3-1)
         }
         essentials = ['Description', 'National ID', 'Health', 'Height', 'Weight', 'Attack', 'Defense', 'Type(s)']
         skipped = ['Moves', 'Effort Value Yield', 'Egg Groups', 'Total', 'Growth Rate', 'Catch Rate', 'Male-Female Ratio', 'Egg Cycles']

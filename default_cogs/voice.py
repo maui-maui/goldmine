@@ -636,7 +636,7 @@ class Voice(Cog):
             key_str = 'are no songs in queue. One is playing right now.'
         elif state.songs._queue:
             key_str = 'is 1 song playing, and %s in queue.' % str(len(state.songs._queue))
-        emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16), title='Voice Queue', description='There ' + key_str)
+        emb = discord.Embed(color=random.randint(0, 256**3-1), title='Voice Queue', description='There ' + key_str)
         emb.set_author(name=target.display_name, url='https://blog.khronodragon.com/', icon_url=avatar_link)
         emb.set_footer(text='Best bot! :3', icon_url=avatar_link)
         if state.current:

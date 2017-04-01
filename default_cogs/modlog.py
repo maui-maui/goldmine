@@ -47,7 +47,7 @@ class ModLog(Cog):
     @modevent
     async def on_message_delete(self, target, msg):
         au = (msg.author.avatar_url if msg.author.avatar_url else msg.author.default_avatar_url)
-        emb = discord.Embed(color=int('0x%06X' % random.randint(5, 255**3-1), 16))
+        emb = discord.Embed(color=random.randint(0, 256**3-1))
         emb.title = 'Message by **' + str(msg.author) + '** deleted'
         emb.set_author(name=str(msg.author), icon_url=au)
         content = '`' + msg.content + '`'

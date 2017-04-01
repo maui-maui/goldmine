@@ -30,7 +30,7 @@ class Help(Cog):
         cog_assign = {}
         fields = {}
         chars = 0
-        emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
+        emb = discord.Embed(color=random.randint(0, 256**3-1))
         emb.title = 'Bot Help'
         emb.set_author(name=target.display_name, icon_url=avatar_link)
         if not commands_or_cogs:
@@ -98,7 +98,7 @@ class Help(Cog):
                         emb.add_field(name=cog, value=page)
             else:
                 pages.append(emb)
-                emb = discord.Embed(color=int('0x%06X' % random.randint(0, 256**3-1), 16))
+                emb = discord.Embed(color=random.randint(0, 256**3-1))
                 emb.title = 'Bot Help'
                 emb.set_author(name=target.display_name, icon_url=avatar_link)
                 chars = 0
