@@ -135,7 +135,7 @@ class VoiceState:
         """Handle the queue and playing of voice entries."""
         while True:
             self.play_next_song.clear()
-            if self.songs._queue or not have_played:
+            if self.songs._queue or not self.have_played:
                 self.current = await self.songs.get()
             else:
                 if self.current:
