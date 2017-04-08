@@ -157,6 +157,7 @@ class GoldBot(commands.Bot):
         if self.store.store['utils_revision'] < 2:
             distutils.dir_util.copy_tree(os.path.join(cur_dir, 'default_cogs', 'utils'), os.path.join(cur_dir, 'cogs', 'utils') + os.path.sep)
             self.store['utils_revision'] = 2
+        self.start_reported = False
         super().__init__(**options)
         self.commands = {}
 
@@ -191,8 +192,11 @@ class GoldBot(commands.Bot):
             self.store.store['owner_id'] = self.user.id
             self.owner_user = self.user
         self.logger.info('Owner information automatically filled.')
-        if (not self.selfbot) and len(self.servers) >= 75:
-            await self.send_message(self.owner_user, "I've just started up!\nThe time is **%s**." % datetime.now().strftime(absfmt))
+        if not self.selfbot and len(self.servers) >= 75:
+            key = ('Ready event emitted.' if self.start_reported else "I've just started up!")
+            await self.send_message(self.owner_user, key + "\nThe time is **%s**." % datetime.now().strftime(absfmt))
+            if not self.start_reported:
+                self.start_reported = True
 
     async def on_message(self, msg):
         try:
