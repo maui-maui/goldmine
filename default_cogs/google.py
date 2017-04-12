@@ -38,7 +38,20 @@ class Google(Cog):
         m = ''
         emb = discord.Embed(color=random.randint(1, 255**3-1))
         emb.set_author(icon_url='https://raw.githubusercontent.com/Armored-Dragon/goldmine/master/assets/icon-google.png', name='Google', url='https://google.com/')
-        if self.gclient:
+        if query in self.bot.store['google_cache']:
+            fql = self.bot.store['google_cache']
+            r = fql[0]
+            emb.title = r['title']
+            emb.description = r['snippet']
+            emb.add_field(name='Link', value=r['link'])
+            try:
+                emb.set_image(url=r['pagemap']['metatags'][0]['og:image'])
+            except KeyError:
+                try:
+                    emb.set_image(url=r['pagemap']['metatags'][0]['twitter:image'])
+                except KeyError:
+                    pass
+        elif self.gclient:
             fql = await self.gclient.search(query)
             if fql:
                 self.bot.store['google_cache'][query] = fql
