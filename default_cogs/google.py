@@ -39,7 +39,7 @@ class Google(Cog):
         emb = discord.Embed(color=random.randint(1, 255**3-1))
         emb.set_author(icon_url='https://raw.githubusercontent.com/Armored-Dragon/goldmine/master/assets/icon-google.png', name='Google', url='https://google.com/')
         if query in self.bot.store['google_cache']:
-            fql = self.bot.store['google_cache']
+            fql = self.bot.store['google_cache'][query]
             r = fql[0]
             emb.title = r['title']
             emb.description = r['snippet']
