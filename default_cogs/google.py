@@ -22,9 +22,9 @@ class Google(Cog):
         else:
             self.gclient = None
 
-    async def s_google(self, query, num=3):
+    def s_google(self, query, num=3):
         """A method of querying Google safe for async."""
-        return await search(query, num=num)
+        return search(query, num=num)
 
     @commands.command(aliases=['g', 'search', 'query', 'q'])
     async def google(self, *text: str):
