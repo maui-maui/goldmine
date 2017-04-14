@@ -58,13 +58,17 @@ class Google(Cog):
             if 'items' in resp:
                 fql = resp['items']
             elif 'error' in resp:
-                await self.bot.say('testing')
+                emb.title = 'Google Search'
+                emb.description = "I've reached the max number of searches for the day. Try again tomorrow."
                 self.logger.info(resp)
                 return
+            elif 'searchInformation' in resp and int(resp['searchInformation']['totalResults']) < 1:
+                emb.title = 'Google Search'
+                emb.description = 'Nothing was found.'
             else:
-                await self.bot.say('Error: the response from Google was malformed!')
+                emb.title = 'Google Search'
+                emb.description = 'The response seems to have been invalid. Try again later?'
                 self.logger.info(resp)
-                return
 
             if fql:
                 self.bot.store['google_cache'][query] = fql
