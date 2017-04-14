@@ -63,6 +63,7 @@ class Google(Cog):
                 return
             else:
                 await self.bot.say('Error: the response from Google was malformed!')
+                self.logger.info(resp)
                 return
 
             if fql:
