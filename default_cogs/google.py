@@ -57,6 +57,22 @@ class Google(Cog):
 
             if 'items' in resp:
                 fql = resp['items']
+                if fql:
+                    self.bot.store['google_cache'][query] = fql
+                    r = fql[0]
+                    emb.title = r['title']
+                    emb.description = r['snippet']
+                    emb.add_field(name='Link', value=r['link'])
+                    try:
+                        emb.set_image(url=r['pagemap']['metatags'][0]['og:image'])
+                    except KeyError:
+                        try:
+                            emb.set_image(url=r['pagemap']['metatags'][0]['twitter:image'])
+                        except KeyError:
+                            pass
+                else:
+                    emb.title = 'Google Search'
+                    emb.description = 'Nothing was found.'
             elif 'error' in resp:
                 emb.title = 'Google Search'
                 emb.description = "I've reached the max number of searches for the day. Try again tomorrow."
@@ -69,23 +85,6 @@ class Google(Cog):
                 emb.title = 'Google Search'
                 emb.description = 'The response seems to have been invalid. Try again later?'
                 self.logger.info(resp)
-
-            if fql:
-                self.bot.store['google_cache'][query] = fql
-                r = fql[0]
-                emb.title = r['title']
-                emb.description = r['snippet']
-                emb.add_field(name='Link', value=r['link'])
-                try:
-                    emb.set_image(url=r['pagemap']['metatags'][0]['og:image'])
-                except KeyError:
-                    try:
-                        emb.set_image(url=r['pagemap']['metatags'][0]['twitter:image'])
-                    except KeyError:
-                        pass
-            else:
-                emb.title = 'Google Search'
-                emb.description = 'Nothing was found.'
         else:
             fql = await self.s_google(query, num=1)
             emb.title = 'Google Search'
