@@ -21,6 +21,7 @@ class Google(Cog):
             self.gclient = GoogleClient(GOOGLE_API_KEY, self.CSE_ID)
         else:
             self.gclient = None
+        self.logger = self.logger.getChild('google')
 
     def s_google(self, query, num=3):
         """A method of querying Google safe for async."""
@@ -52,7 +53,18 @@ class Google(Cog):
                 except KeyError:
                     pass
         elif self.gclient:
-            fql = await self.gclient.search(query)
+            resp = await self.gclient.search(query)
+
+            if 'items' in resp:
+                fql = resp['items']
+            elif 'error' in resp:
+                await self.bot.say('testing')
+                self.logger.info(resp)
+                return
+            else:
+                await self.bot.say('Error: the response from Google was malformed!')
+                return
+
             if fql:
                 self.bot.store['google_cache'][query] = fql
                 r = fql[0]

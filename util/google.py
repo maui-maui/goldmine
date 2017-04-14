@@ -14,4 +14,4 @@ class GoogleClient:
               '&cx=' + self.cse_id + '&' + urlencode({'q': query}) + '&safe=off'
         async with self.session.get(url) as r:
             resp = await r.json()
-        return resp['items']
+        return resp
