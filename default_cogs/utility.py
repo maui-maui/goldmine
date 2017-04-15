@@ -956,7 +956,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.add_field(name='👎', value=word['thumbs_down'])
         await self.bot.say(embed=emb)
 
-    @commands.commmand(aliases=['nickname', 'setnick'])
+    @commands.command(aliases=['nickname', 'setnick'])
     async def nick(self, *, nick: str):
         """Set your nickname.
         Usage: nick [new nickname]"""
