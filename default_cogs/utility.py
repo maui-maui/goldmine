@@ -939,7 +939,11 @@ Server Owner\'s ID: `{0.server.owner.id}`
             with async_timeout.timeout(5):
                 async with sess.get('http://api.urbandictionary.com/v0/define', params={'term': term}) as r:
                     data_res = await r.json()
-        word = data_res['list'][0]
+        try:
+            word = data_res['list'][0]
+        except IndexError:
+            await self.bot.say('No results.')
+            return
         target = self.bot.user
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
@@ -951,6 +955,16 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.add_field(name='👍', value=word['thumbs_up'])
         emb.add_field(name='👎', value=word['thumbs_down'])
         await self.bot.say(embed=emb)
+
+    @command.commmand(aliases=['nickname', 'setnick'])
+    async def nick(self, *, nick: str):
+        """Set your nickname.
+        Usage: nick [new nickname]"""
+        if ctx.message.author.server_permissions.change_nickname:
+            await self.bot.change_nickname(ctx.message.author, nick)
+            await self.bot.say('Done! :thumbsup:')
+        else:
+            await self.bot.say(':thumbsdown: You don\'t have the permission to change your nickname. Contact an admin.')
 
 def setup(bot):
     c = Utility(bot)
