@@ -951,7 +951,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.set_author(name='Urban Dictionary', url=word['permalink'], icon_url='https://images.discordapp.net/.eJwFwdsNwyAMAMBdGICHhUPIMpULiCAlGIHzUVXdvXdf9cxLHeoUGeswJreVeGa9hCfVoitzvQqNtnTi25AIpfMuXZaBDSM4G9wWAdA5vxuIAQNCQB9369F7a575pv7KLUnjTvOjR6_q9wdVRCZ_.BorCGmKDHUzN6L0CodSwX7Yv3kg')
         emb.set_footer(text=datetime.now().strftime(absfmt))
         emb.add_field(name='Definition', value=word['definition'], inline=False)
-        emb.add_field(name='Example', value=word['example'], inline=False)
+        emb.add_field(name='Example', value=(word['example'] if word['example'] else 'None'), inline=False)
         emb.add_field(name='👍', value=word['thumbs_up'])
         emb.add_field(name='👎', value=word['thumbs_down'])
         await self.bot.say(embed=emb)
