@@ -65,8 +65,7 @@ class Luck(Cog):
             "I don't know.",
             'Maybe...',
             'Yes, of course!',
-            'No, probably not.',
-            'Check back later.'
+            'No, probably not.'
         ]
         await self.bot.say(ctx.message.author.mention + ' ' + random.choice(options))
 
