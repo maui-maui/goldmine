@@ -23,14 +23,17 @@ class Luck(Cog):
         await self.bot.say('The coin toss revealed... ' + random.choice(['heads', 'tails']) + '!')
 
     @commands.command(aliases=['dice', 'rolldice', 'rolld', 'droll', 'diceroll'])
-    async def roll(self, dice: str):
+    async def roll(self, *dice: str):
         """Rolls a virtual dice in [# of rolls]d[Range: 1-N] format.
         Usage: roll [number of rolls]d[max number, normally 6]"""
-        try:
-            rolls, limit = map(int, dice.split('d'))
-        except Exception:
-            await self.bot.say('Format has to be in NdN!')
-            return
+        if dice:
+            try:
+                rolls, limit = map(int, dice[0].split('d'))
+            except ValueError:
+                await self.bot.say('Format has to be in NdN!')
+                return
+        else:
+            await self.bot.say(random.choice(list('123456')))
 
         result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
         await self.bot.say(result)
@@ -38,8 +41,34 @@ class Luck(Cog):
     @commands.command(aliases=['gfight'])
     async def googlefight(self, tg1: str, tg2: str):
         """Generates a Google Fight link.
-        Usage: gfight [target 1] [target 2]"""
+        Usage: googlefight [target 1] [target 2]"""
         await self.bot.say('http://www.googlefight.com/' + tg1.title() + '-vs-' + tg2.title() + '.php')
+
+    @commands.command(name='8ball', pass_context=True, aliases=['8', 'ball', 'eight'])
+    async def eight_ball(self, ctx, *, question: str):
+        """A magic 8 ball!
+        Usage: 8ball [question]"""
+        options = [
+            'Yes, definitely!',
+            'Of course!',
+            'Yes!',
+            'Probably.',
+            "Hmm, I'm not sure...",
+            "I'm not sure...",
+            "I don't think so.",
+            "Hmm, I don't really think so.",
+            'Definitely not.',
+            'No.',
+            'Probably not.',
+            'Sure!',
+            'Try again later...',
+            "I don't know.",
+            'Maybe...',
+            'Yes, of course!',
+            'No, probably not.',
+            'Check back later.'
+        ]
+        await self.bot.say(ctx.message.author.mention + ' ' + random.choice(options))
 
 def setup(bot):
     c = Luck(bot)
