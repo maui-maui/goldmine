@@ -958,6 +958,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.add_field(name='👍', value=word['thumbs_up'])
         emb.add_field(name='👎', value=word['thumbs_down'])
         await self.bot.say(embed=emb)
+        self.bot.dbge = emb
 
     @commands.command(aliases=['nickname', 'setnick'])
     async def nick(self, *, nick: str):
