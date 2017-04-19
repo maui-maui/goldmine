@@ -950,14 +950,24 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb = discord.Embed(color=random.randint(0, 256**3-1), title=word['word'])
         emb.set_author(name='Urban Dictionary', url=word['permalink'], icon_url='https://images.discordapp.net/.eJwFwdsNwyAMAMBdGICHhUPIMpULiCAlGIHzUVXdvXdf9cxLHeoUGeswJreVeGa9hCfVoitzvQqNtnTi25AIpfMuXZaBDSM4G9wWAdA5vxuIAQNCQB9369F7a575pv7KLUnjTvOjR6_q9wdVRCZ_.BorCGmKDHUzN6L0CodSwX7Yv3kg')
         emb.set_footer(text=datetime.now().strftime(absfmt))
-        defined = word['definition']
-        if len(defined) > 1024:
-            defined = defined[:1997] + '...'
-        emb.add_field(name='Definition', value=defined, inline=False)
-        emb.add_field(name='Example', value=(word['example'] if word['example'] else 'None'), inline=False)
+        definition = word['definition']
+        if definition:
+            def_pages = textwrap.wrap(definition, width=1024)
+            for pg in def_pages[:3]:
+                emb.add_field(name='Definition', value=pg, inline=False)
+        else:
+            emb.add_field(name='Definition', value='None?!?!', inline=False)
+
+        example = word['example']
+        if example:
+            ex_pages = textwrap.wrap(example, width=1024)
+            for pg in ex_pages[:3]:
+                emb.add_field(name='Example', value=pg, inline=False)
+        else:
+            emb.add_field(name='Example', value='None?!?!', inline=False)
+
         emb.add_field(name='👍', value=word['thumbs_up'])
         emb.add_field(name='👎', value=word['thumbs_down'])
-        self.bot.dbge = emb
         await self.bot.say(embed=emb)
 
     @commands.command(aliases=['nickname', 'setnick'])
