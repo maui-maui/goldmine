@@ -141,8 +141,8 @@ class Cosmetic(Cog):
                 async with session.get('https://random.dog/woof') as response:
                     ret = await response.text()
         e = discord.Embed(color=random.randint(1, 255**3-1))
-        e.set_image(url='https://random.dog/' + ret.strip().replace('\n', ''))
-        await self.bot.say(embed=e)
+        e.set_image(url='https://random.dog/' + ret.strip())
+        await self.bot.say('https://random.dog/' + ret.strip(), embed=e)
 
     @commands.command(pass_context=True, aliases=['temote', 'bemote', 'dcemote', 'getemote', 'fetchemote'])
     async def emote(self, ctx, _emote: str):
