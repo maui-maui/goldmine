@@ -138,10 +138,10 @@ class Cosmetic(Cog):
         Usage: dog"""
         async with aiohttp.ClientSession(loop=self.loop) as session:
             with async_timeout.timeout(8):
-                async with session.get('http://random.dog/woof') as response:
+                async with session.get('https://random.dog/woof') as response:
                     ret = await response.text()
         e = discord.Embed(color=random.randint(1, 255**3-1))
-        e.set_image(url='https://random.dog/' + ret.strip())
+        e.set_image(url='https://random.dog/' + ret.strip().replace('\n', ''))
         await self.bot.say(embed=e)
 
     @commands.command(pass_context=True, aliases=['temote', 'bemote', 'dcemote', 'getemote', 'fetchemote'])
