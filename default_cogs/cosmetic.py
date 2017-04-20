@@ -139,10 +139,10 @@ class Cosmetic(Cog):
         async with aiohttp.ClientSession(loop=self.loop) as session:
             with async_timeout.timeout(8):
                 async with session.get('https://random.dog/woof') as response:
-                    ret = await response.text()
-        e = discord.Embed(color=random.randint(1, 255**3-1))
-        e.set_image(url='https://random.dog/' + ret.strip())
-        await self.bot.say('https://random.dog/' + ret.strip(), embed=e)
+                    ret = 'https://random.dog/' + (await response.text()).strip()
+                async with session.get(ret) as response:
+                    img = await response.read()
+        await self.bot.upload(io.BytesIO(img))
 
     @commands.command(pass_context=True, aliases=['temote', 'bemote', 'dcemote', 'getemote', 'fetchemote'])
     async def emote(self, ctx, _emote: str):
