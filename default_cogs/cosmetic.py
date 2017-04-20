@@ -132,18 +132,6 @@ class Cosmetic(Cog):
         e.set_image(url=ret['file'])
         await self.bot.say(embed=e)
 
-    @commands.command(pass_context=True, aliases=['random.dog', 'randomdog', 'rdog', 'dogs', 'dograndom', 'random_dog'])
-    async def dog(self, ctx):
-        """Get a random dog! Because why not.
-        Usage: dog"""
-        async with aiohttp.ClientSession(loop=self.loop) as session:
-            with async_timeout.timeout(8):
-                async with session.get('https://random.dog/woof') as response:
-                    ret = 'https://random.dog/' + (await response.text()).strip()
-                async with session.get(ret) as response:
-                    img = await response.read()
-        await self.bot.upload(io.BytesIO(img))
-
     @commands.command(pass_context=True, aliases=['temote', 'bemote', 'dcemote', 'getemote', 'fetchemote'])
     async def emote(self, ctx, _emote: str):
         """Get a Twitch, FrankerFaceZ, BetterTTV, or Discord emote.
