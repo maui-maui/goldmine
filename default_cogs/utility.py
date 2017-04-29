@@ -602,7 +602,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
             for e in data['description']['extra']:
                 item = e['text']
                 for fkey in format_keys:
-                    if e.get(fkey, False): 
+                    if e.get(fkey, False):
                         int_key = '%{f:' + fkey + '}$'
                         item = int_key + item + int_key
                 final.append(item)
@@ -756,7 +756,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         Usage: avatar [member]"""
         au = target.avatar_url
         await self.bot.say(au if au else target.default_avatar_url)
-    
+
     @commands.command(pass_context=True)
     async def ocr(self, ctx):
         """OCR an image.
@@ -780,7 +780,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
             await self.bot.say(text)
         else:
             await self.bot.say('No results.')
-        
+
     @commands.command(aliases=['cm_discrim'])
     async def discrim(self, *, discriminator: str):
         """Look up users by discriminator.
@@ -791,7 +791,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
             await self.bot.say('**I found: **\n' + '\n'.join(targets))
         else:
             await self.bot.say('I found no matches. Maybe I\'m not in a server with them?')
-        
+
     @commands.command(pass_context=True, aliases=['perms'])
     async def permissions(self, ctx):
         """Get your permissions here.
@@ -889,7 +889,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         m = await self.bot.say(textwrap.wrap((text + ' ') * 2000, width=2000)[0], tts=True)
         await asyncio.sleep(0.1)
         await self.bot.delete_message(m)
-    
+
     @commands.command(pass_context=True, aliases=['ip', 'rdns', 'reverse_dns', 'reversedns'])
     async def ipinfo(self, ctx, *, ip: str):
         """Get the GeoIP and rDNS data for an IP.
@@ -947,7 +947,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         target = self.bot.user
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
-        emb = discord.Embed(color=random.randint(0, 256**3-1), title=word['word'])
+        emb = discord.Embed(color=random.randint(0, 255**3-1), title=word['word'])
         emb.set_author(name='Urban Dictionary', url=word['permalink'], icon_url='https://images.discordapp.net/.eJwFwdsNwyAMAMBdGICHhUPIMpULiCAlGIHzUVXdvXdf9cxLHeoUGeswJreVeGa9hCfVoitzvQqNtnTi25AIpfMuXZaBDSM4G9wWAdA5vxuIAQNCQB9369F7a575pv7KLUnjTvOjR6_q9wdVRCZ_.BorCGmKDHUzN6L0CodSwX7Yv3kg')
         emb.set_footer(text=datetime.now().strftime(absfmt))
         definition = word['definition']
@@ -979,6 +979,13 @@ Server Owner\'s ID: `{0.server.owner.id}`
             await self.bot.say('Done! :thumbsup:')
         else:
             await self.bot.say(':thumbsdown: You don\'t have the permission to change your nickname. Contact an admin.')
+    
+    @commands.command()
+    async def bleach(self):
+        """Get some bleach. NOW.
+        Usage: bleach"""
+        emb = discord.Embed(color=random.randint(0, 255**3-1), title='Bleach')
+        emb.set_image(url='https://upload.wikimedia.org/wikipedia/commons/d/d3/Clorox_Bleach_products.jpg')
 
 def setup(bot):
     c = Utility(bot)
