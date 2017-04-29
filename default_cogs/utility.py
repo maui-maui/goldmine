@@ -986,6 +986,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         Usage: bleach"""
         emb = discord.Embed(color=random.randint(0, 255**3-1), title='Bleach')
         emb.set_image(url='https://upload.wikimedia.org/wikipedia/commons/d/d3/Clorox_Bleach_products.jpg')
+        await self.bot.say(embed=emb)
 
 def setup(bot):
     c = Utility(bot)
