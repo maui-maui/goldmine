@@ -979,7 +979,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
             await self.bot.say('Done! :thumbsup:')
         else:
             await self.bot.say(':thumbsdown: You don\'t have the permission to change your nickname. Contact an admin.')
-    
+
     @commands.command()
     async def bleach(self):
         """Get some bleach. NOW.
