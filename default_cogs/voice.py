@@ -1,4 +1,14 @@
 """Definition of the bot's Voice module."""
+import asyncio
+import discord
+import discord.voice_client as dvclient
+import io
+import os
+import functools
+import random
+import shlex
+import time
+import threading
 from datetime import datetime
 from urllib.parse import urlencode
 from gtts_token import gtts_token
@@ -7,12 +17,57 @@ from util.func import assert_msg, check
 from util.const import sem_cells
 import util.dynaimport as di
 from .cog import Cog
-import asyncio
 
-for mod in ['random', 'io', 'subprocess', 'textwrap', 'async_timeout',
-            'discord', 'math', 'os', 'youtube_dl', 'functools']:
+for mod in ['subprocess', 'textwrap', 'async_timeout',
+            'math', 'youtube_dl']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
+
+class StreamPlayer(dvclient.StreamPlayer):
+    def __init__(self, stream, encoder, connected, player, after, **kwargs):
+        threading.Thread.__init__(self, **kwargs)
+        self.daemon = True
+        self.buff = stream
+        self.frame_size = encoder.frame_size
+        self.player = player
+        self._end = threading.Event()
+        self._resumed = threading.Event()
+        self._resumed.set() # we are not paused
+        self._connected = connected
+        self.after = after
+        self.delay = encoder.frame_length / 1000.0
+        self._current_error = None
+
+    def _do_run(self):
+        self.loops = 0
+        self._start = time.time()
+        while not self._end.is_set():
+            # are we paused?
+            if not self._resumed.is_set():
+                # wait until we aren't
+                self._resumed.wait()
+
+            if not self._connected.is_set():
+                self.stop()
+                break
+
+            self.loops += 1
+            data = self.buff.read(self.frame_size)
+
+            if len(data) != self.frame_size:
+                self.stop()
+                break
+
+            self.player(data)
+            next_time = self._start + self.delay * self.loops
+            delay = max(0, self.delay + (next_time - time.time()))
+            time.sleep(delay)
+
+class ProcessPlayer(StreamPlayer): 
+    def __init__(self, process, client, after, **kwargs):
+        super().__init__(process.stdout, client.encoder,
+                         client._connected, client.play_audio, after, **kwargs)
+        self.process = process # here we don't need automatic cleanup
 
 class VoiceEntry:
     """Class to represent an entry in the standard voice queue."""
@@ -130,12 +185,14 @@ class VoiceState:
                     self.current.player.stop()
                     self.current.player.process.kill()
                     if self.current.player.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.communicate))
-                for p in self.songs._queue:
-                    p.stop()
-                    p.process.kill()
-                    if p.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, p.process.communicate))
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.wait))
+                    del self.current.player.process
+                for ve in self.songs._queue:
+                    ve.player.stop()
+                    ve.player.process.kill()
+                    if ve.player.process.poll() is None:
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, ve.player.process.wait))
+                    del ve.player.process
                 if self.voice:
                     await self.voice.disconnect()
                 del self.cog.voice_states[self.voice.channel.server.id]
@@ -172,7 +229,6 @@ class Voice(Cog):
         """Background task to disconnect from voice channels if idle."""
         while True:
             for sid, state in list(self.voice_states.items())[:]:
-                thing = False
                 if (datetime.now() - state.create_time).total_seconds() < 300:
                     continue # 5 mins
                 if state.voice:
@@ -183,14 +239,14 @@ class Voice(Cog):
                             state.current.player.stop()
                             state.current.player.process.kill()
                             if state.current.player.process.poll() is None:
-                                self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.communicate))
+                                self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.wait))
                             del state.current.player.process
-                        for p in state.songs._queue:
-                            p.stop()
-                            p.process.kill()
-                            if p.process.poll() is None:
-                                self.loop.create_task(self.loop.run_in_executor(None, p.process.communicate))
-                            del p.process
+                        for e in state.songs._queue:
+                            e.player.stop()
+                            e.player.process.kill()
+                            if e.player.process.poll() is None:
+                                self.loop.create_task(self.loop.run_in_executor(None, e.player.process.wait))
+                            del e.player.process
                         await state.voice.disconnect()
                         del self.voice_states[sid]
                         self.logger.info('Pruned a voice state! Server ID: ' + sid + \
@@ -204,10 +260,6 @@ class Voice(Cog):
     async def create_voice_client(self, channel):
         """Create a new voice client on a specified channel."""
         voice = await self.bot.join_voice_channel(channel)
-        try:
-            await voice.enable_voice_events()
-        except AttributeError:
-            pass
         state = self.get_voice_state(channel.server)
         state.voice = voice
 
@@ -220,19 +272,6 @@ class Voice(Cog):
             except:
                 pass
         self.disconnect_task.cancel()
-
-    async def on_speaking(self, speaking, uid):
-        """Event for when someone is speaking."""
-        pass
-
-    async def on_speak(self, data, timestamp, voice):
-        """Event for when a voice packet is received."""
-        if voice.server.id in self.servers_recording:
-            decoded_data = await self.loop.run_in_executor(None, self.opus_decoder.decode, data, voice.encoder.frame_size)
-            try:
-                self.recording_data[voice.server.id] += decoded_data
-            except KeyError:
-                self.recording_data[voice.server.id] = decoded_data
 
     @commands.command(no_pm=True)
     async def join(self, *, channel: discord.Channel):
@@ -307,16 +346,12 @@ class Voice(Cog):
             await self.bot.say('There can only be up to 5 items in queue!')
             return
 
-        status = await self.bot.say('Loading... 🌚')
-        pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Loading'), timeout=30, loop=self.loop))
         state.voice.encoder_options(sample_rate=48000, channels=2)
         try:
             player = await self.create_ytdl_player(state.voice, song, after=state.toggle_next)
         except Exception as e:
             n = type(e).__name__
             if n.endswith('DownloadError') or n.endswith('IndexError'):
-                pg_task.cancel()
-                self.loop.create_task(self.bot.delete_message(status))
                 await self.bot.say('**That video couldn\'t be found!**')
                 return False
             else:
@@ -328,32 +363,15 @@ class Voice(Cog):
         except TypeError: # livestream, no duration
             return
 
-        player.volume = 0.7
         entry = VoiceEntry(ctx.message, player)
-        was_empty = state.songs.empty()
+        before = bool(state.current)
         await state.songs.put(entry)
-        if state.current:
+        if before:
             await self.bot.say('Queued ' + str(entry))
-        pg_task.cancel()
-        await self.bot.delete_message(status)
-
-    @commands.command(pass_context=True, no_pm=True)
-    async def volume(self, ctx, value: int):
-        """Sets the volume of the currently playing song.
-        Usage: volume [percentage, 1-100]"""
-
-        state = self.get_voice_state(ctx.message.server)
-        if state.is_playing():
-            player = state.player
-            if (value >= 10) and (value <= 200):
-                player.volume = value / 100
-                await self.bot.say('**Volume is now {:.0%}.**'.format(player.volume))
-            else:
-                await self.bot.say('**Volume must be in the range of 10% and 200%!**')
 
     @commands.command(pass_context=True, no_pm=True)
     async def pause(self, ctx):
-        """Pauses the currently played song.
+        """Pause the current song.
         Usage: pause"""
         state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
@@ -363,7 +381,7 @@ class Voice(Cog):
 
     @commands.command(pass_context=True, no_pm=True, aliases=['unpause'])
     async def resume(self, ctx):
-        """Resumes the current song OR resume suspended bot features.
+        """Resume the current song.
         Usage: resume"""
         state = self.get_voice_state(ctx.message.server)
         if state.is_playing():
@@ -390,12 +408,14 @@ class Voice(Cog):
                 state.current.player.stop()
                 state.current.player.process.kill()
                 if state.current.player.process.poll() is None:
-                    self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.communicate))
-            for p in state.songs._queue:
-                p.stop()
-                p.process.kill()
-                if p.process.poll() is None:
-                    self.loop.create_task(self.loop.run_in_executor(None, p.process.communicate))
+                    self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.wait))
+                del state.current.player.process
+            for e in state.songs._queue:
+                e.player.stop()
+                e.player.process.kill()
+                if e.player.process.poll() is None:
+                    self.loop.create_task(self.loop.run_in_executor(None, e.player.process.wait))
+                del e.player.process
             del self.voice_states[server.id]
             await state.voice.disconnect()
             await self.bot.say('Stopped.')
@@ -411,8 +431,12 @@ class Voice(Cog):
         match_clients = [c for c in self.bot.voice_clients if c.channel is not None \
                          and c.channel.server.id == ctx.message.server.id]
         if match_clients:
-            if match_clients[0].is_connected():
-                await match_clients[0].disconnect()
+            matched = match_clients[0]
+            if matched.is_connected():
+                await matched.disconnect()
+                if matched.channel.server.id in self.voice_states:
+                    del self.voice_states[matched.channel.server.id]
+                await self.bot.say('Disconnected!')
             else:
                 await self.bot.say('I found a voice client, but it\'s not connected.')
         else:
@@ -495,7 +519,6 @@ class Voice(Cog):
             }
             await self.bot.say('Adding to voice queue:```' + intxt + '```**It may take up to *10 seconds* to queue.**')
             player = await self.create_ytdl_player(state.voice, base_url + '?' + urlencode(g_args), ytdl_options=opts, after=state.toggle_next)
-            player.volume = 0.75
             entry = VoiceEntry(ctx.message, player)
             await state.songs.put(entry)
             await self.bot.say('Queued **Speech**! :smiley:')
@@ -603,7 +626,7 @@ class Voice(Cog):
             See :meth:`create_stream_player` for base operations.
         """
         opts = {
-            'format': 'webm/audioonly',
+            'format': 'webm[abr>0]/bestaudio',
             'default_search': 'ytsearch',
             'quiet': True,
             'source_address': '0.0.0.0',
@@ -626,7 +649,6 @@ class Voice(Cog):
 
         self.logger.info('Playing "{}" with youtube_dl'.format(url))
         download_url = info['url']
-        print(download_url)
         player = self.create_yt_ffmpeg_player(vclient, download_url, **kwargs)
 
         # set the dynamic attributes from the info extraction
@@ -725,7 +747,7 @@ class Voice(Cog):
         args = shlex.split(cmd)
         try:
             p = subprocess.Popen(args, stdin=stdin, stdout=subprocess.PIPE, stderr=stderr)
-            return discord.ProcessPlayer(p, vclient, after)
+            return ProcessPlayer(p, vclient, after)
         except FileNotFoundError as e:
             raise discord.ClientException('ffmpeg/avconv was not found in your PATH environment variable') from e
         except subprocess.SubprocessError as e:
