@@ -7,25 +7,13 @@ from util.func import assert_msg, check
 from util.const import sem_cells
 import util.dynaimport as di
 from .cog import Cog
+import asyncio
 
-for mod in ['asyncio', 'random', 'io', 'subprocess', 'textwrap', 'async_timeout',
-            'discord', 'math', 'os']:
+for mod in ['random', 'io', 'subprocess', 'textwrap', 'async_timeout',
+            'discord', 'math', 'os', 'youtube_dl', 'functools']:
     globals()[mod] = di.load(mod)
 commands = di.load('util.commands')
 
-options = {
-    'default_search': 'ytsearch',
-    'quiet': True,
-    'source_address': '0.0.0.0',
-    'format': 'bestaudio/best',
-    'extractaudio': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': True,
-    'no_warnings': True,
-    'outtmpl': 'data/voice/cache/%(id)s'
-}
-# >​
 class VoiceEntry:
     """Class to represent an entry in the standard voice queue."""
     def __init__(self, message, player, override_name=None):
@@ -196,11 +184,13 @@ class Voice(Cog):
                             state.current.player.process.kill()
                             if state.current.player.process.poll() is None:
                                 self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.communicate))
+                            del state.current.player.process
                         for p in state.songs._queue:
                             p.stop()
                             p.process.kill()
                             if p.process.poll() is None:
                                 self.loop.create_task(self.loop.run_in_executor(None, p.process.communicate))
+                            del p.process
                         await state.voice.disconnect()
                         del self.voice_states[sid]
                         self.logger.info('Pruned a voice state! Server ID: ' + sid + \
@@ -321,7 +311,7 @@ class Voice(Cog):
         pg_task = self.loop.create_task(asyncio.wait_for(self.progress(status, 'Loading'), timeout=30, loop=self.loop))
         state.voice.encoder_options(sample_rate=48000, channels=2)
         try:
-            player = await state.voice.create_ytdl_player(song, ytdl_options=options, after=state.toggle_next)
+            player = await self.create_ytdl_player(state.voice, song, after=state.toggle_next)
         except Exception as e:
             n = type(e).__name__
             if n.endswith('DownloadError') or n.endswith('IndexError'):
@@ -466,40 +456,12 @@ class Voice(Cog):
             skip_count = len(state.skip_votes)
             await self.bot.say('Now playing {} [skips: {}/3]'.format(state.current, skip_count))
 
-    @commands.command(pass_context=True, no_pm=True)
-    async def picospeak(self, ctx, *, tospeak: str):
-        """Uses the SVOX pico TTS engine to speak a message.
-        Usage: picospeak [message]"""
-        or_check_perms(ctx, ('bot_owner',))
-        state = self.get_voice_state(ctx.message.server)
-
-        if state.voice is None:
-            success = await ctx.invoke(self.summon)
-            if not success:
-                return
-        if state.voice.channel != ctx.message.author.voice_channel:
-            await self.bot.say('You can only modify the queue if you\'re in the same channel as me!')
-            return
-        if len(state.songs._queue) >= 5:
-            await self.bot.say('There can only be up to 5 items in queue!')
-            return
-
-        stream = io.BytesIO(subprocess.check_output(['pico2wave', '-w', '/tmp/pipe.wav', tospeak]))
-        state.voice.encoder_options(sample_rate=16000, channels=1)
-        player = state.voice.create_stream_player(stream, after=state.toggle_next)
-        player.volume = 1.0
-        entry = VoiceEntry(ctx.message, player, override_name='Speech')
-        await state.songs.put(entry)
-        await self.bot.say('Queued ' + str(entry))
-        state.voice.encoder_options(sample_rate=48000, channels=2)
-
     @commands.command(pass_context=True, no_pm=True, aliases=['gspeak'])
     async def speak(self, ctx, *, text: str):
         """Uses a TTS voice to speak a message.
         Usage: speak [message]"""
         state = self.get_voice_state(ctx.message.server)
         opts = {
-            **options,
             'user-agent': 'stagefright/1.2 (Linux;Android 5.0)',
             'referer': 'https://translate.google.com/'
         }
@@ -532,74 +494,12 @@ class Voice(Cog):
                 'tk': str(self.tokenizer.calculate_token(intxt))
             }
             await self.bot.say('Adding to voice queue:```' + intxt + '```**It may take up to *10 seconds* to queue.**')
-            player = await state.voice.create_ytdl_player(base_url + '?' + urlencode(g_args), ytdl_options=opts, after=state.toggle_next)
+            player = await self.create_ytdl_player(state.voice, base_url + '?' + urlencode(g_args), ytdl_options=opts, after=state.toggle_next)
             player.volume = 0.75
             entry = VoiceEntry(ctx.message, player)
             await state.songs.put(entry)
             await self.bot.say('Queued **Speech**! :smiley:')
             await asyncio.sleep(1)
-
-    @commands.group(pass_context=True, aliases=['record', 'rec'])
-    async def recording(self, ctx):
-        """Manage voice recording, recognition, and playback.
-        Usage: recording"""
-        or_check_perms(ctx, ('bot_owner',))
-        if ctx.invoked_subcommand is None:
-            await self.bot.send_cmd_help(ctx)
-
-    @recording.command(pass_context=True, name='toggle', aliases=['start', 'stop'])
-    async def record_toggle(self, ctx):
-        """Toggle (start/stop) voice recording.
-        Usage: recording toggle"""
-        or_check_perms(ctx, ['manage_server', 'manage_channels', 'move_members'])
-        if 'dispatch' in inspect.signature(VoiceClient.__init__).parameters:
-            if not self.opus_decoder:
-                try:
-                    from opuslib import Decoder
-                    self.opus_decoder = Decoder(48000, 2)
-                except Exception:
-                    await self.bot.say('Feature not available!')
-                    return
-        else:
-            await self.bot.say('Feature not available!')
-            return
-        state = self.get_voice_state(ctx.message.server)
-        if state.voice is None:
-            success = await ctx.invoke(self.summon)
-            if not success:
-                return
-
-        sid = ctx.message.server.id
-        if sid not in self.servers_recording:
-            self.servers_recording.add(sid)
-            await self.bot.say('**Voice in this server is now being recorded!**')
-        else:
-            self.servers_recording.remove(sid)
-            await self.bot.say('**Voice is no longer being recorded in this server!**')
-
-    @recording.command(pass_context=True, name='play', aliases=['echo', 'playback', 'dump'])
-    async def record_play(self, ctx):
-        """Play the current the voice recording.
-        Usage: recording play"""
-        state = self.get_voice_state(ctx.message.server)
-        if state.voice is None:
-            success = await ctx.invoke(self.summon)
-            if not success:
-                return
-        if state.voice.channel != ctx.message.author.voice_channel:
-            await self.bot.say('You can only modify the queue if you\'re in the same channel as me!')
-            return
-        if len(state.songs._queue) >= 5:
-            await self.bot.say('There can only be up to 5 items in queue!')
-            return
-        with assert_msg(ctx, '**This server does not have a recording!**'):
-            check(ctx.message.server.id in self.recording_data)
-        state.voice.encoder_options(sample_rate=48000, channels=2)
-        player = state.voice.create_stream_player(io.BytesIO(self.recording_data[ctx.message.server.id]), after=state.toggle_next)
-        player.volume = 0.7
-        entry = VoiceEntry(ctx.message, player, override_name='Voice Recording from ' + ctx.message.server.name)
-        await state.songs.put(entry)
-        await self.bot.say('Queued ' + str(entry))
 
     @commands.command(pass_context=True, aliases=['quene'])
     async def queue(self, ctx):
@@ -636,8 +536,200 @@ class Voice(Cog):
 
     async def on_ready(self):
         if self.bot.selfbot:
-            self.logger.info('We\'re a selfbot, unloading voice. Discord\'s TOS doesn\'t allow selfbots to stream music.')
+            self.logger.info('This is a selfbot, unloading voice. Discord\'s TOS doesn\'t allow selfbots to stream music.')
             self.bot.unload_extension('default_cogs.voice')
+
+    async def create_ytdl_player(self, vclient, url, *, ytdl_options=None, **kwargs):
+        """|coro|
+        Creates a stream player for youtube or other services that launches
+        in a separate thread to play the audio.
+        The player uses the ``youtube_dl`` python library to get the information
+        required to get audio from the URL. Since this uses an external library,
+        you must install it yourself. You can do so by calling
+        ``pip install youtube_dl``.
+        You must have the ffmpeg or avconv executable in your path environment
+        variable in order for this to work.
+        The operations that can be done on the player are the same as those in
+        :meth:`create_stream_player`. The player has been augmented and enhanced
+        to have some info extracted from the URL. If youtube-dl fails to extract
+        the information then the attribute is ``None``. The ``yt``, ``url``, and
+        ``download_url`` attributes are always available.
+        +---------------------+---------------------------------------------------------+
+        |      Operation      |                       Description                       |
+        +=====================+=========================================================+
+        | player.yt           | The `YoutubeDL <ytdl>` instance.                        |
+        +---------------------+---------------------------------------------------------+
+        | player.url          | The URL that is currently playing.                      |
+        +---------------------+---------------------------------------------------------+
+        | player.download_url | The URL that is currently being downloaded to ffmpeg.   |
+        +---------------------+---------------------------------------------------------+
+        | player.title        | The title of the audio stream.                          |
+        +---------------------+---------------------------------------------------------+
+        | player.description  | The description of the audio stream.                    |
+        +---------------------+---------------------------------------------------------+
+        | player.uploader     | The uploader of the audio stream.                       |
+        +---------------------+---------------------------------------------------------+
+        | player.upload_date  | A datetime.date object of when the stream was uploaded. |
+        +---------------------+---------------------------------------------------------+
+        | player.duration     | The duration of the audio in seconds.                   |
+        +---------------------+---------------------------------------------------------+
+        | player.likes        | How many likes the audio stream has.                    |
+        +---------------------+---------------------------------------------------------+
+        | player.dislikes     | How many dislikes the audio stream has.                 |
+        +---------------------+---------------------------------------------------------+
+        | player.is_live      | Checks if the audio stream is currently livestreaming.  |
+        +---------------------+---------------------------------------------------------+
+        | player.views        | How many views the audio stream has.                    |
+        +---------------------+---------------------------------------------------------+
+        Parameters
+        -----------
+        url : str
+            The URL that ``youtube_dl`` will take and download audio to pass
+            to ``ffmpeg`` or ``avconv`` to convert to PCM bytes.
+        ytdl_options : dict
+            A dictionary of options to pass into the ``YoutubeDL`` instance.
+            See `the documentation <ytdl>`_ for more details.
+        \*\*kwargs
+            The rest of the keyword arguments are forwarded to
+            :func:`create_ffmpeg_player`.
+        Raises
+        -------
+        ClientException
+            Popen failure from either ``ffmpeg``/``avconv``.
+        Returns
+        --------
+        StreamPlayer
+            An augmented StreamPlayer that uses ffmpeg.
+            See :meth:`create_stream_player` for base operations.
+        """
+        opts = {
+            'format': 'webm/audioonly',
+            'default_search': 'ytsearch',
+            'quiet': True,
+            'source_address': '0.0.0.0',
+            'extractaudio': True,
+            'noplaylist': True,
+            'nocheckcertificate': True,
+            'ignoreerrors': True,
+            'no_warnings': True,
+            'outtmpl': 'data/voice/cache/%(id)s'
+        }
+
+        if ytdl_options is not None and isinstance(ytdl_options, dict):
+            opts.update(ytdl_options)
+
+        ydl = youtube_dl.YoutubeDL(opts)
+        func = functools.partial(ydl.extract_info, url, download=False)
+        info = await self.loop.run_in_executor(None, func)
+        if "entries" in info:
+            info = info['entries'][0]
+
+        self.logger.info('Playing "{}" with youtube_dl'.format(url))
+        download_url = info['url']
+        print(download_url)
+        player = self.create_yt_ffmpeg_player(vclient, download_url, **kwargs)
+
+        # set the dynamic attributes from the info extraction
+        player.download_url = download_url
+        player.url = url
+        player.yt = ydl
+        player.views = info.get('view_count')
+        player.is_live = bool(info.get('is_live'))
+        player.likes = info.get('like_count')
+        player.dislikes = info.get('dislike_count')
+        player.duration = info.get('duration')
+        player.uploader = info.get('uploader')
+
+        is_twitch = 'twitch' in url
+        if is_twitch:
+            # twitch has 'title' and 'description' sort of mixed up.
+            player.title = info.get('description')
+            player.description = None
+        else:
+            player.title = info.get('title')
+            player.description = info.get('description')
+
+        # upload date handling
+        date = info.get('upload_date')
+        if date:
+            try:
+                date = datetime.strptime(date, '%Y%M%d').date()
+            except ValueError:
+                date = None
+
+        player.upload_date = date
+        return player
+
+    def create_yt_ffmpeg_player(self, vclient, filename, *, use_avconv=False, pipe=False, stderr=None, options=None, before_options=None, headers=None, after=None):
+        """Creates a stream player for ffmpeg that launches in a separate thread to play
+        audio.
+        The ffmpeg player launches a subprocess of ``ffmpeg`` to a specific
+        filename and then plays that file.
+        You must have the ffmpeg or avconv executable in your path environment variable
+        in order for this to work.
+        The operations that can be done on the player are the same as those in
+        :meth:`create_stream_player`.
+        Parameters
+        -----------
+        filename
+            The filename that ffmpeg will take and convert to PCM bytes.
+            If ``pipe`` is True then this is a file-like object that is
+            passed to the stdin of ``ffmpeg``.
+        use_avconv: bool
+            Use ``avconv`` instead of ``ffmpeg``.
+        pipe : bool
+            If true, denotes that ``filename`` parameter will be passed
+            to the stdin of ffmpeg.
+        stderr
+            A file-like object or ``subprocess.PIPE`` to pass to the Popen
+            constructor.
+        options : str
+            Extra command line flags to pass to ``ffmpeg`` after the ``-i`` flag.
+        before_options : str
+            Command line flags to pass to ``ffmpeg`` before the ``-i`` flag.
+        headers: dict
+            HTTP headers dictionary to pass to ``-headers`` command line option
+        after : callable
+            The finalizer that is called after the stream is done being
+            played. All exceptions the finalizer throws are silently discarded.
+        Raises
+        -------
+        ClientException
+            Popen failed to due to an error in ``ffmpeg`` or ``avconv``.
+        Returns
+        --------
+        StreamPlayer
+            A stream player with specific operations.
+            See :meth:`create_stream_player`.
+        """
+        command = 'ffmpeg' if not use_avconv else 'avconv'
+        input_name = '-' if pipe else shlex.quote(filename)
+        before_args = ""
+        if isinstance(headers, dict):
+            for key, value in headers.items():
+                before_args += "{}: {}\r\n".format(key, value)
+            before_args = ' -headers ' + shlex.quote(before_args)
+
+        if isinstance(before_options, str):
+            before_args += ' ' + before_options
+
+        cmd = command + '{} -i {} -f s16le -ar {} -ac {} -loglevel warning'
+        cmd = cmd.format(before_args, input_name, vclient.encoder.sampling_rate, vclient.encoder.channels)
+
+        if isinstance(options, str):
+            cmd = cmd + ' ' + options
+
+        cmd += ' pipe:1'
+
+        stdin = None if not pipe else filename
+        args = shlex.split(cmd)
+        try:
+            p = subprocess.Popen(args, stdin=stdin, stdout=subprocess.PIPE, stderr=stderr)
+            return discord.ProcessPlayer(p, vclient, after)
+        except FileNotFoundError as e:
+            raise discord.ClientException('ffmpeg/avconv was not found in your PATH environment variable') from e
+        except subprocess.SubprocessError as e:
+            raise discord.ClientException('Popen failed: {0.__name__} {1}'.format(type(e), str(e))) from e
 
 def setup(bot):
     paths = (
