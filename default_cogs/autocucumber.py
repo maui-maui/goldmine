@@ -1,14 +1,15 @@
 """Awesome auto cucumber."""
+import os
+import re
+import copy
+import aiohttp
+import async_timeout
+import util.commands as commands
 from collections import Counter
 from util.autocorrect import Corrector
 from util.perms import echeck_perms
 import util.dynaimport as di
 from .cog import Cog
-
-for mod in ['os', 're', 'copy', 'aiohttp',
-            'async_timeout']:
-    globals()[mod] = di.load(mod)
-commands = di.load('util.commands')
 
 class AutoCucumber(Cog):
     """Spelling corrector :)"""
@@ -21,6 +22,8 @@ class AutoCucumber(Cog):
         self.corrector = None
         self.loop.create_task(self.create_corrector())
         self.load_data()
+        self.emoji_re = re.compile(u'[\U00010000-\U0010ffff\u2615]')
+        self.word_re = re.compile(r"[\w']+|[.,!?;:]")
 
     def load_data(self, text=None):
         """Load and parse spelling data."""
@@ -51,9 +54,7 @@ class AutoCucumber(Cog):
         if self.enabled:
             if msg.content.endswith('\u200b'): return
             old = copy.copy(msg)
-            words = re.findall(r"[\w']+|[.,!?;:]", msg.content)
-            emoji_re = re.compile(u'[\U00010000-\U0010ffff\u2615]')
-            #words = [w.lower() for w in words]
+            words = re.findall(self.word_re, msg.content)
             result = ''
             for word in words:
                 if '`' in word:
@@ -63,7 +64,7 @@ class AutoCucumber(Cog):
                     result += word + ' '
                 elif word in self.special_chars:
                     result += word
-                elif re.findall(emoji_re, word):
+                elif re.search(self.emoji_re, word):
                     result += word + ' '
                 elif word in self.corrections:
                     result += self.corrections[word] + ' '
@@ -82,6 +83,29 @@ class AutoCucumber(Cog):
         echeck_perms(ctx, ('bot_owner',))
         self.enabled = not self.enabled
         await self.bot.say('Autocucumber is now ' + ('on.' if self.enabled else 'off.'))
+
+    @commands.command(aliases=['spellcheck', 'autocorrect'])
+    async def correct(self, *, message: str):
+        """Correct a message.
+        Usage: correct [message]"""
+        words = re.findall(self.word_re, message)
+        result = ''
+        for word in words:
+            if '`' in word:
+                result += word
+            elif word in self.punctuation_chars:
+                result = result[:-1]
+                result += word + ' '
+            elif word in self.special_chars:
+                result += word
+            elif re.search(self.emoji_re, word):
+                result += word + ' '
+            elif word in self.corrections:
+                result += self.corrections[word] + ' '
+            else:
+                result += self.corrector.correct(word) + ' '
+        final = result[0].upper() + result[1:]
+        await self.bot.reply('output: ' + final)
 
 def setup(bot):
     bot.add_cog(AutoCucumber(bot))
