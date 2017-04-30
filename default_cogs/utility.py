@@ -6,7 +6,7 @@ from fnmatch import filter
 from io import BytesIO, StringIO
 from util.const import _mention_pattern, _mentions_transforms, home_broadcast, absfmt, status_map, ch_fmt, code_stats, eval_blocked, v_level_map
 from util.fake import FakeContextMember, FakeMessageMember
-from util.func import bdel, async_encode as b_encode, async_decode as b_decode, smartjoin
+from util.func import bdel, encode as b_encode, decode as b_decode, smartjoin
 from util.asizeof import asizeof
 from util.perms import check_perms, or_check_perms
 import util.dynaimport as di
@@ -559,12 +559,12 @@ Server Owner\'s ID: `{0.server.owner.id}`
     async def encode(self, *, content: str):
         """Encode your text into Goldmine's encoding!
         Usage: encode [text]"""
-        await self.bot.say('```' + (await b_encode(content)) + '```')
+        await self.bot.say('```' + (b_encode(content)) + '```')
     @commands.command()
     async def decode(self, *, content: str):
         """Decode your text from Goldmine's encoding!
         Usage: decode [encoded text]"""
-        await self.bot.say('```' + (await b_decode(content)) + '```')
+        await self.bot.say('```' + (b_decode(content)) + '```')
 
     @commands.cooldown(1, 6.75, type=commands.BucketType.user)
     @commands.command(pass_context=True, aliases=['mc'])
