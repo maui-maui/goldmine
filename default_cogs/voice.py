@@ -185,13 +185,13 @@ class VoiceState:
                     self.current.player.stop()
                     self.current.player.process.kill()
                     if self.current.player.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.communicate))
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.wait))
                     del self.current.player.process
                 for ve in self.songs._queue:
                     ve.player.stop()
                     ve.player.process.kill()
                     if ve.player.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, ve.player.process.communicate))
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, ve.player.process.wait))
                     del ve.player.process
                 if self.voice:
                     await self.voice.disconnect()
@@ -239,13 +239,13 @@ class Voice(Cog):
                             state.current.player.stop()
                             state.current.player.process.kill()
                             if state.current.player.process.poll() is None:
-                                self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.communicate))
+                                self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.wait))
                             del state.current.player.process
                         for e in state.songs._queue:
                             e.player.stop()
                             e.player.process.kill()
                             if e.player.process.poll() is None:
-                                self.loop.create_task(self.loop.run_in_executor(None, e.player.process.communicate))
+                                self.loop.create_task(self.loop.run_in_executor(None, e.player.process.wait))
                             del e.player.process
                         await state.voice.disconnect()
                         del self.voice_states[sid]
@@ -408,13 +408,13 @@ class Voice(Cog):
                 state.current.player.stop()
                 state.current.player.process.kill()
                 if state.current.player.process.poll() is None:
-                    self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.communicate))
+                    self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.wait))
                 del state.current.player.process
             for e in state.songs._queue:
                 e.player.stop()
                 e.player.process.kill()
                 if e.player.process.poll() is None:
-                    self.loop.create_task(self.loop.run_in_executor(None, e.player.process.communicate))
+                    self.loop.create_task(self.loop.run_in_executor(None, e.player.process.wait))
                 del e.player.process
             del self.voice_states[server.id]
             await state.voice.disconnect()
