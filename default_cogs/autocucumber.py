@@ -105,7 +105,7 @@ class AutoCucumber(Cog):
             else:
                 result += self.corrector.correct(word) + ' '
         final = result[0].upper() + result[1:]
-        await self.bot.reply('output: ' + final)
+        await self.bot.reply('correction result: ' + final)
 
 def setup(bot):
     bot.add_cog(AutoCucumber(bot))
