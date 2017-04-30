@@ -185,7 +185,7 @@ class VoiceState:
                     self.current.player.stop()
                     self.current.player.process.kill()
                     if self.current.player.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.communicate))
+                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.communicate))
                     del self.current.player.process
                 for ve in self.songs._queue:
                     ve.player.stop()
