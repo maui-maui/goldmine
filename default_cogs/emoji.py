@@ -85,7 +85,7 @@ class Emoji(Cog):
     async def pleb(self):
         """(╯°□°）╯︵ ┻━┻
         Usage: pleb"""
-        await self.bot.say('You\'re the pleb!')
+        await self.bot.say('You\'re the pleb here!')
     @commands.command(aliases=['tri'])
     async def triforce(self):
         """Zelda triforce...
@@ -98,6 +98,11 @@ class Emoji(Cog):
         """TRIGGERED!!
         Usage: triggered"""
         await self.bot.say('***TRIGGERED***')
+    @commands.command()
+    async def lenny(self):
+        """Le Lenny Face.
+        Usage: lenny"""
+        await self.bot.say('( ͡° ͜ʖ ͡°)')
 
 def setup(bot):
     """Set up the cog."""
