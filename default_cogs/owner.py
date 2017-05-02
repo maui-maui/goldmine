@@ -348,7 +348,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         if number:
             nums = number
         else:
-            nums = range(self.bot.store.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
+            nums = range(self.bot.store.store.get('msgs_read_index', 0), len(self.bot.store.store['owner_messages']))
         for num in nums:
             msg = self.bot.store.store['owner_messages'][num]
             emb = discord.Embed(color=random.randint(1, 255**3-1))
