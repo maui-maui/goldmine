@@ -40,7 +40,7 @@ class Emoji(Cog):
                 chars[i] = ':regional_indicator_' + s + ':'
             if s in cmap:
                 chars[i] = cmap[s]
-        await self.bot.say(str(''.join(chars)))
+        await self.bot.say(str(''.join(chars)), filter=False)
 
     @commands.command(pass_context=True, aliases=['wface', 'weirdface', 'weird', 'weird_face', 'mystery', 'neato', 'neat', 'random'])
     async def face(self, ctx, *numbers: int):
