@@ -232,6 +232,8 @@ class Voice(Cog):
                 if (datetime.now() - state.create_time).total_seconds() < 300:
                     continue # 5 mins
                 if state.voice:
+                    if state.voice.channel is None:
+                        continue
                     if len([m for m in state.voice.channel.voice_members if not \
                             (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]) < 1:
                         state.audio_player.cancel()
