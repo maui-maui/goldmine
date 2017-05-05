@@ -306,7 +306,8 @@ class Voice(Cog):
                 pass
         else:
             await state.voice.move_to(summoned_channel)
-        await self.bot.say('Ready to play audio in **' + summoned_channel.name + '**!')
+        if ctx.invoked_with == 'summon':
+            await self.bot.say('Ready to play audio in **' + summoned_channel.name + '**!')
 
         return True
 
@@ -519,11 +520,12 @@ class Voice(Cog):
                 'textlen': '12',
                 'tk': str(self.tokenizer.calculate_token(intxt))
             }
-            await self.bot.say('Adding to voice queue:```' + intxt + '```**It may take up to *10 seconds* to queue.**')
             player = await self.create_ytdl_player(state.voice, base_url + '?' + urlencode(g_args), ytdl_options=opts, after=state.toggle_next)
             entry = VoiceEntry(ctx.message, player)
+            before = bool(state.current)
             await state.songs.put(entry)
-            await self.bot.say('Queued **Speech**! :smiley:')
+            if before:
+                await self.bot.say('Queued **Speech**! :smiley:')
             await asyncio.sleep(1)
 
     @commands.command(pass_context=True, aliases=['quene'])
