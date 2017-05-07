@@ -25,7 +25,7 @@ from .cog import Cog
 
 youtube_dl = di.load('youtube_dl')
 
-async def clean_state(state):
+def clean_state(state):
     loop = state.bot.loop
     state.audio_player.cancel()
     if state.current:
@@ -41,7 +41,6 @@ async def clean_state(state):
         if e.player.process.poll() is None:
             loop.create_task(loop.run_in_executor(None, e.player.process.wait))
         del e.player.process
-    await state.voice.disconnect()
 
 class StreamPlayer(dvclient.StreamPlayer):
     def __init__(self, stream, encoder, connected, player, after, **kwargs):
@@ -201,7 +200,8 @@ class VoiceState:
             if self.songs._queue or not self.have_played:
                 self.current = await self.songs.get()
             else:
-                await clean_state(self)
+                clean_state(self)
+                await self.voice.disconnect()
                 del self.cog.voice_states[self.voice.channel.server.id]
                 return
             await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
@@ -242,12 +242,13 @@ class Voice(Cog):
                     mm = [m for m in state.voice.channel.voice_members if not \
                             (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]
                     if len(mm) < 1:
-                        await clean_state(state)
+                        clean_state(state)
+                        await state.voice.disconnect()
                         del self.voice_states[sid]
                         self.logger.info('Pruned a voice state! Server ID: ' + sid + \
                               ', server name: ' + state.voice.channel.server.name)
                 else:
-                    await clean_state(state)
+                    clean_state(state)
                     del self.voice_states[sid]
                     self.logger.info('Pruned a ghost voice state! Server ID: ' + sid)
             await asyncio.sleep(300) # every 5 min
@@ -382,7 +383,8 @@ class Voice(Cog):
             player.stop()
 
         try:
-            await clean_state(state)
+            clean_state(state)
+            await state.voice.disconnect()
             del self.voice_states[server.id]
             await self.bot.say('Stopped.')
         except:
