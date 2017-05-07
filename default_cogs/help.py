@@ -111,7 +111,7 @@ class Help(Cog):
                     for page in pager.pages:
                         emb.add_field(name=cog, value=page)
             chars += pre_len
-        self.logger.info('chars ' + str(chars))
+        self.logger.info('Generated help, ending with ' + str(chars) + ' chars')
         if not pages:
             pages.append(emb)
         pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')

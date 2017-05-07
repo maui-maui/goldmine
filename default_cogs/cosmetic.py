@@ -1,15 +1,19 @@
 """Definition of the bot's Cosmetic module.'"""
+import asyncio
+import random
+import io
+import aiohttp
+import discord
+import async_timeout
+import util.commands as commands
+import util.json as json
 from contextlib import suppress
 from urllib.parse import urlencode
 from .cog import Cog
 from util.const import charsets, spinners, lvl_base
 import util.dynaimport as di
 
-for mod in ['asyncio', 'random', 'io', 'imghdr', 'aiohttp',
-            'async_timeout', 'discord']:
-    globals()[mod] = di.load(mod)
-json = di.load('util.json')
-commands = di.load('util.commands')
+imghdr = di.load('imghdr')
 
 class Cosmetic(Cog):
     """Commands for some neat-o fun!
@@ -17,16 +21,9 @@ class Cosmetic(Cog):
     """
 
     def __init__(self, bot):
-        self.al_aliases = [key for key in charsets]
         self.playing_anim = set()
         self.stop_anim = set()
         super().__init__(bot)
-
-    @commands.command(aliases=['color', 'giveme', 'race'])
-    async def role(self, role: str):
-        """Set a public role on your account.
-        Usage: role [role name]"""
-        await self.bot.say('Role setting is not implemented yet!')
 
     @commands.command(pass_context=True)
     async def emotes(self, ctx):

@@ -1,13 +1,12 @@
-"""Definition of the bot's Admin module.'"""
+"""Definition of the bot's Admin module."""
+import asyncio
+import random
+import discord
 from contextlib import suppress
 from util.perms import or_check_perms, echeck_perms, check_perms
 from util.const import muted_perms
-import util.dynaimport as di
+import util.commands as commands
 from .cog import Cog
-
-for mod in ['asyncio', 'random', 'discord']:
-    globals()[mod] = di.load(mod)
-commands = di.load('util.commands')
 
 class Admin(Cog):
     """Commands useful for admins and/or moderators.

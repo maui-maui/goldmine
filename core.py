@@ -91,13 +91,6 @@ def set_cog(cog, value):  # TODO: move this out of core.py
     data[cog] = value
     dataIO.save_json("data/cogs.json", data)
 
-async def io_flusher():
-    """Flush stdout and stderr buffers."""
-    while True:
-        await asyncio.sleep(1)
-        sys.stdout.flush()
-        sys.stderr.flush()
-
 def init_bot():
     """Initialize the bot."""
     bot = GoldBot(command_prefix='', description='', formatter=RichFormatter(), pm_help=None)
@@ -145,9 +138,6 @@ def main(use_uvloop):
     if use_uvloop:
         import uvloop
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    logger.info('Init: Starting IO flusher')
-    __main__.io_flusher_task = asyncio.ensure_future(io_flusher())
-    __main__.goldmine = True
     bot = init_bot()
     logger.info('Init: Initializing event loop')
     loop = asyncio.get_event_loop()

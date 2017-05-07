@@ -4,20 +4,29 @@ from importlib import import_module as imp
 import distutils.dir_util
 import json
 import json.decoder
+import random
+import functools
+import io
+import copy
+import subprocess
+import aiohttp
+import discord
+import os
+import shutil
+import async_timeout
+import sys
+import asyncio
+import util.commands as commands
 from contextlib import suppress
 from util.perms import echeck_perms, check_perms
 from util.func import bdel, DiscordFuncs, _set_var, _import, _del_var, snowtime, assert_msg, check
 import util.dynaimport as di
 from .cog import Cog
 
-for mod in ['random', 'functools', 'zipfile', 'io', 'copy', 'subprocess',
-            'aiohttp', 'async_timeout', 'discord', 'os', 'shutil', 'sys',
-            'asyncio']:
-    globals()[mod] = di.load(mod)
-commands = di.load('util.commands')
+zipfile = di.load('zipfile')
 
 def gimport(mod_name, name=None, attr=None):
-    return exec(_import(mod_name, var_name=name, attr_name=attr))
+    exec(_import(mod_name, var_name=name, attr_name=attr))
 setvar = lambda v, e: exec(_set_var(v, e))
 delvar = lambda v: exec(_del_var(v))
 
@@ -30,7 +39,7 @@ class Owner(Cog):
         super().__init__(bot)
         self.logger = self.logger.getChild('owner')
 
-    @commands.command(pass_context=True, aliases=['rawupdate', 'rupdate'])
+    @commands.command(pass_context=True, aliases=['rupdate'])
     async def update(self, ctx):
         """Auto-updates this bot and restarts if any code was updated.
         Usage: update"""
@@ -39,7 +48,6 @@ class Owner(Cog):
         msg = await self.bot.say('Trying to update...')
         r_key = ', now restarting' if restart else ''
         r_not_key = ', not restarting' if restart else ''
-#        subprocess.check_output(['git', 'reset', 'HEAD', '--hard'])
         dest = ctx.message.channel if self.bot.selfbot else ctx.message.author
         try:
             gitout = await self.loop.run_in_executor(None, functools.partial(subprocess.check_output, ['git', 'pull'], stderr=subprocess.STDOUT))
@@ -75,8 +83,6 @@ class Owner(Cog):
         """Restarts this bot.
         Usage: restart"""
         echeck_perms(ctx, ('bot_owner',))
-#        for i in self.bot.servers:
-#            await self.bot.send_message(i.default_channel, 'This bot (' + self.bname + ') is now restarting!')
         self.bot.store_writer.cancel()
         await self.bot.store.commit()
         if ctx.invoked_with != 'update':
@@ -84,18 +90,16 @@ class Owner(Cog):
         self.logger.info('The bot is now restarting!')
         self.bot.is_restart = True
         os.execl(sys.executable, sys.executable, *sys.argv)
-#        await self.bot.logout() # Comment for people to not see that the bot restarted (to trick uptime)
-#        self.loop.call_soon_threadsafe(self.loop.stop)
 
-    @commands.command(pass_context=True, aliases=['dwrite', 'storecommit', 'commitstore', 'commit_store', 'write_store'], hidden=True)
+    @commands.command(pass_context=True, aliases=['dwrite'], hidden=True)
     async def dcommit(self, ctx):
         """Commit the current datastore.
         Usage: dcommit"""
         echeck_perms(ctx, ('bot_owner',))
         await self.bot.store.commit()
-        await self.bot.say('**Commited the current copy of the datastore!**')
+        await self.bot.say('**Committed the current copy of the datastore!**')
 
-    @commands.command(pass_context=True, aliases=['dread', 'storeread', 'readstore', 'load_store', 'read_store'], hidden=True)
+    @commands.command(pass_context=True, hidden=True)
     async def dload(self, ctx):
         """Load the datastore from disk.
         Usage: dload"""
@@ -156,10 +160,10 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         if err:
             await self.bot.say(err)
 
-    @commands.command(pass_context=True, hidden=True, aliases=['pyeval', 'rxeval', 'reref', 'xeval'])
-    async def eref(self, ctx, *, code: str):
+    @commands.command(pass_context=True, hidden=True, aliases=['reval'])
+    async def eval(self, ctx, *, code: str):
         """Evaluate some code in command scope.
-        Usage: eref [code to execute]"""
+        Usage: eval [code to execute]"""
         echeck_perms(ctx, ('bot_owner',))
         dc = self.dc_funcs
         def print(*ina: str):
@@ -177,10 +181,11 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
             await self.bot.say(o)
         else:
             await self.bot.say('```py\n' + o + '```')
-    @commands.command(pass_context=True, hidden=True, aliases=['rseref', 'meref', 'rmeref'])
-    async def seref(self, ctx, *, code: str):
+
+    @commands.command(pass_context=True, hidden=True, aliases=['rseval'])
+    async def seval(self, ctx, *, code: str):
         """Evaluate some code (multi-statement) in command scope.
-        Usage: seref [code to execute]"""
+        Usage: seval [code to execute]"""
         echeck_perms(ctx, ('bot_owner',))
         dc = self.dc_funcs
         def print(*ina: str):
@@ -211,21 +216,6 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
             return
         await self.bot.say('Successfully set `{0}` as `{1}`!'.format(pname, value))
 
-    @commands.command(pass_context=True)
-    async def suspend(self, ctx):
-        """Bring the bot offline (in a resumable state).
-        Usage: suspend'"""
-        echeck_perms(ctx, ('bot_owner',))
-        await self.bot.suspend()
-        await self.bot.say('Successfully **suspended** me! (I should now be offline.)\nI will still count experience points.')
-    @commands.command(pass_context=True, aliases=['ssuspend'])
-    async def ususpend(self, ctx):
-        """Temporarily suspend the bot's command and conversation features.
-        Usage: suspend'"""
-        echeck_perms(ctx, ('bot_owner',))
-        self.bot.status = 'invisible'
-        await self.bot.say('Successfully **suspended** my message processing! (I should stay online.)\nI will still count experience points.')
-
     @commands.command(pass_context=True, hidden=True, aliases=['slist'])
     async def serverlist(self, ctx):
         """List the servers I am in.
@@ -237,7 +227,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         for page in pager.pages:
             await self.bot.say(page)
 
-    @commands.command(pass_context=True, hidden=True, aliases=['treelist', 'stree', 'treeservers', 'trees', 'tservers'])
+    @commands.command(pass_context=True, hidden=True, aliases=['stree'])
     async def servertree(self, ctx, *ids: str):
         """List the servers I am in (tree version).
         Usage: servertree"""
@@ -266,65 +256,13 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         for page in pager.pages:
             await self.bot.say(page)
 
-    @commands.command(pass_context=True, hidden=True, aliases=['mlist', 'listmembers'])
-    async def memberlist(self, ctx, *server_ids: str):
-        """List the members of a server.
-        Usage: memberlist [server ids]"""
-        echeck_perms(ctx, ('bot_owner',))
-        if not server_ids:
-            await self.bot.say('**You need to specify at least 1 server ID!**')
-            return False
-        pager = commands.Paginator(prefix='```diff')
-        pager.add_line('< -- SERVERS <-> MEMBERS -- >')
-        server_table = {i.id: i for i in self.bot.servers}
-        for sid in server_ids:
-            with assert_msg(ctx, f'**ID** `{sid}` **is invalid. (must be 18 numbers)**'):
-                check(len(sid) == 18)
-            try:
-                server = server_table[sid]
-            except KeyError:
-                await self.bot.say(f'**ID** `{sid}` **was not found.**')
-                return False
-            pager.add_line('+ ' + server.name + ' [{0} members] [ID {1}]'.format(str(len(server.members)), server.id))
-            for member in server.members:
-                pager.add_line('- ' + str(member))
-        for page in pager.pages:
-            await self.bot.say(page)
-
-    @commands.command(pass_context=True, aliases=['sf', 'sendf', 'filesend', 'fs'])
+    @commands.command(pass_context=True)
     async def sendfile(self, ctx, path: str = 'assets/soon.gif', msg: str = '📧 File incoming! 📧'):
         """Send a file to Discord.
         Usage: sendfile [file path] {message}"""
         echeck_perms(ctx, ('bot_owner',))
         with open(path, 'rb') as f:
             await self.bot.send_file(ctx.message.channel, fp=f, content=msg)
-
-    @commands.command(pass_context=True, hidden=True)
-    async def repeat(self, ctx, times : int, *, command: str):
-        """Repeats a command a specified number of times.
-        Usage: repeat [times] [command]"""
-        echeck_perms(ctx, ('bot_admin',))
-        msg = copy.copy(ctx.message)
-        msg.content = command
-        for i in range(times):
-            await self.bot.process_commands(msg, ctx.prefix)
-
-    @commands.command(pass_context=True)
-    async def console_msg(self, ctx):
-        """Allow you to type here in the console.
-        Usage: console_msg"""
-        echeck_perms(ctx, ('bot_owner',))
-        def console_task(ch):
-            while True:
-                text_in = input('Message> ')
-                if text_in == 'quit':
-                    return
-                else:
-                    self.loop.create_task(self.bot.send_message(ch, text_in))
-        await self.bot.say('Now entering: Console message mode')
-        print('Type \'quit\' to exit.')
-        await self.loop.run_in_executor(None, console_task, ctx.message.channel)
-        await self.bot.say('Exited console message mode')
 
     @commands.command(pass_context=True)
     async def messages(self, ctx, *number: int):
@@ -371,39 +309,6 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
             await self.bot.say(embed=emb)
         self.bot.store.store['msgs_read_index'] = nums[-1]
         await self.bot.say('Finished!')
-    
-    @commands.command(pass_context=True, aliases=['events', 'ecalls', 'evcalls', 'eventcalls', 'ev_calls'])
-    async def event_calls(self, ctx):
-        """Get the specific event calls.
-        Usage: event_calls"""
-        echeck_perms(ctx, ('bot_owner',))
-        emb = discord.Embed(color=random.randint(1, 255**3-1), title='Event Calls')
-        emb.description = 'Here are all the event calls made.'
-        author = self.bot.user
-        emb.set_author(name=str(author), icon_url=(author.avatar_url if author.avatar_url else author.default_avatar_url))
-        emb.add_field(name='Total', value=sum(self.bot.event_calls.values()))
-        fmap = {
-            'Servers': '',
-            'Messages': '',
-            'Updates': '',
-            'Socket': '',
-            'Other': ''
-        }
-        for ev, count in self.bot.event_calls.items():
-            if ev.startswith('server'):
-                fmap['Servers'] += '**{}**: {}\n'.format(ev, count)
-            elif ev.endswith('update'):
-                fmap['Updates'] += '**{}**: {}\n'.format(ev, count)
-            elif 'message' in ev:
-                fmap['Messages'] += '**{}**: {}\n'.format(ev, count)
-            elif ev.startswith('socket'):
-                fmap['Socket'] += '**{}**: {}\n'.format(ev, count)
-            else:
-                fmap['Other'] += '**{}**: {}\n'.format(ev, count)
-        for name, value in fmap.items():
-            if value:
-                emb.add_field(name=name, value=value)
-        await self.bot.say(embed=emb)
 
     @commands.command(pass_context=True, aliases=['ccalls', 'cmdcalls', 'commandcalls', 'cmd_calls'])
     async def command_calls(self, ctx):
@@ -450,7 +355,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
         time_elapsed = time_elapsed.total_seconds()
         await self.bot.edit_message(msg, 'I seem to be getting ' + str(round(m['messages'] / time_elapsed, 2)) + ' messages per second.')
 
-    @commands.command(pass_context=True, aliases=['sembed', 'jembed', 'edata'])
+    @commands.command(pass_context=True, aliases=['edata'])
     async def embed_from_json(self, ctx, *, js_text: str):
         """Send an embed from JSON.
         Usage: embed_from_json [json]"""

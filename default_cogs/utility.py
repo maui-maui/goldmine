@@ -1,10 +1,24 @@
 """Definition of the bot's Utility module."""
+import asyncio
+import random
+import re
+import sys
+import time
+import aiohttp
+import async_timeout
+import discord
+import os
+import socket
+import contextlib
+import textwrap
+import util.commands as commands
+import util.json as json
 from contextlib import suppress
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from fnmatch import filter
 from io import BytesIO, StringIO
-from util.const import _mention_pattern, _mentions_transforms, home_broadcast, absfmt, status_map, ch_fmt, code_stats, eval_blocked, v_level_map
+from util.const import _mention_pattern, _mentions_transforms, home_broadcast, absfmt, status_map, ch_fmt, eval_blocked, v_level_map
 from util.fake import FakeContextMember, FakeMessageMember
 from util.func import bdel, encode as b_encode, decode as b_decode, smartjoin
 from util.asizeof import asizeof
@@ -12,12 +26,9 @@ from util.perms import check_perms, or_check_perms
 import util.dynaimport as di
 from .cog import Cog
 
-for mod in ['asyncio', 'random', 're', 'sys', 'time', 'textwrap', 'unicodedata',
-            'aiohttp', 'async_timeout', 'discord', 'asteval', 'os', 'elizabeth',
-            'qrcode', 'warnings', 'tesserocr', 'contextlib', 'base64', 'socket']:
+for mod in ['unicodedata', 'elizabeth',
+            'qrcode', 'warnings', 'tesserocr', 'base64']:
     globals()[mod] = di.load(mod)
-json = di.load('util.json')
-commands = di.load('util.commands')
 mclib = di.load('util.mclib')
 xkcd = di.load('util.xkcd')
 
@@ -57,78 +68,6 @@ class Utility(Cog):
             except discord.Forbidden:
                 pass
         await self.bot.say(stuffs.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')[:2000])
-
-    async def math_task(self, code: str):
-        eval_exc = self.loop.run_in_executor(None, self.bot.asteval.eval, code)
-        return await eval_exc
-
-    @commands.command(pass_context=True, name='eval', aliases=['calculate', 'calculator', 'math', 'emath', 'calc', 'evaluate', 'expr', 'expression', 'rcalculate', 'rcalculator', 'rmath', 'remath', 'reval', 'revaluate', 'rexpr', 'rexpression'])
-    async def cmd_eval(self, ctx, *, code: str):
-        """Evaluate some code, or a math expression.
-        Usage: eval [code/expression]"""
-        or_check_perms(ctx, ('bot_admin',))
-        code = bdel(bdel(code, '```python').strip('`'), '```py')
-        for key in eval_blocked:
-            if re.search(key, code):
-                await self.bot.say(ctx.message.author.mention + ' **Blocked keyword found!**')
-                return False
-        try:
-            sio = StringIO()
-            with async_timeout.timeout(3):
-                with contextlib.redirect_stdout(sio):
-                    m_result = await self.math_task(code)
-            v = sio.getvalue()
-            if v:
-                m_result = v + str(m_result)
-        except (asyncio.TimeoutError, RuntimeError) as exp:
-            resp = '{0.author.mention} **It took too long to evaluate your expression!**'.format(ctx.message)
-            if isinstance(exp, RuntimeError):
-                if str(exp).startswith('Execution exceeded time limit, max runtime is '):
-                    await self.bot.say(resp)
-                    return
-                else:
-                    raise ValueError('ASTEval Error of type TimeoutError')
-            else:
-                await self.bot.say(resp)
-            return
-        _result = ''
-        if self.bot.asteval.error:
-            err_type = self.bot.asteval.error[0].get_error()[0]
-            if err_type == 'MemoryError':
-                await self.bot.reset_asteval(reason='due to MemoryError')
-                await self.bot.say(ctx.message.author.mention + ' **Please re-run your `eval` command!**')
-                return
-            elif err_type in ['NameError', 'UnboundLocalError']:
-                await self.bot.say(ctx.message.author.mention + ' **You tried to use a variable that didn\'t exist!**')
-                return
-            else:
-                raise ValueError('ASTEval Error of type ' + err_type)
-        else:
-            try:
-                _result = str(m_result)
-            except MemoryError:
-                await self.bot.reset_asteval(reason='due to MemoryError')
-                await self.bot.say(ctx.message.author.mention + ' **Please re-run your `eval` command!**')
-                return
-        try:
-            if m_result is None:
-                _result = '✅'
-            else:
-                if not ctx.invoked_with.startswith('r'):
-                    _result = '```py\n' + _result + '```'
-        except MemoryError:
-            await self.bot.reset_asteval(reason='due to MemoryError')
-            await self.bot.say(ctx.message.author.mention + ' **Please re-run your `eval` command!**')
-            return
-        try:
-            byte_size = await self.loop.run_in_executor(None, asizeof, self.bot.asteval.symtable)
-            if byte_size > 50_000_000: # 110 MiB 115_343_360, 107 MiB 112_197_632, 107 MB 107_000_000
-                await self.bot.reset_asteval(reason='due to memory usage > 50M', note=f'was using {byte_size / 1048576} MiB')
-        except MemoryError:
-            await self.bot.reset_asteval(reason='due to MemoryError during asizeof')
-        else:
-            del byte_size
-        await self.bot.say(_result)
 
     @commands.command(pass_context=True, aliases=['whois', 'who', 'userinfo', 'uinfo', 'u'])
     async def user(self, ctx, *users: str):
@@ -298,15 +237,11 @@ class Utility(Cog):
         emb.set_footer(text='Made in Python 3.6+ with Discord.py %s' % self.bot.lib_version, icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/400px-Python-logo-notext.svg.png')
         emb.add_field(name='Servers', value=len(self.bot.servers))
         emb.add_field(name='Author', value='Dragon5232#1841')
-        emb.add_field(name='Version', value=self.bot.version)
         emb.add_field(name='Uptime', value=up)
         emb.add_field(name='Local Time', value=time.strftime(absfmt, time.localtime()))
         emb.add_field(name='Git Revision', value=self.bot.git_rev)
-        emb.add_field(name='Code Stats', value=code_stats.format(files=self.bot.lines, chars=self.bot.chars, lines=self.bot.lines, words=self.bot.words))
-        emb.add_field(name='Code Size', value=str(round(self.bot.size_kb, 1)) + ' KB\nAverage: ' + str(round(self.bot.avg_size_kb, 1)) + ' KB')
         emb.add_field(name='Cogs Loaded', value=len(self.bot.cogs))
         emb.add_field(name='Command Calls', value=sum(self.bot.command_calls.values()))
-        emb.add_field(name='Event Calls', value=sum(self.bot.event_calls.values()))
         emb.add_field(name='Memory Used', value=(str(round(ram[1], 1)) + ' MB (%s MiB)' % str(round(ram[2], 1))) if got_conversion else 'Couldn\'t fetch')
         emb.add_field(name='Modules Loaded', value=len(self.bot.modules))
         emb.add_field(name='Members Seen', value=len(list(self.bot.get_all_members())))

@@ -11,7 +11,7 @@ class Quotes(Cog):
     """Quotes from all over the place.
     Enjoy them, and give us some more :3"""
 
-    @commands.command(aliases=['randquote', 'getquote'])
+    @commands.command()
     async def quote(self, *args):
         """Reference a quote.
         Usage: quote {quote number}"""
@@ -35,15 +35,14 @@ class Quotes(Cog):
         except IndexError:
             await self.bot.reply('that quote doesn\'t exist!')
 
-    @commands.command(aliases=['quotes', 'listquote', 'quoteslist', 'listquotes', 'dumpquotes', 'quotedump', 'quotesdump'])
-    async def quotelist(self, *rshow_pages: int):
+    @commands.command(aliases=['quotes'])
+    async def quotelist(self, *show_pages: int):
         """List all the quotes.
         Usage: quotelist"""
-        # maybe PM this
         if not self.bot.store['quotes']:
             await self.bot.say('There are no quotes. Add some first!')
             return
-        show_pages = [i for i in rshow_pages]
+        rshow_pages = [i for i in show_pages]
         pager = commands.Paginator(prefix='', suffix='', max_size=1595)
         if not show_pages:
             show_pages = (1,)
@@ -56,7 +55,7 @@ class Quotes(Cog):
             except IndexError:
                 await self.bot.say('**__Error: page *{0}* doesn\'t exist! There are *{1}* pages.__**'.format(page_n, len(pager.pages)))
 
-    @commands.command(pass_context=True, aliases=['newquote', 'quotenew', 'addquote', 'makequote', 'quotemake', 'createquote', 'quotecreate', 'aq'])
+    @commands.command(pass_context=True, aliases=['addquote'])
     async def quoteadd(self, ctx, target: discord.User, *, text: str):
         """Add a quote.
         Usage: quoteadd [member] [text here]"""
@@ -85,7 +84,7 @@ class Quotes(Cog):
         self.bot.store['quotes'].append(q_template)
         await self.bot.reply(f'you added quote **#{q_template["id"] + 1}**!')
 
-    @commands.command(pass_context=True, aliases=['quoteedit', 'modquote', 'editquote'])
+    @commands.command(pass_context=True, aliases=['modquote', 'editquote'])
     async def quotemod(self, ctx, qindex: int, *, text: str):
         """Edit an existing quote.
         Usage: quotemod [quote number] [new text here]"""
@@ -108,7 +107,7 @@ class Quotes(Cog):
         self.bot.store['quotes'][qindex - 1] = q_template
         await self.bot.reply(f'you edited quote **#{qindex}**!')
 
-    @commands.command(pass_context=True, aliases=['rmquote', 'quoterm', 'delquote'])
+    @commands.command(pass_context=True, aliases=['rmquote', 'delquote'])
     async def quotedel(self, ctx, qindex: int):
         """Delete an existing quote.
         Usage: quotedel [quote number]"""

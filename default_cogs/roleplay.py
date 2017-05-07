@@ -13,7 +13,7 @@ class Roleplay(Cog):
     def __init__(self, bot):
         super().__init__(bot)
 
-    @commands.command(pass_context=True, name='rmember', aliases=['randmember', 'randommember', 'randmem', 'rmem', 'draw'], no_pm=True)
+    @commands.command(pass_context=True, name='rmember', aliases=['rmem', 'draw'], no_pm=True)
     async def rand_member(self, ctx):
         """Choose a random member from the message's server."""
         satisfied = False
@@ -26,7 +26,7 @@ class Roleplay(Cog):
 
     @commands.command(pass_context=True, aliases=['boop', 'poke', 'hit'])
     async def slap(self, ctx, target: str):
-        """Slap someone for the win.
+        """Slap someone, for the win.
         Usage: slap [person]"""
         keystr = '* ' + ctx.message.content.split()[0][len(ctx.prefix):] + 's *'
         await self.bot.say('*' + ctx.message.author.display_name + keystr +
@@ -60,7 +60,7 @@ class Roleplay(Cog):
         Usage: mention [mention, nickname, DiscordTag, or username]"""
         await self.bot.say('Hey there, ' + target.mention + '!')
 
-    @commands.command(pass_context=True, aliases=['soontm', 'tm'])
+    @commands.command(pass_context=True, aliases=['soontm'])
     async def soon(self, ctx):
         """Feel the loading of 10000 years, aka Soon™.
         Usage: soon"""

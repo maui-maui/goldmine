@@ -8,7 +8,12 @@ import functools
 import random
 import shlex
 import time
+import subprocess
+import textwrap
+import async_timeout
+import math
 import threading
+import util.commands as commands
 from datetime import datetime
 from urllib.parse import urlencode
 from gtts_token import gtts_token
@@ -18,10 +23,25 @@ from util.const import sem_cells
 import util.dynaimport as di
 from .cog import Cog
 
-for mod in ['subprocess', 'textwrap', 'async_timeout',
-            'math', 'youtube_dl']:
-    globals()[mod] = di.load(mod)
-commands = di.load('util.commands')
+youtube_dl = di.load('youtube_dl')
+
+async def clean_state(state):
+    loop = state.bot.loop
+    state.audio_player.cancel()
+    if state.current:
+        player = state.current.player
+        player.stop()
+        player.process.kill()
+        if player.process.poll() is None:
+            loop.create_task(loop.run_in_executor(None, player.process.wait))
+        del player.process
+    for e in state.songs._queue:
+        e.player.stop()
+        e.player.process.kill()
+        if e.player.process.poll() is None:
+            loop.create_task(loop.run_in_executor(None, e.player.process.wait))
+        del e.player.process
+    await state.voice.disconnect()
 
 class StreamPlayer(dvclient.StreamPlayer):
     def __init__(self, stream, encoder, connected, player, after, **kwargs):
@@ -181,20 +201,7 @@ class VoiceState:
             if self.songs._queue or not self.have_played:
                 self.current = await self.songs.get()
             else:
-                if self.current:
-                    self.current.player.stop()
-                    self.current.player.process.kill()
-                    if self.current.player.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, self.current.player.process.wait))
-                    del self.current.player.process
-                for ve in self.songs._queue:
-                    ve.player.stop()
-                    ve.player.process.kill()
-                    if ve.player.process.poll() is None:
-                        self.bot.loop.create_task(self.bot.loop.run_in_executor(None, ve.player.process.wait))
-                    del ve.player.process
-                if self.voice:
-                    await self.voice.disconnect()
+                await clean_state(self)
                 del self.cog.voice_states[self.voice.channel.server.id]
                 return
             await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
@@ -210,8 +217,6 @@ class Voice(Cog):
         self.voice_states = {}
         self.tokenizer = gtts_token.Token()
         self.servers_recording = set()
-        self.recording_data = {}
-        self.opus_decoder = None
         super().__init__(bot)
         self.logger = self.logger.getChild('voice')
         self.disconnect_task = self.loop.create_task(self.disconnect_bg_task())
@@ -234,27 +239,15 @@ class Voice(Cog):
                 if state.voice:
                     if state.voice.channel is None:
                         continue
-                    if len([m for m in state.voice.channel.voice_members if not \
-                            (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]) < 1:
-                        state.audio_player.cancel()
-                        if state.current:
-                            state.current.player.stop()
-                            state.current.player.process.kill()
-                            if state.current.player.process.poll() is None:
-                                self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.wait))
-                            del state.current.player.process
-                        for e in state.songs._queue:
-                            e.player.stop()
-                            e.player.process.kill()
-                            if e.player.process.poll() is None:
-                                self.loop.create_task(self.loop.run_in_executor(None, e.player.process.wait))
-                            del e.player.process
-                        await state.voice.disconnect()
+                    mm = [m for m in state.voice.channel.voice_members if not \
+                            (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]
+                    if len(mm) < 1:
+                        await clean_state(state)
                         del self.voice_states[sid]
                         self.logger.info('Pruned a voice state! Server ID: ' + sid + \
                               ', server name: ' + state.voice.channel.server.name)
                 else:
-                    state.audio_player.cancel()
+                    await clean_state(state)
                     del self.voice_states[sid]
                     self.logger.info('Pruned a ghost voice state! Server ID: ' + sid)
             await asyncio.sleep(300) # every 5 min
@@ -311,23 +304,6 @@ class Voice(Cog):
 
         return True
 
-    async def progress(self, msg: discord.Message, begin_txt: str):
-        """Play loading animation with dots and moon."""
-        fmt = '{0}{1} {2}'
-        anim = '🌑🌒🌓🌔🌕🌝🌖🌗🌘🌚'
-        anim_len = len(anim) - 1
-        anim_i = 0
-        dot_i = 1
-        while True:
-            await self.bot.edit_message(msg, fmt.format(begin_txt, ('.' * dot_i) + ' ' * (3 - dot_i), anim[anim_i]))
-            dot_i += 1
-            if dot_i > 3:
-                dot_i = 1
-            anim_i += 1
-            if anim_i > anim_len:
-                anim_i = 0
-            await asyncio.sleep(1.1)
-
     @commands.command(pass_context=True, no_pm=True, aliases=['yt', 'youtube'])
     async def play(self, ctx, *, song: str):
         """Plays a song.
@@ -364,7 +340,7 @@ class Voice(Cog):
                 await self.bot.say(':warning: Song can\'t be longer than 2h22m.')
                 return
         except TypeError: # livestream, no duration
-            return
+            pass
 
         entry = VoiceEntry(ctx.message, player)
         before = bool(state.current)
@@ -406,21 +382,8 @@ class Voice(Cog):
             player.stop()
 
         try:
-            state.audio_player.cancel()
-            if state.current:
-                state.current.player.stop()
-                state.current.player.process.kill()
-                if state.current.player.process.poll() is None:
-                    self.loop.create_task(self.loop.run_in_executor(None, state.current.player.process.wait))
-                del state.current.player.process
-            for e in state.songs._queue:
-                e.player.stop()
-                e.player.process.kill()
-                if e.player.process.poll() is None:
-                    self.loop.create_task(self.loop.run_in_executor(None, e.player.process.wait))
-                del e.player.process
+            await clean_state(state)
             del self.voice_states[server.id]
-            await state.voice.disconnect()
             await self.bot.say('Stopped.')
         except:
             await self.bot.say('Couldn\'t stop. Use `force_disconnect` if this doesn\'t work.')

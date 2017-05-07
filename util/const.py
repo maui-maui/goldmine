@@ -415,10 +415,6 @@ status_map = {
     'idle': 'Idle',
     'dnd': 'Do Not Disturb'
 }
-code_stats = '''Files: {files}
-Lines: {lines}
-Words: {words}
-Characters: {chars}'''
 
 quote_format = '**#{0}**: {4}"{1}"{4} \u2014 `{2}` [{3}]'
 default_cogs = [

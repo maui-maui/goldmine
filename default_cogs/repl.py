@@ -1,4 +1,16 @@
 """The REPL module for power users."""
+import asyncio
+import discord
+import re
+import os
+import sys
+import io
+import inspect
+import traceback
+import async_timeout
+import subprocess
+import contextlib
+import util.commands as commands
 from contextlib import redirect_stdout
 import importlib.util
 from util.asizeof import asizeof
@@ -6,11 +18,6 @@ from util.perms import echeck_perms
 from util.const import eval_blocked
 import util.dynaimport as di
 from .cog import Cog
-
-for mod in ['asyncio', 're', 'os', 'sys', 'io', 'traceback', 'inspect',
-            'async_timeout', 'discord', 'subprocess', 'contextlib']:
-    globals()[mod] = di.load(mod)
-commands = di.load('util.commands')
 
 class REPL(Cog):
     def __init__(self, bot):
@@ -29,48 +36,6 @@ class REPL(Cog):
 
     def get_syntax_error(self, e):
         return '```py\n{0.text}{1:>{0.offset}}\n{2}: {0}```'.format(e, '^', type(e).__name__)
-
-    async def math_task(self, code: str):
-        eval_exc = self.loop.run_in_executor(None, self.bot.asteval.eval, code)
-        return await eval_exc
-
-    async def asteval_iface(self, code):
-        for key in eval_blocked:
-            if re.search(key, code):
-                return '⚠ Blocked keyword found!'
-        try:
-            sio = io.StringIO()
-            with async_timeout.timeout(3):
-                with contextlib.redirect_stdout(sio):
-                    m_result = await self.math_task(code)
-            v = sio.getvalue()
-            if v:
-                m_result = v + str(m_result)
-        except (asyncio.TimeoutError, RuntimeError) as exp:
-            resp = '⚠ Your code took too long to evaluate!'
-            if isinstance(exp, RuntimeError):
-                if str(exp).startswith('Execution exceeded time limit, max runtime is '):
-                    return resp
-                else:
-                    return '⚠ Timeouted!'
-            else:
-                return resp
-        if self.bot.asteval.error:
-            err = self.bot.asteval.error[0].get_error()
-            if err[0] == 'MemoryError':
-                await self.bot.reset_asteval(reason='due to MemoryError')
-                return '⚠ Please rerun your code!'
-            else:
-                return '\n'.join(err)
-        try:
-            byte_size = await self.loop.run_in_executor(None, asizeof, self.bot.asteval.symtable)
-            if byte_size > 50_000_000: # 110 MiB 115_343_360, 107 MiB 112_197_632, 107 MB 107_000_000
-                await self.bot.reset_asteval(reason='due to memory usage > 50M', note=f'was using {byte_size / 1048576} MiB')
-        except MemoryError:
-            await self.bot.reset_asteval(reason='due to MemoryError during asizeof')
-        else:
-            del byte_size
-        return m_result
     
     async def emerg_quit_task(self, ctx):
         while True:
@@ -128,7 +93,7 @@ class REPL(Cog):
         }
         is_shell = False
         stringify = str
-        valid_flags = ['public', 'asteval', 'split', 'shell', 'restrict', 'repr']
+        valid_flags = ['public', 'split', 'shell', 'restrict', 'repr']
         for flag in flags:
             if flag not in valid_flags:
                 await self.bot.say(f'Flag `{flag}` is invalid. Valid flags are `{", ".join(valid_flags)}`.')
@@ -145,7 +110,6 @@ class REPL(Cog):
             del variables['self']
             del variables['bot']
             del variables['ctx'].bot
-        use_asteval = 'asteval' in flags
         truncate = 'split' not in flags
         if 'shell' in flags:
             is_shell = True
@@ -180,12 +144,7 @@ class REPL(Cog):
                 quit_task.cancel()
                 return
 
-            if use_asteval:
-                result = await self.asteval_iface(cleaned)
-                if inspect.isawaitable(result):
-                    result = await result
-                fmt = stringify(result) + '\n'
-            elif is_shell:
+            if is_shell:
                 try:
                     result = await self.loop.run_in_executor(None, platform_shell, cleaned)
                 except subprocess.CalledProcessError as e:

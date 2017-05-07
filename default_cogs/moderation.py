@@ -10,7 +10,7 @@ class Moderation(Cog):
         super().__init__(bot)
         self.logger = self.logger.getChild('automod')
 
-    async def on_message(self, msg):
+    async def on_not_command(self, msg):
         if self.bot.selfbot: return
         if msg.author.id == self.bot.user.id: return
         if ('_' in msg.content) or ('*' in msg.content):
@@ -23,10 +23,6 @@ class Moderation(Cog):
                     return
                 await self.bot.send_message(msg.channel, msg.author.mention + \
                                             ' **:japanese_goblin: Stop crashing iOS users!**')
-#        if msg.content.lower() == 'kys':
-#            if msg.server.id != '110373943822540800': # DBots
-#                await self.bot.msend(msg, 'Ay ' + msg.author.mention + \
-#                                     ', follow your own advice first, :ok_hand::question:')
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

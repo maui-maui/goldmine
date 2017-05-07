@@ -70,6 +70,8 @@ class DataStore():
         return self.store.keys()
     def values(self):
         return self.store.values()
+    def get(self, *args):
+        return self.store.get(*args)
 
     async def read(self):
         """Re-read the datastore from disk, discarding changes."""

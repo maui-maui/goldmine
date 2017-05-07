@@ -10,7 +10,7 @@ from datetime import datetime
 import aiohttp
 import async_timeout
 import discord
-from util.commands.bot import ProContext, StringView
+from util.commands.bot import Context, StringView
 import util.commands as commands
 from util.perms import echeck_perms
 import util.dynaimport as di
@@ -107,7 +107,7 @@ class SelfbotGoodies(Cog):
                         'view': view,
                         'prefix': '%prefix%'
                     }
-                    ctx = ProContext(**tmp)
+                    ctx = Context(**tmp)
                     await self.bot.cogs['Google'].google.invoke(ctx)
 
     @commands.group(pass_context=True, aliases=['subs'])

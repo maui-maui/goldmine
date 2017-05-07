@@ -1,27 +1,32 @@
 """Where all the good stuff happens in the bot."""
+import asyncio
+import random
+import inspect
+import subprocess
+import os
+import sys
+import traceback
+import re
+import shutil
+import math
+import logging
+import async_timeout
+import discord
+import util.json as json
+import util.commands as commands
 from contextlib import suppress
-from collections import deque
 from fnmatch import filter
 from datetime import datetime
-from asteval import Interpreter
-from .commands.bot import ProContext, StringView, CommandError, CommandNotFound
+from .commands.bot import Context, StringView, CommandError, CommandNotFound
 from convert_to_old_syntax import cur_dir, rc_files
 from properties import storage_backend
 from util.datastore import DataStore
 from util.const import *
-from util.func import dprint, _get_variable
+from util.func import _get_variable
 from util.fake import FakeObject
 from util.token import is_bot
 import distutils.dir_util
 import util.token as token
-import util.dynaimport as di
-for mod in ['asyncio', 'random', 'inspect', 'subprocess', 'os', 'sys', 'gc',
-            'traceback', 're', 'shutil', 'math', 'logging', 'async_timeout',
-            'discord', 'pickledb']:
-    globals()[mod] = di.load(mod)
-json = di.load('util.json')
-commands = di.load('util.commands')
-rank = di.load('util.ranks')
 
 try:
     from ex_props import store_path
@@ -52,27 +57,6 @@ class GoldBot(commands.Bot):
         }
         self.status = 'online'
         self.presence = {}
-        self.chars = 0
-        self.words = 0
-        self.lines = 0
-        self.files = 0
-        self.size_bytes = 0
-        self.raw_sizes_bytes = set()
-        self.size_kb = 0
-        self.avg_size_bytes = 0
-        self.avg_size_kb = 0
-        for fn in filter(rc_files(cur_dir), '*.py'):
-            with open(fn, 'rb') as f: # fix for windows unicode error
-                fr = f.read().decode('utf-8') # fix for windows unicode error
-                self.chars += len(fr)
-                self.words += len(fr.split())
-                self.lines += len(fr.split('\n'))
-                self.files += 1
-            self.raw_sizes_bytes.add(os.path.getsize(fn))
-        self.size_bytes = sum(self.raw_sizes_bytes)
-        self.avg_size_bytes = self.size_bytes / self.files
-        self.size_kb = self.size_bytes / 1000
-        self.avg_size_kb = self.size_kb / self.files
         self.git_rev = 'Couldn\'t fetch'
         try:
             self.git_rev = subprocess.check_output(['git', 'describe', '--always']).decode('utf-8')
@@ -83,9 +67,6 @@ class GoldBot(commands.Bot):
         self.storepath = os.path.join(self.dir, 'storage.')
         if storage_backend not in DataStore.exts:
             self.logger.critical('Invalid storage backend specified, quitting!')
-        self.version = '0.0.1'
-        with open(os.path.join(cur_dir, '__init__.py')) as f:
-            self.version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
         self.store = None
         if opath:
             self.store = DataStore(storage_backend, path=opath, join_path=False)
@@ -95,14 +76,10 @@ class GoldBot(commands.Bot):
         if storage_backend == 'leveldb':
             import plyvel
             self.storage = plyvel.load()
-        elif storage_backend == 'pickledb':
-            self.storage = pickledb.load(self.storepath, False)
         self.modules = sys.modules
         self.dc_ver = discord.version_info
         self.lib_version = '.'.join([str(i) for i in self.dc_ver])
         self.store_writer = self.loop.create_task(self.store.commit_task())
-        self.asteval = None
-        self.loop.create_task(self.reset_asteval())
         self.have_resource = False
         if sys.platform in ['linux', 'linux2', 'darwin']:
             self.have_resource = True
@@ -142,13 +119,11 @@ class GoldBot(commands.Bot):
         if not os.path.exists(self.cog_json_cogs_path):
             with open(self.cog_json_cogs_path, 'a') as f:
                 f.write('{}')
-        self.server_map = {}
         if 'nobroadcast' not in self.store.store:
             self.store.store['nobroadcast'] = ['110373943822540800']
         if 'owner_messages' not in self.store.store:
             self.store.store['owner_messages'] = []
         self.command_calls = {}
-        self.event_calls = {}
         self.app_info = None
         self.owner_user = None
         self.selfbot = not is_bot
@@ -219,7 +194,6 @@ class GoldBot(commands.Bot):
         lbname = bname.lower()
         if do_logic:
             if msg.author.bot:
-                if self.status == 'invisible': return
                 if not self.selfbot:
                     self.dispatch('bot_message', msg)
             else:
@@ -232,12 +206,7 @@ class GoldBot(commands.Bot):
                 if not msg.channel.is_private:
                     if not msg.content.startswith(cmdfix):
                         self.dispatch('not_command', msg)
-                if self.status == 'invisible':
-                    if msg.content.lower().startswith(cmdfix + 'resume'):
-                        self.status = 'online'
-                        await self.update_presence()
-                        await self.msend(msg, 'Successfully **resumed** my features!')
-                elif msg.channel.is_private:
+                if msg.channel.is_private:
                     if msg.content.startswith(cmdfix):
                         await self.process_commands(msg, cmdfix)
                     else:
@@ -259,8 +228,7 @@ class GoldBot(commands.Bot):
 
     async def on_server_join(self, server):
         """Send the bot introduction message when invited."""
-        self.logger.info('New server: ' + server.name + ', yay!')
-        self.update_server_map()
+        self.logger.info('New server: ' + server.name)
         if self.selfbot: return
         try:
             await self.send_message(server.default_channel, join_msg)
@@ -277,29 +245,13 @@ class GoldBot(commands.Bot):
                     self.logger.warning('Couldn\'t announce join to server ' + server.name)
                     satisfied = True
                 c_count += 1
+
     async def on_server_remove(self, server):
         """Update the stats."""
-        self.logger.info('Lost a server: ' + server.name + ', aww :\\')
-        self.update_server_map()
-
-    def update_server_map(self):
-        self.server_map = {s.id: s for s in self.servers}
-
-    async def suspend(self):
-        """Suspend the bot."""
-        self.status = 'invisible'
-        await self.update_presence()
-
-    def dispatch(self, event, *args, **kwargs):
-        commands.Bot.dispatch(self, event, *args, **kwargs)
-        if event in self.event_calls:
-            self.event_calls[event] += 1
-        else:
-            self.event_calls[event] = 1
+        self.logger.info('Lost a server: ' + server.name)
 
     async def process_commands(self, message, prefix):
         """This function processes the commands that have been registered."""
-        if self.status == 'invisible': return
         _internal_channel = message.channel
         _internal_author = message.author
         view = StringView(message.content)
@@ -312,7 +264,7 @@ class GoldBot(commands.Bot):
             'view': view,
             'prefix': prefix
         }
-        ctx = ProContext(**tmp)
+        ctx = Context(**tmp)
         del tmp
         cl = cmd.lower().replace('é', 'e').replace('è', 'e') # TODO: Real accent parsing
 
@@ -358,8 +310,6 @@ class GoldBot(commands.Bot):
             content = str(content)
             if len(content) > 2000:
                 truncate_msg = '**... (truncated)**'
-                #rmatch = len(re.findall('```', content))
-                #if rmatch % 2 != 0: # odd number
                 if '```' in content:
                     truncate_msg = '```' + truncate_msg
                 content = content[:2000 - len(truncate_msg)] + truncate_msg
@@ -432,7 +382,7 @@ class GoldBot(commands.Bot):
         """Get the bot's RAM usage info."""
         if have_psutil: # yay!
             mu = psutil.Process(os.getpid()).memory_info().rss
-            return (True, mu / 1_000_000, mu / 1048576)
+            return (True, mu / 1000000, mu / 1048576)
         else: # aww
             raw_musage = 0
             got_conversion = False
@@ -471,19 +421,6 @@ class GoldBot(commands.Bot):
             bttv_v2 = {n: 'https://cdn.betterttv.net/emote/' + str(raw_json2[n]) + '/1x' for n in raw_json2}
         self.emotes['bttv'] = {**bttv_v1, **bttv_v2}
 
-    async def reset_asteval(self, log_reset=True, reason='upon request', note=''):
-        try:
-            del self.asteval
-        except AttributeError:
-            pass
-        gc.collect()
-        self.asteval = Interpreter(use_numpy=False, writer=FakeObject(value=True))
-        self.asteval.symtable['print'] = dprint
-        del self.asteval.symtable['dir']
-        if log_reset:
-            if note:
-                note = ' (' + note + ')'
-            self.logger.warning(f'Reset ASTEval interpreter {reason}!{note}')
     def del_command(self, *names):
         """Remove a command and its aliases."""
         for name in names:

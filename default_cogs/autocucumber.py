@@ -8,7 +8,6 @@ import util.commands as commands
 from collections import Counter
 from util.autocorrect import Corrector
 from util.perms import echeck_perms
-import util.dynaimport as di
 from .cog import Cog
 
 class AutoCucumber(Cog):
