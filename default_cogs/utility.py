@@ -457,10 +457,13 @@ Server Owner\'s ID: `{0.server.owner.id}`
 **Servers**: {2}
 **Channels**: {3}
 **Members**: {4}
-**Uptime**: {5}
-**Lines of Code**: {6}'''
+**Uptime**: {5}'''
         up = await self.bot.format_uptime()
-        await self.bot.say(fmt.format(ctx.message, ctx.prefix, str(len(self.bot.servers)), str(len(list(self.bot.get_all_channels()))), str(len(list(self.bot.get_all_members()))), up, str(self.bot.lines)))
+        await self.bot.say(fmt.format(ctx.message, ctx.prefix,
+                           len(self.bot.servers),
+                           sum(len(s.channels) for s in self.bot.servers),
+                           sum(len(s.members) for s in self.bot.servers),
+                           up)
 
     @commands.command(aliases=['randcolor', 'randc', 'rc', 'randomcolor', 'colorgen', 'gcolor', 'gencolor', 'randcolour', 'randomcolour', 'colourgen', 'gcolour', 'gencolour'])
     async def rcolor(self):
