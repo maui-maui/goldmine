@@ -406,8 +406,7 @@ lvl_base = 100
 
 ch_fmt = '''Total: {0}
 Text: {1}
-Voice: {2}
-DM: {3}'''
+Voice: {2}'''
 absfmt = '%a %b %d, %Y %I:%M:%S %p'
 status_map = {
     'online': 'Online',

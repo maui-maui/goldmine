@@ -182,12 +182,11 @@ class Utility(Cog):
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
         ach = s.channels
-        chlist = [len(ach), 0, 0, '']
+        chlist = [len(ach), 0, 0]
         for i in ach:
-            at = str(i.type)
-            if at == 'text':
+            if i.type == discord.ChannelType.text:
                 chlist[1] += 1
-            elif at == 'voice':
+            else:
                 chlist[2] += 1
         iurl = s.icon_url
         s_reg = str(s.region)
@@ -202,7 +201,7 @@ class Utility(Cog):
             r_embed.set_image(url=iurl)
         r_embed.add_field(name='ID', value=s.id)
         r_embed.add_field(name='Members', value=len(s.members))
-        r_embed.add_field(name='Channels', value=ch_fmt.format(*[str(i) for i in chlist])[:-5])
+        r_embed.add_field(name='Channels', value=ch_fmt.format(*[str(i) for i in chlist]))
         r_embed.add_field(name='Roles', value=len(s.roles))
         r_embed.add_field(name='Custom Emojis', value=len(s.emojis))
         r_embed.add_field(name='Region (Location)', value=str(s.region).replace('-', ' ').title().replace('Eu ', 'EU ').replace('Us ', 'US ').replace('Vip', 'VIP '))
@@ -219,16 +218,14 @@ class Utility(Cog):
         target = self.bot.user
         au = target.avatar_url
         avatar_link = (au if au else target.default_avatar_url)
-        ach = list(self.bot.get_all_channels())
-        chlist = [len(ach), 0, 0, 0]
+        ach = self.bot.get_all_channels()
+        chlist = [0, 0, 0]
         for i in ach:
-            at = str(i.type)
-            if at == 'text':
+            chlist[0] += 1
+            if i.type == discord.ChannelType.text:
                 chlist[1] += 1
-            elif at == 'voice':
+            else:
                 chlist[2] += 1
-            elif at == 'private':
-                chlist[3] += 1
         up = await self.bot.format_uptime()
         ram = await self.bot.get_ram()
         got_conversion = ram[0]
