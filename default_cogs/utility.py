@@ -463,7 +463,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
                            len(self.bot.servers),
                            sum(len(s.channels) for s in self.bot.servers),
                            sum(len(s.members) for s in self.bot.servers),
-                           up)
+                           up))
 
     @commands.command(aliases=['randcolor', 'randc', 'rc', 'randomcolor', 'colorgen', 'gcolor', 'gencolor', 'randcolour', 'randomcolour', 'colourgen', 'gcolour', 'gencolour'])
     async def rcolor(self):
