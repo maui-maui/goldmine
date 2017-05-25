@@ -8,6 +8,7 @@ import functools
 import random
 import shlex
 import time
+import traceback
 import subprocess
 import textwrap
 import async_timeout
@@ -199,7 +200,12 @@ class VoiceState:
             if self.songs._queue or not self.have_played:
                 self.current = await self.songs.get()
             else:
-                clean_state(self, stop_player=False)
+                try:
+                    clean_state(self, stop_player=False)
+                except Exception as e:
+                    self.logger.exception(e)
+                    if self.bot.id == '239775420470394897':
+                        await self.bot.send_message(discord.Object(id='244641688981733386'), '**Voice clean_state error!**\n```py\n' + ''.join(traceback.format_tb(e.__traceback__)) + '\n' + e.__class__.__name__ + ': ' + str(e) + '```')
                 await self.voice.disconnect()
                 del self.cog.voice_states[self.voice.channel.server.id]
                 return
@@ -241,13 +247,23 @@ class Voice(Cog):
                     mm = [m for m in state.voice.channel.voice_members if not \
                             (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]
                     if len(mm) < 1:
-                        clean_state(state)
+                        try:
+                            clean_state(state)
+                        except Exception as e:
+                            self.logger.exception(e)
+                            if self.bot.id == '239775420470394897':
+                                await self.bot.send_message(discord.Object(id='244641688981733386'), '**Voice clean_state error!**\n```py\n' + ''.join(traceback.format_tb(e.__traceback__)) + '\n' + e.__class__.__name__ + ': ' + str(e) + '```')
                         await state.voice.disconnect()
                         del self.voice_states[sid]
                         self.logger.info('Pruned a voice state! Server ID: ' + sid + \
                               ', server name: ' + state.voice.channel.server.name)
                 else:
-                    clean_state(state)
+                    try:
+                        clean_state(state)
+                    except Exception as e:
+                        self.logger.exception(e)
+                        if self.bot.id == '239775420470394897':
+                            await self.bot.send_message(discord.Object(id='244641688981733386'), '**Voice clean_state error!**\n```py\n' + ''.join(traceback.format_tb(e.__traceback__)) + '\n' + e.__class__.__name__ + ': ' + str(e) + '```')
                     del self.voice_states[sid]
                     self.logger.info('Pruned a ghost voice state! Server ID: ' + sid)
             await asyncio.sleep(300) # every 5 min
