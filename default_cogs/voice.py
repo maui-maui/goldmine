@@ -8,6 +8,7 @@ import functools
 import random
 import shlex
 import time
+import traceback
 import subprocess
 import textwrap
 import async_timeout
@@ -25,22 +26,21 @@ from .cog import Cog
 
 youtube_dl = di.load('youtube_dl')
 
-def clean_state(state):
+def clean_state(state, stop_player=True):
     loop = state.bot.loop
-    state.audio_player.cancel()
+    if stop_player:
+        state.audio_player.cancel()
     if state.current:
         player = state.current.player
         player.stop()
         player.process.kill()
         if player.process.poll() is None:
             loop.create_task(loop.run_in_executor(None, player.process.wait))
-        del player.process
     for e in state.songs._queue:
         e.player.stop()
         e.player.process.kill()
         if e.player.process.poll() is None:
             loop.create_task(loop.run_in_executor(None, e.player.process.wait))
-        del e.player.process
 
 class StreamPlayer(dvclient.StreamPlayer):
     def __init__(self, stream, encoder, connected, player, after, **kwargs):
@@ -200,7 +200,12 @@ class VoiceState:
             if self.songs._queue or not self.have_played:
                 self.current = await self.songs.get()
             else:
-                clean_state(self)
+                try:
+                    clean_state(self, stop_player=False)
+                except Exception as e:
+                    self.logger.exception(e)
+                    if self.bot.id == '239775420470394897':
+                        await self.bot.send_message(discord.Object(id='244641688981733386'), '**Voice clean_state error!**\n```py\n' + ''.join(traceback.format_tb(e.__traceback__)) + '\n' + e.__class__.__name__ + ': ' + str(e) + '```')
                 await self.voice.disconnect()
                 del self.cog.voice_states[self.voice.channel.server.id]
                 return
@@ -242,13 +247,23 @@ class Voice(Cog):
                     mm = [m for m in state.voice.channel.voice_members if not \
                             (m.voice.deaf or m.voice.self_deaf) and m.id != self.bot.user.id]
                     if len(mm) < 1:
-                        clean_state(state)
+                        try:
+                            clean_state(state)
+                        except Exception as e:
+                            self.logger.exception(e)
+                            if self.bot.id == '239775420470394897':
+                                await self.bot.send_message(discord.Object(id='244641688981733386'), '**Voice clean_state error!**\n```py\n' + ''.join(traceback.format_tb(e.__traceback__)) + '\n' + e.__class__.__name__ + ': ' + str(e) + '```')
                         await state.voice.disconnect()
                         del self.voice_states[sid]
                         self.logger.info('Pruned a voice state! Server ID: ' + sid + \
                               ', server name: ' + state.voice.channel.server.name)
                 else:
-                    clean_state(state)
+                    try:
+                        clean_state(state)
+                    except Exception as e:
+                        self.logger.exception(e)
+                        if self.bot.id == '239775420470394897':
+                            await self.bot.send_message(discord.Object(id='244641688981733386'), '**Voice clean_state error!**\n```py\n' + ''.join(traceback.format_tb(e.__traceback__)) + '\n' + e.__class__.__name__ + ': ' + str(e) + '```')
                     del self.voice_states[sid]
                     self.logger.info('Pruned a ghost voice state! Server ID: ' + sid)
             await asyncio.sleep(300) # every 5 min
@@ -399,11 +414,14 @@ class Voice(Cog):
         match_clients = [c for c in self.bot.voice_clients if c.channel is not None \
                          and c.channel.server.id == ctx.message.server.id]
         if match_clients:
-            matched = match_clients[0]
-            if matched.is_connected():
-                await matched.disconnect()
-                if matched.channel.server.id in self.voice_states:
-                    del self.voice_states[matched.channel.server.id]
+            success = []
+            for matched in match_clients:
+                if matched.is_connected():
+                    await matched.disconnect()
+                    if matched.channel.server.id in self.voice_states:
+                        del self.voice_states[matched.channel.server.id]
+                    success.append(True)
+            if True in success:
                 await self.bot.say('Disconnected!')
             else:
                 await self.bot.say('I found a voice client, but it\'s not connected.')
