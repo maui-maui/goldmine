@@ -38,6 +38,8 @@ try:
 except ImportError:
     have_pil = False
 
+VALID_CHARS = list('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789')
+
 class Utility(Cog):
     """Random commands that can be useful here and there.
     Settings, properties, and other stuff can be found here.
@@ -928,7 +930,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         """Get a Minecraft player's skin.
         Usage: mcskin [username]"""
         un = username.replace('\u200b', '').replace('/', '').replace('\u200e', '')
-        if not re.match(r'[a-zA-Z0-9_]+', un):
+        if not re.match(r'^[a-zA-Z0-9_]+$', un):
             await self.bot.say(':warning: Invalid username.')
             return
         emb = discord.Embed(color=random.randint(0, 255**3-1), title=un + "'s skin")
@@ -940,7 +942,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         """Get a Minecraft player's head.
         Usage: mchead [username]"""
         un = username.replace('\u200b', '').replace('/', '').replace('\u200e', '')
-        if not re.match(r'[a-zA-Z0-9_]+', un):
+        if not re.match(r'^[a-zA-Z0-9_]+$', un):
             await self.bot.say(':warning: Invalid username.')
             return
         emb = discord.Embed(color=random.randint(0, 255**3-1), title=un + "'s head")
