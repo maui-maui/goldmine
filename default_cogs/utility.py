@@ -930,6 +930,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         un = username.replace('\u200b', '').replace('/', '').replace('\u200e', '')
         if not re.match(r'[a-zA-Z0-9_]+', un):
             await self.bot.say(':warning: Invalid username.')
+            return
         emb = discord.Embed(color=random.randint(0, 255**3-1), title=un + "'s skin")
         emb.set_image(url='https://mcapi.ca/skin/' + un + '/150/true')
         await self.bot.say(embed=emb)
@@ -941,6 +942,7 @@ Server Owner\'s ID: `{0.server.owner.id}`
         un = username.replace('\u200b', '').replace('/', '').replace('\u200e', '')
         if not re.match(r'[a-zA-Z0-9_]+', un):
             await self.bot.say(':warning: Invalid username.')
+            return
         emb = discord.Embed(color=random.randint(0, 255**3-1), title=un + "'s head")
         emb.set_image(url='https://mcapi.ca/avatar/' + un + '/150/true')
         await self.bot.say(embed=emb)
