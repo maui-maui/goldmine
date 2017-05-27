@@ -923,6 +923,28 @@ Server Owner\'s ID: `{0.server.owner.id}`
         emb.set_image(url='https://upload.wikimedia.org/wikipedia/commons/d/d3/Clorox_Bleach_products.jpg')
         await self.bot.say(embed=emb)
 
+    @commands.command()
+    async def mcskin(self, *, username: str):
+        """Get a Minecraft player's skin.
+        Usage: mcskin [username]"""
+        un = username.replace('\u200b', '').replace('/', '').replace('\u200e', '')
+        if not re.match(r'[a-zA-Z0-9_]+', un):
+            await self.bot.say(':warning: Invalid username.')
+        emb = discord.Embed(color=random.randint(0, 255**3-1), title=un + "'s skin")
+        emb.set_image(url='https://mcapi.ca/skin/' + un + '/150/true')
+        await self.bot.say(embed=emb)
+
+    @commands.command()
+    async def mchead(self, *, username: str):
+        """Get a Minecraft player's head.
+        Usage: mchead [username]"""
+        un = username.replace('\u200b', '').replace('/', '').replace('\u200e', '')
+        if not re.match(r'[a-zA-Z0-9_]+', un):
+            await self.bot.say(':warning: Invalid username.')
+        emb = discord.Embed(color=random.randint(0, 255**3-1), title=un + "'s head")
+        emb.set_image(url='https://mcapi.ca/avatar/' + un + '/150/true')
+        await self.bot.say(embed=emb)
+
 def setup(bot):
     c = Utility(bot)
     bot.add_cog(c)
