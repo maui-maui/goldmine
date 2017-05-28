@@ -14,7 +14,7 @@ class Luck(Cog):
     async def choose(self, *choices: str):
         """Chooses between choices given.
         Usage: choose [choice 1] [choice 2] [choice 3] [etc...]"""
-        if len(choices) < 2:
+        if len(choices) > 1:
             await self.bot.say(random.choice(choices))
         else:
             await self.bot.say(':warning: You need at least 2 choices.')
