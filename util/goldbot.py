@@ -308,6 +308,9 @@ class GoldBot(commands.Bot):
         channel_id, guild_id = await self._resolve_destination(destination)
         if content:
             content = str(content)
+            if filter:
+                if not self.selfbot:
+                    content = content.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')
             if len(content) > 2000:
                 truncate_msg = '**... (truncated)**'
                 if '```' in content:

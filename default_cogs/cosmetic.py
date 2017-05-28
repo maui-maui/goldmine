@@ -23,6 +23,7 @@ class Cosmetic(Cog):
     def __init__(self, bot):
         self.playing_anim = set()
         self.stop_anim = set()
+        self.al_aliases = charsets.keys()
         super().__init__(bot)
 
     @commands.command(pass_context=True)

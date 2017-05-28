@@ -142,7 +142,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                 pass
             else:
                 try:
-                    self.last_broadcasts[i.id] = await self.bot.send_message(i.default_channel, text)
+                    self.last_broadcasts[i.id] = await self.bot.send_message(i.default_channel, text, filter=False)
                 except discord.Forbidden:
                     satisfied = False
                     c_count = 0
@@ -150,7 +150,7 @@ If you're sure you want to do this, type `yes` within 8 seconds.''')
                     channel_count = len(try_channels) - 1
                     while not satisfied:
                         with suppress(discord.Forbidden, discord.HTTPException):
-                            self.last_broadcasts[i.id] = await self.bot.send_message(try_channels[c_count], text)
+                            self.last_broadcasts[i.id] = await self.bot.send_message(try_channels[c_count], text, filter=False)
                             satisfied = True
                         if c_count >= channel_count:
                             err += f'`[WARN]` Couldn\'t broadcast to server **{i.name}**\n'

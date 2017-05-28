@@ -143,7 +143,7 @@ class Cleverbot(Cog):
         if 'cleverbutts' in c_map:
             ch = c_map['cleverbutts']
             if msg:
-                await self.bot.send_message(ch, ctx.raw_args.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere'))
+                await self.bot.send_message(ch, ctx.raw_args)
             else:
                 await self.bot.send_message(ch, 'Hello, what\'re you up to?')
             await self.bot.say('**Message sent in <#%s>!**' % str(ch.id))
