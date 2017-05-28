@@ -14,7 +14,10 @@ class Luck(Cog):
     async def choose(self, *choices: str):
         """Chooses between choices given.
         Usage: choose [choice 1] [choice 2] [choice 3] [etc...]"""
-        await self.bot.say(random.choice(choices))
+        if len(choices) < 2:
+            await self.bot.say(random.choice(choices))
+        else:
+            await self.bot.say(':warning: You need at least 2 choices.')
 
     @commands.command(aliases=['flipcoin', 'coin', 'coinflip', 'cointoss', 'tosscoin'])
     async def flip(self):
