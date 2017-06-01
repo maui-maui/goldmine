@@ -1,5 +1,5 @@
 """Miscellaneous stuff."""
-import util.commands as commands
+from discord.ext import commands
 from .cog import Cog
 
 class Misc(Cog):
@@ -8,25 +8,25 @@ class Misc(Cog):
     """
 
     @commands.command()
-    async def lmgtfy(self, *terms: str):
+    async def lmgtfy(self, ctx, *terms: str):
         """Generate a Let Me Google That For You link.
         Usage: lmgtfy [search terms]"""
-        await self.bot.say('http://lmgtfy.com/?q=' + '+'.join(terms))
+        await ctx.send('http://lmgtfy.com/?q=' + '+'.join(terms.replace('+', '%2B')))
 
     @commands.command()
-    async def buzz(self, *count: int):
+    async def buzz(self, ctx, *count: int):
         """Barry Bee Benson Buzz :smirk:
         Usage: buzz"""
         fn_i = 8
         if count:
             fn_i = count[0]
-        await self.bot.say('\n'.join(reversed(['buzz ' * i for i in range(fn_i)])))
+        await ctx.send('\n'.join(reversed(['buzz ' * i for i in range(fn_i)])))
 
     @commands.command()
-    async def test(self):
+    async def test(self, ctx):
         """Do a basic test of the bot.
         Usage: test"""
-        await self.bot.reply('everything is looking good! :smiley:')
+        await ctx.send(ctx.mention + ' Everything is looking good! :smiley:')
 
 def setup(bot):
     c = Misc(bot)

@@ -3,7 +3,7 @@ import asyncio
 import shutil
 import discord
 import os
-import util.commands as commands
+from discord.ext import commands
 from asyncio import as_completed
 from functools import partial
 from setuptools import distutils
@@ -50,7 +50,7 @@ class Cogs(Cog):
     def save_repos(self):
         dataIO.save_json(self.file_path, self.repos)
 
-    @commands.group(pass_context=True, aliases=['cogs', 'module', 'modules'])
+    @commands.group(aliases=['cogs', 'module', 'modules'])
     async def cog(self, ctx):
         """Manage all of my cogs and gears.
         Usage: cog {stuff}"""
@@ -59,7 +59,7 @@ class Cogs(Cog):
             await self.bot.send_cmd_help(ctx)
 
     @cog.command(name='list')
-    async def cog_list(self):
+    async def cog_list(self, ctx):
         """List all cogs available.
         Usage: cog list"""
         key = '\n+ '
@@ -73,12 +73,12 @@ class Cogs(Cog):
 - Disabled{key}{3}
 ----------------------------------------------
 - Enabled{key}{4}```'''
-        def_cogs = [c.replace('.py', '').replace('_', ' ').title().replace(' ', '_') for c in filter(os.listdir(os.path.join(cur_dir, 'default_cogs')), '*.py') if c not in ['__init__.py', 'cog.py']]
+        def_cogs = [c.replace('.py', '') for c in filter(os.listdir(os.path.join(cur_dir, 'default_cogs')), '*.py') if c not in ['__init__.py', 'cog.py']]
         try:
             dl_cogs = [c.replace('.py', '') for c in filter(os.listdir(os.path.join(cur_dir, 'cogs')), '*.py') if c not in ['__init__.py', 'cog.py']]
         except OSError:
             dl_cogs = ['None! 😦']
-        dis_cogs = [c.replace('_', ' ').title().replace(' ', '_') for c in self.bot.disabled_cogs if c != '']
+        dis_cogs = [c for c in self.bot.disabled_cogs if c != '']
         essential_enb = default_cogs
         for cog in self.bot.disabled_cogs:
             if cog in essential_enb:
@@ -87,11 +87,11 @@ class Cogs(Cog):
             dl_cogs = ['None! 😦']
         if not dis_cogs:
             dis_cogs = ['None! 😃']
-        enb_cogs = [c.replace('_', ' ').title().replace(' ', '_') for c in self.bot.enabled_cogs if c != ''] + essential_enb
+        enb_cogs = [c for c in self.bot.enabled_cogs if c != ''] + essential_enb
         loaded_cogs = self.bot.cogs.keys()
-        await self.bot.say(clist.format(*[key.join(l) for l in [def_cogs, dl_cogs, loaded_cogs, dis_cogs, enb_cogs]], key=key))
+        await ctx.send(clist.format(*[key.join(l) for l in [def_cogs, dl_cogs, loaded_cogs, dis_cogs, enb_cogs]], key=key))
 
-    @cog.command(name='reload', pass_context=True)
+    @cog.command(name='reload')
     async def cog_reload(self, ctx, *, cog_name: str):
         """Reload a cog and turn some gears.
         Usage: cog reload [cog name]"""
@@ -103,19 +103,19 @@ class Cogs(Cog):
             if req_cog in cogs:
                 start_time = datetime.now()
                 if 'default_cogs.' + req_cog in self.bot.extensions:
-                    status = await self.bot.say(f'**Reloading cog** `{req_cog}`...')
+                    status = await ctx.send(f'**Reloading cog** `{req_cog}`...')
                     self.bot.unload_extension('default_cogs.' + req_cog)
                     self.bot.load_extension('default_cogs.' + req_cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished reloading cog** `{req_cog}`**!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished reloading cog** `{req_cog}`**!** (took {time_taken}s)')
                 elif 'cogs.' + req_cog in self.bot.extensions:
-                    status = await self.bot.say(f'**Reloading cog** `{req_cog}`...')
+                    status = await ctx.send(f'**Reloading cog** `{req_cog}`...')
                     self.bot.unload_extension('cogs.' + req_cog)
                     self.bot.load_extension('cogs.' + req_cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished reloading cog** `{req_cog}`**!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished reloading cog** `{req_cog}`**!** (took {time_taken}s)')
                 elif req_cog == 'all':
-                    status = await self.bot.say('**Reloading all loaded cogs...**')
+                    status = await ctx.send('**Reloading all loaded cogs...**')
                     for cog in def_cogs:
                         if 'default_cogs.' + cog in self.bot.extensions:
                             self.bot.unload_extension('default_cogs.' + cog)
@@ -125,15 +125,15 @@ class Cogs(Cog):
                             self.bot.unload_extension('cogs.' + cog)
                             self.bot.load_extension('cogs.' + cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished reloading all loaded cogs!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished reloading all loaded cogs!** (took {time_taken}s)')
                 else:
-                    await self.bot.say('**That cog isn\'t already loaded, so I\'ll load it.**')
+                    await ctx.send('**That cog isn\'t already loaded, so I\'ll load it.**')
                     self.cog_load.invoke(ctx)
             else:
-                await self.bot.say(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
+                await ctx.send(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
                 return False
 
-    @cog.command(name='load', pass_context=True, aliases=['activate', 'enactivate', 'inactivate']) # idek but lets be safe ¯\_(ツ)_/¯
+    @cog.command(name='load', aliases=['activate', 'enactivate', 'inactivate']) # idek but lets be safe ¯\_(ツ)_/¯
     async def cog_load(self, ctx, *, cog_name: str):
         """Load a cog and polish some gears.
         Usage: cog load [cog name]"""
@@ -145,31 +145,31 @@ class Cogs(Cog):
             if req_cog in cogs:
                 start_time = datetime.now()
                 if req_cog in [c.lower() for c in self.bot.cogs.keys()]:
-                    await self.bot.say(f'**Cog** `{req_cog}` **already loaded!**')
+                    await ctx.send(f'**Cog** `{req_cog}` **already loaded!**')
                     return False
                 elif req_cog in def_cogs:
-                    status = await self.bot.say(f'**Loading cog** `{req_cog}`...')
+                    status = await ctx.send(f'**Loading cog** `{req_cog}`...')
                     self.bot.load_extension('default_cogs.' + req_cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished loading cog** `{req_cog}`**!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished loading cog** `{req_cog}`**!** (took {time_taken}s)')
                 elif req_cog in dl_cogs:
-                    status = await self.bot.say(f'**Loading cog** `{req_cog}`...')
+                    status = await ctx.send(f'**Loading cog** `{req_cog}`...')
                     self.bot.load_extension('cogs.' + req_cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished loading cog** `{req_cog}`**!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished loading cog** `{req_cog}`**!** (took {time_taken}s)')
                 elif req_cog == 'all':
-                    status = await self.bot.say('**Loading all cogs...**')
+                    status = await ctx.send('**Loading all cogs...**')
                     for cog in def_cogs:
                         self.bot.load_extension('default_cogs.' + cog)
                     for cog in dl_cogs:
                         self.bot.load_extension('cogs.' + cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished loading all cogs!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished loading all cogs!** (took {time_taken}s)')
             else:
-                await self.bot.say(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
+                await ctx.send(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
                 return False
 
-    @cog.command(name='unload', pass_context=True, aliases=['deactivate', 'unactivate'])
+    @cog.command(name='unload', aliases=['deactivate', 'unactivate'])
     async def cog_unload(self, ctx, *, cog_name: str):
         """Unload a cog.
         Usage: cog unload [cog name]"""
@@ -179,22 +179,22 @@ class Cogs(Cog):
         req_cogs = cog_name.lower().split()
         for req_cog in req_cogs:
             if req_cog in essential_cogs:
-                await self.bot.say('**You can\'t unload that!**')
+                await ctx.send('**You can\'t unload that!**')
                 return
             if req_cog in cogs:
                 start_time = datetime.now()
                 if 'default_cogs.' + req_cog in self.bot.extensions:
-                    status = await self.bot.say(f'**Unloading cog** `{req_cog}`...')
+                    status = await ctx.send(f'**Unloading cog** `{req_cog}`...')
                     self.bot.unload_extension('default_cogs.' + req_cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished unloading cog** `{req_cog}`**!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished unloading cog** `{req_cog}`**!** (took {time_taken}s)')
                 elif 'cogs.' + req_cog in self.bot.extensions:
-                    status = await self.bot.say(f'**Unloading cog** `{req_cog}`...')
+                    status = await ctx.send(f'**Unloading cog** `{req_cog}`...')
                     self.bot.unload_extension('cogs.' + req_cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished unloading cog** `{req_cog}`**!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished unloading cog** `{req_cog}`**!** (took {time_taken}s)')
                 elif req_cog == 'all':
-                    status = await self.bot.say('**Unloading all loaded cogs but this...**')
+                    status = await ctx.send('**Unloading all loaded cogs but this...**')
                     for cog in def_cogs:
                         if ('default_cogs.' + cog in self.bot.extensions) and (cog != 'cogs'):
                             self.bot.unload_extension('default_cogs.' + cog)
@@ -202,15 +202,15 @@ class Cogs(Cog):
                         if 'cogs.' + cog in self.bot.extensions:
                             self.bot.unload_extension('cogs.' + cog)
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished unloading all loaded cogs!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished unloading all loaded cogs!** (took {time_taken}s)')
                 else:
-                    await self.bot.say(f'**Cog** `{req_cog}` **not loaded!**')
+                    await ctx.send(f'**Cog** `{req_cog}` **not loaded!**')
                     return False
             else:
-                await self.bot.say(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
+                await ctx.send(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
                 return False
 
-    @cog.command(name='enable', pass_context=True)
+    @cog.command(name='enable')
     async def cog_enable(self, ctx, *, cog_name: str):
         """Enable a cog so I load it every future start!
         Usage: cog enable [cog name]"""
@@ -221,10 +221,10 @@ class Cogs(Cog):
         for req_cog in req_cogs:
             if req_cog in cogs:
                 if req_cog in self.bot.enabled_cogs:
-                    await self.bot.say(f'**Cog** `{req_cog}` **already enabled!**')
+                    await ctx.send(f'**Cog** `{req_cog}` **already enabled!**')
                 else:
                     start_time = datetime.now()
-                    status = await self.bot.say(f'**Enabling cog** `{req_cog}`...')
+                    status = await ctx.send(f'**Enabling cog** `{req_cog}`...')
                     if req_cog in self.bot.disabled_cogs:
                         self.bot.disabled_cogs.remove(req_cog)
                         with open(self.bot.dis_cogs_path, 'w+') as f:
@@ -234,12 +234,12 @@ class Cogs(Cog):
                         with open(self.bot.ex_cogs_path, 'w+') as f:
                             f.write('\r\n'.join(self.bot.enabled_cogs))
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished enabling cog** `{req_cog}`**!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished enabling cog** `{req_cog}`**!** (took {time_taken}s)')
             else:
-                await self.bot.say(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
+                await ctx.send(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
                 return False
 
-    @cog.command(name='disable', pass_context=True)
+    @cog.command(name='disable')
     async def cog_disable(self, ctx, *, cog_name: str):
         """Disable a cog so it doesn't load every start.
         Usage: cog disable [cog name]"""
@@ -249,12 +249,12 @@ class Cogs(Cog):
         req_cogs = cog_name.lower().split()
         for req_cog in req_cogs:
             if req_cog in essential_cogs:
-                await self.bot.say('**You can\'t disable that!**')
+                await ctx.send('**You can\'t disable that!**')
                 return
             if req_cog in cogs:
                 if (req_cog in self.bot.enabled_cogs) or (req_cog in list(set(default_cogs) - set(self.bot.disabled_cogs))):
                     start_time = datetime.now()
-                    status = await self.bot.say(f'**Disabling cog** `{req_cog}`...')
+                    status = await ctx.send(f'**Disabling cog** `{req_cog}`...')
                     if req_cog in default_cogs:
                         self.bot.disabled_cogs.append(req_cog)
                         with open(self.bot.dis_cogs_path, 'w+') as f:
@@ -264,15 +264,15 @@ class Cogs(Cog):
                         with open(self.bot.ex_cogs_path, 'w+') as f:
                             f.write('\r\n'.join(self.bot.enabled_cogs))
                     time_taken = round((datetime.now() - start_time).total_seconds(), 3)
-                    await self.bot.edit_message(status, f'**Finished disabling cog** `{req_cog}`**!** (took {time_taken}s)')
+                    await status.edit(content=f'**Finished disabling cog** `{req_cog}`**!** (took {time_taken}s)')
                 else:
-                    await self.bot.say(f'**Cog** `{req_cog}` **not enabled!**')
+                    await ctx.send(f'**Cog** `{req_cog}` **not enabled!**')
                     return
             else:
-                await self.bot.say(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
+                await ctx.send(f'**No such cog! Try** `{ctx.prefix}cog list`**.**')
                 return False
 
-    @cog.group(pass_context=True)
+    @cog.group()
     async def repo(self, ctx):
         """Repo management commands"""
         if ctx.invoked_subcommand is None or \
@@ -280,13 +280,13 @@ class Cogs(Cog):
             await self.bot.send_cmd_help(ctx)
             return
 
-    @repo.command(name="add", pass_context=True)
+    @repo.command(name="add")
     async def _repo_add(self, ctx, repo_name: str, repo_url: str):
         """Adds repo to available repo lists
 
         Warning: Adding 3RD Party Repositories is at your own
         Risk."""
-        await self.bot.say("Type 'I agree' to confirm "
+        await ctx.send("Type 'I agree' to confirm "
                            "adding a 3rd party repo. This has the possibility"
                            " of being harmful. You will not receive help "
                            "or support from Dragon5232 for any cogs "
@@ -296,20 +296,20 @@ class Cogs(Cog):
                            " discretion and the creator of this bot has "
                            "ABSOLUTELY ZERO responsibility to help if "
                            "something goes wrong.")
-        answer = await self.bot.wait_for_message(timeout=15,
-                                                 author=ctx.message.author)
+        answer = await self.bot.wait_for('message', timeout=15,
+                                         check=lambda m: m.author == ctx.author)
         if answer is None:
-            await self.bot.say('Not adding repo.')
+            await ctx.send('Not adding repo.')
             return
         elif "i agree" not in answer.content.lower():
-            await self.bot.say('Not adding repo.')
+            await ctx.send('Not adding repo.')
             return
         self.repos[repo_name] = {}
         self.repos[repo_name]['url'] = repo_url
         try:
             self.update_repo(repo_name)
         except CloningError:
-            await self.bot.say("That repository link doesn't seem to be "
+            await ctx.send("That repository link doesn't seem to be "
                                "valid.")
             del self.repos[repo_name]
             return
@@ -319,22 +319,22 @@ class Cogs(Cog):
         if data:
             msg = data.get("INSTALL_MSG")
             if msg:
-                await self.bot.say(msg[:2000])
-        await self.bot.say("Repo '{}' added.".format(repo_name))
+                await ctx.send(msg[:2000])
+        await ctx.send("Repo '{}' added.".format(repo_name))
 
     @repo.command(name="remove")
-    async def _repo_del(self, repo_name: str):
+    async def _repo_del(self, ctx, repo_name: str):
         """Removes repo from repo list. COGS ARE NOT REMOVED."""
         if repo_name not in self.repos:
-            await self.bot.say("That repo doesn't exist.")
+            await ctx.send("That repo doesn't exist.")
             return
         del self.repos[repo_name]
         #shutil.rmtree(os.path.join(self.path, repo_name))
         self.save_repos()
-        await self.bot.say("Repo '{}' removed.".format(repo_name))
+        await ctx.send("Repo '{}' removed.".format(repo_name))
 
     @cog.command(name="rlist")
-    async def _send_list(self, repo_name=None):
+    async def _send_list(self, ctx, repo_name=None):
         """Lists installable cogs"""
         retlist = []
         if repo_name and repo_name in self.repos:
@@ -360,10 +360,10 @@ class Cogs(Cog):
         for row in retlist:
             msg += "\t" + "".join(word.ljust(col_width) for word in row) + "\n"
         for page in pagify(msg, delims=['\n'], shorten_by=8):
-            await self.bot.say(box(page))
+            await ctx.send(box(page))
 
     @cog.command()
-    async def info(self, repo_name: str, cog: str=None):
+    async def info(self, ctx, repo_name: str, cog: str=None):
         """Shows info about the specified cog"""
         if cog is not None:
             cogs = self.list_cogs(repo_name)
@@ -372,16 +372,16 @@ class Cogs(Cog):
                 if data:
                     msg = "{} by {}\n\n".format(cog, data["AUTHOR"])
                     msg += data["NAME"] + "\n\n" + data["DESCRIPTION"]
-                    await self.bot.say(box(msg))
+                    await ctx.send(box(msg))
                 else:
-                    await self.bot.say("The specified cog has no info file.")
+                    await ctx.send("The specified cog has no info file.")
             else:
-                await self.bot.say("That cog doesn't exist."
+                await ctx.send("That cog doesn't exist."
                                    " Use cog list to see the full list.")
         else:
             data = self.get_info_data(repo_name)
             if data is None:
-                await self.bot.say("That repo does not exist or the"
+                await ctx.send("That repo does not exist or the"
                                    " information file is missing for that repo"
                                    ".")
                 return
@@ -390,9 +390,9 @@ class Cogs(Cog):
             author = data.get("AUTHOR", "Unknown")
             desc = data.get("DESCRIPTION", "")
             msg = ("```{} by {}```\n\n{}".format(name, author, desc))
-            await self.bot.say(msg)
+            await ctx.send(msg)
 
-    @cog.command(pass_context=True)
+    @cog.command()
     async def update(self, ctx):
         """Updates cogs."""
 
@@ -420,7 +420,7 @@ class Cogs(Cog):
 
         base_msg = 'Downloading updated cogs, please wait... '
         status = f' {task_num}/{num_repos} repos updated'
-        msg = await self.bot.say(base_msg + status)
+        msg = await ctx.send(base_msg + status)
 
         updated_cogs = []
         new_cogs = []
@@ -478,7 +478,7 @@ class Cogs(Cog):
             if (self.repos[repo][cog]['INSTALLED'] and
                     registry.get('cogs.' + cog, False)):
                 installed_updated_cogs.append(t)
-                await self.install(repo, cog)
+                self.install(repo, cog)
 
         if not installed_updated_cogs:
             return
@@ -489,13 +489,13 @@ class Cogs(Cog):
             if note is None:
                 continue
             for page in pagify(note, delims=['\n'], shorten_by=shorten_by):
-                await self.bot.say(box(page, patchnote_lang))
+                await ctx.send(box(page, patchnote_lang))
 
-        await self.bot.say("Cogs updated. Reload updated cogs? (yes/no)")
-        answer = await self.bot.wait_for_message(timeout=15,
-                                                 author=ctx.message.author)
+        await ctx.send("Cogs updated. Reload updated cogs? (yes/no)")
+        answer = await self.bot.wait_for('message', timeout=15,
+                                         check=lambda m: m.author == ctx.author)
         if answer is None:
-            await self.bot.say("Ok then, you can reload cogs with"
+            await ctx.send("Ok then, you can reload cogs with"
                                " `{}reload <cog_name>`".format(ctx.prefix))
         elif answer.content.lower().strip() == "yes":
             update_list = []
@@ -514,10 +514,10 @@ class Cogs(Cog):
             if fail_list:
                 msg += " The following cogs failed to reload: "\
                     + ', '.join(fail_list)
-            await self.bot.say(msg)
+            await ctx.send(msg)
 
         else:
-            await self.bot.say("Ok then, you can reload cogs with"
+            await ctx.send("Ok then, you can reload cogs with"
                                " `{}reload <cog_name>`".format(ctx.prefix))
 
     def patch_notes_handler(self, repo_cog_hash_pairs):
@@ -534,57 +534,57 @@ class Cogs(Cog):
             except:
                 pass
 
-    @cog.command(pass_context=True)
+    @cog.command()
     async def uninstall(self, ctx, repo_name, cog):
         """Uninstalls a cog"""
         if repo_name not in self.repos:
-            await self.bot.say("That repo doesn't exist.")
+            await ctx.send("That repo doesn't exist.")
             return
         if cog not in self.repos[repo_name]:
-            await self.bot.say("That cog isn't available from that repo.")
+            await ctx.send("That cog isn't available from that repo.")
             return
-        set_cog("cogs." + cog, False)
+        set_cog('cogs.' + cog, False)
         self.repos[repo_name][cog]['INSTALLED'] = False
         self.save_repos()
-        os.remove(os.path.join("cogs", cog + ".py"))
-        await self.bot.say("Cog successfully uninstalled.")
+        os.remove(os.path.join('cogs', cog + '.py'))
+        await ctx.send('Cog successfully uninstalled.')
 
-    @cog.command(name="install", pass_context=True)
+    @cog.command(name='install')
     async def _install(self, ctx, repo_name: str, cog: str):
         """Installs specified cog"""
         if repo_name not in self.repos:
-            await self.bot.say("That repo doesn't exist.")
+            await ctx.send("That repo doesn't exist.")
             return
         if cog not in self.repos[repo_name]:
-            await self.bot.say("That cog isn't available from that repo.")
+            await ctx.send("That cog isn't available from that repo.")
             return
-        install_cog = await self.install(repo_name, cog)
+        install_cog = self.install(repo_name, cog)
         data = self.get_info_data(repo_name, cog)
         if data is not None:
-            install_msg = data.get("INSTALL_MSG", None)
+            install_msg = data.get('INSTALL_MSG', None)
             if install_msg:
-                await self.bot.say(install_msg[:2000])
+                await ctx.send(install_msg[:2000])
         if install_cog:
-            await self.bot.say("Installation completed. Load it now? (yes/no)")
-            answer = await self.bot.wait_for_message(timeout=15,
-                                                     author=ctx.message.author)
+            await ctx.send('Installation completed. Load it now? (yes/no)')
+            answer = await self.bot.wait_for('message', timeout=15,
+                                                     check=lambda m: m.author == ctx.author)
             if answer is None:
-                await self.bot.say("Ok then, you can load it with"
+                await ctx.send("Ok then, you can load it with"
                                    " `{}load {}`".format(ctx.prefix, cog))
-            elif answer.content.lower().strip() == "yes":
-                set_cog("cogs." + cog, True)
+            elif answer.content.lower().strip() == 'yes':
+                set_cog('cogs.' + cog, True)
                 self.bot.load_extension('cogs.' + cog)
-                await self.bot.say('Loaded.')
+                await ctx.send('Loaded.')
             else:
-                await self.bot.say("Ok then, you can load it with"
-                                   " `{}load {}`".format(ctx.prefix, cog))
+                await ctx.send('Ok then, you can load it with'
+                                   ' `{}load {}`'.format(ctx.prefix, cog))
         elif install_cog is False:
-            await self.bot.say("Invalid cog. Installation aborted.")
+            await ctx.send('Invalid cog. Installation aborted.')
         else:
-            await self.bot.say("That cog doesn't exist. Use cog list to see"
+            await ctx.send("That cog doesn't exist. Use cog list to see"
                                " the full list.")
 
-    async def install(self, repo_name, cog):
+    def install(self, repo_name, cog):
         if cog.endswith('.py'):
             cog = cog[:-3]
 
@@ -609,7 +609,7 @@ class Cogs(Cog):
         if cog is not None:
             cogs = self.list_cogs(repo_name)
             if cog in cogs:
-                info_file = os.path.join(cogs[cog].get('folder'), "info.json")
+                info_file = os.path.join(cogs[cog].get('folder'), 'info.json')
                 if os.path.isfile(info_file):
                     try:
                         data = dataIO.load_json(info_file)
@@ -632,12 +632,12 @@ class Cogs(Cog):
         repo_path = os.path.join(self.path, repo_name)
         folders = [f for f in os.listdir(repo_path)
                    if os.path.isdir(os.path.join(repo_path, f))]
-        legacy_path = os.path.join(repo_path, "cogs")
+        legacy_path = os.path.join(repo_path, 'cogs')
         legacy_folders = []
         if os.path.exists(legacy_path):
             for f in os.listdir(legacy_path):
                 if os.path.isdir(os.path.join(legacy_path, f)):
-                    legacy_folders.append(os.path.join("cogs", f))
+                    legacy_folders.append(os.path.join('cogs', f))
 
         folders = folders + legacy_folders
 
@@ -697,36 +697,34 @@ class Cogs(Cog):
         try:
             dd = self.path
             if name not in self.repos:
-                raise UpdateError("Repo does not exist in data, wtf")
+                raise UpdateError('Repo does not exist in data?!')
             folder = os.path.join(dd, name)
             # Make sure we don't git reset our folder on accident
             if not os.path.exists(os.path.join(folder, '.git')):
-                #if os.path.exists(folder):
-                    #shutil.rmtree(folder)
                 url = self.repos[name].get('url')
                 if not url:
-                    raise UpdateError("Need to clone but no URL set")
-                p = run(["git", "clone", url, dd + name])
+                    raise UpdateError('Need to clone but no URL set')
+                p = run(['git', 'clone', url, dd + name])
                 if p.returncode != 0:
                     raise CloningError()
                 self.populate_list(name)
                 return name, REPO_CLONE, None
             else:
-                rpcmd = ["git", "-C", dd + name, "rev-parse", "HEAD"]
-                p = run(["git", "-C", dd + name, "reset", "--hard",
-                        "origin/HEAD", "-q"])
+                rpcmd = ['git', '-C', dd + name, 'rev-parse', 'HEAD']
+                p = run(['git', '-C', dd + name, 'reset', '--hard',
+                        'origin/HEAD', '-q'])
                 if p.returncode != 0:
-                    raise UpdateError("Error resetting to origin/HEAD")
+                    raise UpdateError('Error resetting to origin/HEAD')
                 p = run(rpcmd, stdout=PIPE)
                 if p.returncode != 0:
-                    raise UpdateError("Unable to determine old commit hash")
+                    raise UpdateError('Unable to determine old commit hash')
                 oldhash = p.stdout.decode().strip()
-                p = run(["git", "-C", dd + name, "pull", "-q"])
+                p = run(['git', '-C', dd + name, 'pull', '-q'])
                 if p.returncode != 0:
-                    raise UpdateError("Error pulling updates")
+                    raise UpdateError('Error pulling updates')
                 p = run(rpcmd, stdout=PIPE)
                 if p.returncode != 0:
-                    raise UpdateError("Unable to determine new commit hash")
+                    raise UpdateError('Unable to determine new commit hash')
                 newhash = p.stdout.decode().strip()
                 if oldhash == newhash:
                     return name, REPO_SAME, None
@@ -756,32 +754,32 @@ class Cogs(Cog):
 
     async def _robust_edit(self, msg, text):
         try:
-            msg = await self.bot.edit_message(msg, text)
+            msg = await status.edit(content=text)
         except discord.errors.NotFound:
-            msg = await self.bot.send_message(msg.channel, text)
+            msg = await msg.channel.send(text)
         except:
             raise
         return msg
 
     @staticmethod
     def format_patch(repo, cog, log):
-        header = "Patch Notes for %s/%s" % (repo, cog)
-        line = "=" * len(header)
+        header = 'Patch Notes for %s/%s' % (repo, cog)
+        line = '=' * len(header)
         if log:
             return '\n'.join((header, line, log))
 
 def check_folders():
-    if not os.path.exists("data/downloader"):
+    if not os.path.exists('data/downloader'):
         print('Making repo downloads folder...')
         os.mkdir('data/downloader')
 
 def check_files():
     repos = \
-        {'community': {'url': "https://github.com/Twentysix26/Red-Cogs.git"}}
+        {'community': {'url': 'https://github.com/Twentysix26/Red-Cogs.git'}}
 
-    f = "data/downloader/repos.json"
+    f = 'data/downloader/repos.json'
     if not dataIO.is_valid_json(f):
-        print("Creating default data/downloader/repos.json")
+        print('Creating default data/downloader/repos.json')
         dataIO.save_json(f, repos)
 
 def setup(bot):

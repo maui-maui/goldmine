@@ -10,8 +10,8 @@ from datetime import datetime
 import aiohttp
 import async_timeout
 import discord
-from util.commands.bot import Context, StringView
-import util.commands as commands
+from discord.ext.commands.bot import Context, StringView
+from discord.ext import commands
 from util.perms import echeck_perms
 import util.dynaimport as di
 pyscreenshot = di.load('pyscreenshot')
@@ -38,12 +38,12 @@ class SelfbotGoodies(Cog):
         if self.web_render:
             self.web_render.app.quit()
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def screenshot(self, ctx):
         """Take a screenshot.
         Usage: screenshot"""
         echeck_perms(ctx, ('bot_owner',))
-        if have_pil and (sys.platform not in ['linux', 'linux2']):
+        if have_pil and sys.platform not in ['linux', 'linux2']:
             grabber = ImageGrab
         else:
             grabber = pyscreenshot
@@ -51,26 +51,21 @@ class SelfbotGoodies(Cog):
         img_bytes = io.BytesIO()
         image.save(img_bytes, format='PNG')
         img_bytes.seek(0)
-        await self.bot.upload(img_bytes, filename='screenshot.png', content='This is *probably* what my screen looks like right now.')
+        await ctx.send('This is *probably* what my screen looks like right now.', file=discord.File(img_bytes, 'screenshot.png'))
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def render(self, ctx, *, webpage: str):
         """Render a webpage to image.
         Usage: render [url]"""
         echeck_perms(ctx, ('bot_owner',))
-        await self.bot.say(':warning: Not yet working.'
-                           'Type `yes` within 6 seconds to proceed and maybe crash your bot.')
-        if not (await self.bot.wait_for_message(timeout=6.0, author=ctx.message.author,
-                                                channel=ctx.message.channel,
-                                                check=lambda m: m.content.lower().startswith('yes'))):
+        await ctx.send(':warning: Not working. '
+                           'Type `yes` quickly if you\'re fine with this crashing.')
+        if not (await self.bot.wait_for('message', timeout=6.0,
+                                        check=lambda m: m.content.lower().startswith('yes') and m.author == ctx.author and m.channel == ctx.channel)):
             return
-        try:
-            self.web_render = scr.Screenshot()
-        except ImportError:
-            await self.bot.say('The bot owner hasn\'t enabled this feature!')
-            return
+        self.web_render = scr.Screenshot()
         image = self.web_render.capture(webpage)
-        await self.bot.upload(io.BytesIO(image), filename='webpage.png')
+        await ctx.send(file=discord.File(io.BytesIO(image), 'webpage.png'))
 
     async def on_not_command(self, msg):
         if msg.author.id != self.bot.user.id: return
@@ -91,26 +86,16 @@ class SelfbotGoodies(Cog):
             except Exception as e:
                 self.logger.error('Substititons: Regexp error. ' + sub)
         if content != msg.content:
-            await self.bot.edit_message(msg, content)
+            await msg.edit(content=content)
         if 'Google' in self.bot.cogs:
             g_matched = re.findall(self.google_re, content)
             if g_matched:
                 for match in g_matched:
-                    query = match
-                    view = StringView('%prefix%google ' + query)
-                    view.skip_string('%prefix%')
-                    cmd = view.get_word()
-                    tmp = {
-                        'bot': self.bot,
-                        'invoked_with': cmd,
-                        'message': msg,
-                        'view': view,
-                        'prefix': '%prefix%'
-                    }
-                    ctx = Context(**tmp)
-                    await self.bot.cogs['Google'].google.invoke(ctx)
+                    msg.content = 'Pgoogle ' + match
+                    ctx = self.bot.get_context(msg, 'P')
+                    await self.bot.invoke(ctx)
 
-    @commands.group(pass_context=True, aliases=['subs'])
+    @commands.group(aliases=['subs'])
     async def sub(self, ctx):
         """Message substitution manager.
         Usage: sub {stuff}"""
@@ -119,48 +104,48 @@ class SelfbotGoodies(Cog):
             await self.bot.send_cmd_help(ctx)
 
     @sub.command(aliases=['new', 'create', 'make'])
-    async def add(self, replace: str, *, sub: str):
+    async def add(self, ctx, replace: str, *, sub: str):
         """Add a substitution.
         Usage: sub add [from] [to]"""
         if replace not in self.bot.store['subs']:
             self.bot.store['subs'][replace] = sub
-            await self.bot.say('Substitution added!')
+            await ctx.send('Substitution added!')
         else:
-            await self.bot.say(':warning: `' + replace + '` is already a substitution!')
+            await ctx.send(':warning: `' + replace + '` is already a substitution!')
 
     @sub.command(aliases=['ls'])
-    async def list(self):
+    async def list(self, ctx):
         """List the substitutions.
         Usage: sub list"""
         if len(self.bot.store['subs']) >= 1:
             pager = commands.Paginator(prefix='', suffix='')
             pager.add_line('Here are your substitutions:')
             for idx, (name, replacement) in enumerate(self.bot.store['subs'].items()):
-                pager.add_line('`#' + str(idx + 1) + '`: ' + name + ' **→** ' + replacement)
+                pager.add_line('`#' + str(idx + 1) + '`: ' + name + ' → ' + replacement)
             for page in pager.pages:
-                await self.bot.say(page)
+                await ctx.send(page)
         else:
-            await self.bot.say('You don\'t have any substitutions!')
+            await ctx.send('You don\'t have any substitutions!')
 
     @sub.command(aliases=['mod', 'rewrite', 'change'])
-    async def edit(self, name: str, *, content: str):
+    async def edit(self, ctx, name: str, *, content: str):
         """Edit a substitution.
         Usage: sub edit [substitution] [new content]"""
         try:
             self.bot.store['subs'][name] = content
-            await self.bot.say('Edited substitution `' + name + '`.')
+            await ctx.send('Edited substitution `' + name + '`.')
         except KeyError:
-            await self.bot.say('No such substitution.')
+            await ctx.send('No such substitution.')
 
     @sub.command(aliases=['delete', 'del', 'rm'])
-    async def remove(self, *, name: str):
+    async def remove(self, ctx, *, name: str):
         """Remove a substitution.
         Usage: sub remove [substitution]"""
         try:
             del self.bot.store['subs'][name]
-            await self.bot.say('Deleted substitution `' + name + '`.')
+            await ctx.send('Deleted substitution `' + name + '`.')
         except KeyError:
-            await self.bot.say('No such substitution.')
+            await ctx.send('No such substitution.')
 
     def get_nitro_embed(self):
         emb = discord.Embed(color=0x505e80, description='Discord Nitro is **required** to view this message.')
@@ -173,52 +158,50 @@ class SelfbotGoodies(Cog):
         return emb
 
     @commands.command(hidden=True)
-    async def nitro_sendto(self, *, channel: discord.Channel):
+    async def nitro_sendto(self, ctx, *, channel: discord.TextChannel):
         """Send a fake Nitro message embed to a channel.
         Usage: nitro_sendto [channel]"""
         emb = self.get_nitro_embed()
-        await self.bot.send_typing(channel)
-        await asyncio.sleep(random.uniform(0.1, 1.2))
-        await self.bot.send_message(channel, embed=emb)
+        with channel.typing():
+            await asyncio.sleep(random.uniform(0.25, 1.2), loop=self.loop)
+            await channel.send(embed=emb)
 
-    @commands.command(pass_context=True)
-    async def add_emote(self, ctx, _emote: str):
-        """Add a Twitch, FrankerFaceZ, BetterTTV, or Discord emote to the current server.
+    @commands.command()
+    async def add_emote(self, ctx, emote: str):
+        """Add a Twitch, FrankerFaceZ, BetterTTV, or Discord emote to the current guild.
         Usage: add_emote [name of emote]"""
         echeck_perms(ctx, ('bot_owner',))
-        emote = _emote.replace(':', '')
-        ext = 'png'
-        async with aiohttp.ClientSession(loop=self.loop) as session:
-            with async_timeout.timeout(13):
+        emote = emote.replace(':', '')
+        with async_timeout.timeout(12):
+            try:
+                async with self.bot.cog_http.get('https://static-cdn.jtvnw.net/emoticons/v1/' + str(self.bot.emotes['twitch'][emote]['image_id']) + '/1.0') as resp:
+                    emote_img = await resp.read()
+            except KeyError: # let's try frankerfacez
                 try:
-                    async with session.get('https://static-cdn.jtvnw.net/emoticons/v1/' + str(self.bot.emotes['twitch'][emote]['image_id']) + '/1.0') as resp:
+                    async with self.bot.cog_http.get('https://cdn.frankerfacez.com/emoticon/' + str(self.bot.emotes['ffz'][emote]) + '/1') as resp:
                         emote_img = await resp.read()
-                except KeyError: # let's try frankerfacez
+                except KeyError: # let's try BetterTTV
                     try:
-                        async with session.get('https://cdn.frankerfacez.com/emoticon/' + str(self.bot.emotes['ffz'][emote]) + '/1') as resp:
+                        async with self.bot.cog_http.get(self.bot.emotes['bttv'][emote]) as resp:
                             emote_img = await resp.read()
-                    except KeyError: # let's try BetterTTV
-                        try:
-                            async with session.get(self.bot.emotes['bttv'][emote]) as resp:
-                                emote_img = await resp.read()
-                        except KeyError: # let's try Discord
-                            await self.bot.say('**No such emote!** I can fetch from Twitch, FrankerFaceZ, BetterTTV, or Discord (soon).')
-                            return False
-        result = await self.bot.create_custom_emoji(ctx.message.server, name=emote, image=emote_img)
-        await self.bot.say('Added. ' + str(result))
+                    except KeyError: # let's try Discord
+                        await ctx.send('**No such emote!** I can fetch from Twitch, FrankerFaceZ, BetterTTV, or Discord (soon).')
+                        return False
+        result = ctx.guild.create_custom_emoji(emote, emote_img)
+        await ctx.send('Added. ' + str(result))
 
-    @commands.command(pass_context=True)
+    @commands.command()
     async def gemote_msg(self, ctx, *, text: str):
-        """Send a message with emotes, bypassing the cross server emote restriction.
+        """Send a message with emotes, bypassing the cross guild emote restriction.
         Usage: gemote_msg [message]"""
         echeck_perms(ctx, ('bot_owner',))
         emb = discord.Embed(color=random.randint(1, 255**3-1))
         final = text[:]
-        for emoji in self.bot.get_all_emojis():
+        for emoji in self.bot.emojis:
             final = final.replace(':%s:' % emoji.name, str(emoji).replace(':', ';_!:'))
         final = final.replace(';_!:', ':')
         emb.description = final
-        await self.bot.say(embed=emb)
+        await ctx.send(embed=emb)
 
 def setup(bot):
     if 'subs' not in bot.store:

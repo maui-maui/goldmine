@@ -1,5 +1,35 @@
 from discord.ext.commands.errors import *
 
+def quoted_word(view):
+    current = view.current
+
+    if current is None:
+        return None
+
+    result = [current]
+
+    while not view.eof:
+        current = view.get()
+        if not current:
+            return ''.join(result)
+
+        if current == '\\':
+            next_char = view.get()
+            if not next_char:
+                # if we aren't then we just let it through
+                return ''.join(result)
+
+            # different escape character, ignore it
+            view.undo()
+            result.append(current)
+            continue
+
+        if current.isspace():
+            # end of word found
+            return ''.join(result)
+
+        result.append(current)
+
 del CommandOnCooldown
 class CommandOnCooldown(CommandError):
     """Exception raised when the command being invoked is on cooldown.

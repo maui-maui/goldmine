@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import aiohttp
 import async_timeout
-import util.commands as commands
+from discord.ext import commands
 from util.perms import echeck_perms
 from util.func import async_write
 from .cog import Cog
@@ -28,17 +28,13 @@ class Logger(Cog):
         if not self.active: return
         try:
             self.log[msg.channel.id].append(msg.content)
-            for a in msg.attachments[:2]:
-                with async_timeout.timeout(5):
-                    async with aiohttp.request('GET', a['url']) as r:
-                        data = await r.read()
-                path = os.path.join(self.bot.dir, 'data', 'logger', 'attachments', msg.channel.id)
+            if msg.attachments:
+                path = os.path.join(self.bot.dir, 'data', 'logger', 'attachments', str(msg.channel.id))
                 timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-                file = os.path.join(path, timestamp + '-' + a['filename'][:100])
+                file = os.path.join(path, timestamp + '-' + msg.attachments[0].filename[:75])
                 if not os.path.exists(path):
                     os.makedirs(path)
-                await async_write(os.path.join(path, file), 'wb+', data, self.loop)
-                del data
+                msg.attachments[0].save(os.path.join(path, file))
         except (KeyError, AttributeError):
             self.log[msg.channel.id] = [msg.content]
 
@@ -50,7 +46,7 @@ class Logger(Cog):
             lct = len(ct)
             t_len += lct
             if lct:
-                coro = async_write(os.path.join(self.bot.dir, 'data', 'logger', channel + '.log'),
+                coro = async_write(os.path.join(self.bot.dir, 'data', 'logger', str(channel) + '.log'),
                                    'ab', b'\n' + ct.encode('utf-8'), self.loop)
                 if background:
                     self.loop.create_task(coro)
@@ -67,7 +63,7 @@ class Logger(Cog):
             await asyncio.sleep(self.int)
             await self.write()
 
-    @commands.group(pass_context=True, aliases=['chatlog', 'log'], name='logger')
+    @commands.group(aliases=['chatlog', 'log'], name='logger')
     async def cmd_logger(self, ctx):
         """Control panel for the logger.
         Usage: logger {stuff}"""
@@ -76,42 +72,42 @@ class Logger(Cog):
             await self.bot.send_cmd_help(ctx)
 
     @cmd_logger.command(aliases=['commit', 'save'], name='write')
-    async def cmd_write(self):
+    async def cmd_write(self, ctx):
         """Commit all the logs to disk.
         Usage: logger write"""
-        await self.bot.say('**Writing...**')
+        await ctx.send('**Writing...**')
         s = await self.write()
-        await self.bot.say('**Wrote `%s` characters**' % str(s))
+        await ctx.send('**Wrote `%s` characters**' % str(s))
 
     @cmd_logger.command()
-    async def wstart(self):
+    async def wstart(self, ctx):
         """Start the 6-min writer task.
         Usage: logger wstart"""
         self.w_task = self.loop.create_task(self.writer())
-        await self.bot.say('**Started 6-min writer task!**')
+        await ctx.send('**Started 6-min writer task!**')
 
     @cmd_logger.command()
-    async def wstop(self):
+    async def wstop(self, ctx):
         """Stop the 6-min writer task.
         Usage: logger wstop"""
         self.w_task.cancel()
-        await self.bot.say('**Stopped 6-min writer task!**')
+        await ctx.send('**Stopped 6-min writer task!**')
 
     @cmd_logger.command()
-    async def start(self):
+    async def start(self, ctx):
         """Start logging messages.
         Usage: logger start"""
         self.active = True
-        await self.bot.say('**Now logging messages!**')
+        await ctx.send('**Now logging messages!**')
 
     @cmd_logger.command()
-    async def stop(self):
+    async def stop(self, ctx):
         """Stop logging messages.
         Usage: logger stop"""
         self.active = False
-        await self.bot.say('**No longer logging messages!**')
+        await ctx.send('**No longer logging messages!**')
 
-    @cmd_logger.command(pass_context=True)
+    @cmd_logger.command()
     async def clast(self, ctx, *count: int):
         """Get the last messages from this channel.
         Usage: logger clast {count}"""
@@ -119,7 +115,7 @@ class Logger(Cog):
             n = 12
         else:
             n = count[0]
-        await self.bot.say('\n'.join(self.log[ctx.message.channel.id][-n:]))
+        await ctx.send('\n'.join(self.log[ctx.channel.id][-n:]))
 
 def setup(bot):
     log_dir = os.path.join(bot.dir, 'data', 'logger')

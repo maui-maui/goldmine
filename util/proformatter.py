@@ -2,8 +2,8 @@
 import itertools
 import inspect
 
-from util.commands.formatter import HelpFormatter, Paginator
-from util.commands.core import Command
+from discord.ext.commands.formatter import HelpFormatter, Paginator
+from discord.ext.commands.core import Command
 
 class RichFormatter(HelpFormatter):
     def _add_subcommands_to_page(self, max_width, commands):

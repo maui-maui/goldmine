@@ -21,9 +21,10 @@ class Comic(object):
         self.explain_url = EXPLAIN_URL + str(number)
 
     async def async_init(self):
-        with async_timeout.timeout(6.5):
-            async with aiohttp.request('GET', self.jlink) as r:
-                xkcd = await r.text()
+        async with aiohttp.ClientSession() as session:
+            with async_timeout.timeout(6.5):
+                async with session.get(self.jlink) as r:
+                    xkcd = await r.text()
         data = jloads(xkcd)
         self.title = data['safe_title']
         self.alt_text = data['alt']
@@ -32,17 +33,19 @@ class Comic(object):
         self.image_name = self.image_link[index + LINK_OFFSET:]
 
     async def fetch(self):
-        with async_timeout.timeout(6.5):
-            async with aiohttp.request('GET', self.image_link) as r:
-                return await r.read()
+        async with aiohttp.ClientSession() as session:
+            with async_timeout.timeout(6.5):
+                async with session.get(self.image_link) as r:
+                    return await r.read()
 
 class InvalidComic(Exception):
     pass
 
 async def latest_comic_num():
-    with async_timeout.timeout(6.5):
-        async with aiohttp.request('GET', 'http://xkcd.com/info.0.json') as r:
-            xkcd = await r.text()
+    async with aiohttp.ClientSession() as session:
+        with async_timeout.timeout(6.5):
+            async with session.get('http://xkcd.com/info.0.json') as r:
+                xkcd = await r.text()
     return jloads(xkcd)['num']
 
 async def random_comic():

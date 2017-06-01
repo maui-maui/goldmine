@@ -71,15 +71,16 @@ def login_fail_loop(loop, bot):
         print('That\'s not a valid choice, try again!')
         login_fail_loop(loop, bot)
         return
+
 def runbot(loop, bot):
     """Start the bot and handle Ctrl-C."""
     try:
         try:
             loop.run_until_complete(bot.start(*bot_token, bot=is_bot))
+            bot.cog_http.close()
         except discord.errors.LoginFailure:
             print('''Hmm... I\'m having trouble logging into Discord.
-This usually means you revoked your token, or gave an invalid token.
-In selfbot mode, it usually means you changed your password, or typed it wrong.''')
+This usually means you revoked your token, or gave an invalid token.''')
             login_fail_loop(loop, bot)
             return
     except KeyboardInterrupt:
@@ -98,7 +99,7 @@ def init_bot():
     logger.info('Init: Loading cogs')
     try:
         with open('disabled_cogs.txt', 'r') as f:
-            disabled_cogs = [i.replace('\r', '').replace('\n', '') for i in f.readlines()]
+            disabled_cogs = [i.rstrip() for i in f.readlines()]
     except FileNotFoundError:
         disabled_cogs = []
     for cog in default_cogs:
@@ -115,7 +116,7 @@ def init_bot():
     logger.info('Init: Loading extra cogs')
     try:
         with open('cogs.txt', 'r') as f:
-            for cog in [i.replace('\r', '').replace('\n', '').replace(' ', '_') for i in f.readlines()]:
+            for cog in [i.rstrip().replace(' ', '_') for i in f.readlines()]:
                 if cog: # for empty newlines
                     logger.info('Init: Loading extra cog: ' + cog)
                     try:

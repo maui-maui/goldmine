@@ -4,7 +4,7 @@ import math
 import re
 from collections import OrderedDict
 import discord
-import util.commands as commands
+from discord.ext import commands
 from util.pykemon.api import get as pokeget
 from util.pykemon import ResourceNotFoundError
 from util.pykemon.request import _request, Description
@@ -13,11 +13,10 @@ from .cog import Cog
 class Pokemon(Cog):
     """Cute little Pokémon!"""
 
-    @commands.command(pass_context=True, aliases=['pokeball', 'pokedex'])
+    @commands.command(aliases=['pokeball', 'pokedex'])
     async def pokemon(self, ctx, *pokemon_name: str):
         """Get the info about a Pokémon!
         Usage: pokemon {name or id}"""
-        bot = self.bot
         d_lines = []
         if pokemon_name:
             p_name = pokemon_name[0].lower()
@@ -27,7 +26,7 @@ class Pokemon(Cog):
                 else:
                     target = await pokeget(pokemon_id=p_name)
             except (ResourceNotFoundError, ValueError):
-                await bot.say('No such **pokemon**! Try a **Pokédex entry**. (Needs to be **name** or **ID**.)')
+                await ctx.send('No such **pokemon**! Try a **Pokédex entry**. (Needs to be **name** or **ID**.)')
                 return
         else:
             count = 709 # current count of pokemon in api v1
@@ -40,7 +39,7 @@ class Pokemon(Cog):
         desc = Description(desc_json)
         em_data = {
             'title': target.name.replace('-', ' '),
-            'color': random.randint(0, 256**3-1)
+            'color': random.randint(0, 255**3-1)
         }
         essentials = ['Description', 'National ID', 'Health', 'Height', 'Weight', 'Attack', 'Defense', 'Type(s)']
         skipped = ['Moves', 'Effort Value Yield', 'Egg Groups', 'Total', 'Growth Rate', 'Catch Rate', 'Male-Female Ratio', 'Egg Cycles']
@@ -88,10 +87,10 @@ class Pokemon(Cog):
         for key, value in em_fields.items():
             if key in essentials:
                 emb.add_field(name=key, value=value)
-        emb.set_thumbnail(url='http://pokeapi.co/media/img/{0}.png'.format(str(target.id)))
-        emb.set_image(url='http://pokeapi.co/media/img/{0}.png'.format(str(target.id)))
+        emb.set_thumbnail(url='http://pokeapi.co/media/img/{0}.png'.format(target.id))
+        emb.set_image(url='http://pokeapi.co/media/img/{0}.png'.format(target.id))
         emb.set_author(name=target.name.replace('-', ' '), icon_url='http://pokeapi.co/media/img/{0}.png'.format(str(target.id)))
-        await bot.say(embed=emb)
+        await ctx.send(embed=emb)
 
 def setup(bot):
     """Set up the cog."""

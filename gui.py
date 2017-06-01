@@ -37,7 +37,7 @@ It was designed to be fast and compact from the ground up.
  <li>Everything that Discord has</li>
 </ul>
 
-See Dragon5232's blog at <a href='https://blog.khronodragon.com/'>blog.khronodragon.com</a>
+See Dragon5232's blog at <a href='https://khronodragon.com/'>khronodragon.com</a>
 for more info.
 <br><br>
 
@@ -313,9 +313,9 @@ class DiscordMain(QWidget):
         self.setGeometry(200, 200, 1024, 768)
         self.setWindowTitle('Discordian')
         self.main_wrap = QHBoxLayout()
-        self.server_list = QListView()
-        self.server_model = QStringListModel()
-        self.server_list.setModel(self.server_model)
+        self.guild_list = QListView()
+        self.guild_model = QStringListModel()
+        self.guild_list.setModel(self.guild_model)
         self.channel_list = QListView()
         self.channel_model = QStringListModel()
         self.channel_list.setModel(self.channel_model)
@@ -326,12 +326,12 @@ class DiscordMain(QWidget):
         self.font.setStyleHint(QFont.Monospace)
         self.font.setFixedPitch(True)
         self.msg_view.setFont(self.font)
-        self.main_wrap.addWidget(self.server_list)
+        self.main_wrap.addWidget(self.guild_list)
         self.main_wrap.addWidget(self.channel_list)
         self.main_wrap.addWidget(self.msg_view)
         btn = QPushButton('test msg')
-        #btn.clicked.connect(lambda: self.parent.discord.send_message(self.parent.discord.gen_chan, 'test message'))
-        btn.clicked.connect(lambda: self.parent.discord.bot.loop.create_task(self.parent.discord.bot.send_message(self.parent.discord.gen_chan, 'hmmm i wonder if this works better')))
+        #btn.clicked.connect(lambda: self.parent.discord.gen_chan.send('test message'))
+        btn.clicked.connect(lambda: self.parent.discord.bot.loop.create_task(self.parent.discord.gen_chan.send('hmmm i wonder if this works better')))
         self.main_wrap.addWidget(btn)
         self.main_grid = QGridLayout()
         self.main_grid.addLayout(self.main_wrap, 0, 1)
@@ -390,8 +390,8 @@ class DiscordInterface:
         @self.bot.event
         async def on_ready():
             print('Discord component ready!')
-            self.gen_chan = {c.name: c for c in {s.name: s for s in self.bot.servers}['Codes \'n Skillz Hideout'].channels}['general']
-            await self.bot.send_message(self.gen_chan, '**Discordian** GUI started.')
+            self.gen_chan = {c.name: c for c in {s.name: s for s in self.bot.guilds}['Codes \'n Skillz Hideout'].channels}['general']
+            await self.gen_chan.send('**Discordian** GUI started.')
         await self.bot.start(*token.bot_token)
         self.loop.stop()
 '''

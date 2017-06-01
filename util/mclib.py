@@ -25,7 +25,7 @@ def pack_data(data):
     return pack_varint(len(data)) + data
 
 def get_info(host, port):
-    """Get server info in JSON format."""
+    """Get guild info in JSON format."""
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     conn.connect((host, port))
     pinged = False

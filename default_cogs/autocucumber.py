@@ -4,7 +4,7 @@ import re
 import copy
 import aiohttp
 import async_timeout
-import util.commands as commands
+from discord.ext import commands
 from collections import Counter
 from util.autocorrect import Corrector
 from util.perms import echeck_perms
@@ -36,7 +36,7 @@ class AutoCucumber(Cog):
 
     async def init_corrector(self):
         with async_timeout.timeout(60):
-            async with aiohttp.request('GET', 'http://norvig.com/big.txt') as r:
+            async with self.bot.cog_http.get('http://norvig.com/big.txt') as r:
                 text = await r.text()
         with open(os.path.join(self.bot.dir, 'data', 'autocorrect.txt'), 'a') as f:
             f.write(text)
@@ -73,18 +73,18 @@ class AutoCucumber(Cog):
             raw_final = final.replace('\u200b', '').replace('\n', '')
             raw_msg_content = msg.content.replace('\u200b', '').replace('\n', '')
             if raw_final != raw_msg_content:
-                await self.bot.edit_message(msg, final)
+                await msg.edit(content=final)
 
-    @commands.command(pass_context=True, aliases=['autocucumber', 'cucumber', 'ac'])
+    @commands.command(aliases=['autocucumber', 'cucumber', 'ac'])
     async def tac(self, ctx):
         """Toggle AutoCucumber.
         Usage: tac"""
         echeck_perms(ctx, ('bot_owner',))
         self.enabled = not self.enabled
-        await self.bot.say('Autocucumber is now ' + ('on.' if self.enabled else 'off.'))
+        await ctx.send('Autocucumber is now ' + ('on.' if self.enabled else 'off.'))
 
     @commands.command(aliases=['spellcheck', 'autocorrect'])
-    async def correct(self, *, message: str):
+    async def correct(self, ctx, *, message: str):
         """Correct a message.
         Usage: correct [message]"""
         words = re.findall(self.word_re, message)
@@ -104,8 +104,7 @@ class AutoCucumber(Cog):
             else:
                 result += self.corrector.correct(word) + ' '
         final = result[0].upper() + result[1:]
-        await self.bot.reply('correction result: ' + final)
+        await ctx.send(ctx.mention + ' Correction result: ' + final)
 
 def setup(bot):
     bot.add_cog(AutoCucumber(bot))
-

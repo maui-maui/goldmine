@@ -5,7 +5,6 @@
 This is the request factory for pykemon.
 All API calls made to the PokeAPI website go from here."""
 
-import asyncio
 import util.json as json
 import aiohttp
 import async_timeout
@@ -38,7 +37,7 @@ classes = {
 async def _request(uri):
     """Just a wrapper around the http library"""
 
-    async with aiohttp.ClientSession(loop=asyncio.get_event_loop()) as session:
+    async with aiohttp.ClientSession() as session:
         with async_timeout.timeout(10):
             async with session.get(uri) as r:
                 if r.status == 200:

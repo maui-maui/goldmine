@@ -1,7 +1,7 @@
 """The ever so famous help cog."""
 import random
 import discord
-import util.commands as commands
+from discord.ext import commands
 from util.perms import or_check_perms
 from .cog import Cog
 
@@ -11,30 +11,21 @@ class Help(Cog):
         super().__init__(bot)
         self.char_limit = 3500
 
-    @commands.command(pass_context=True, aliases=['halp', 'phelp', 'phalp'])
+    @commands.command(aliases=['halp', 'phelp', 'phalp'])
     async def help(self, ctx, *commands_or_cogs: str):
         """Show the bot's help.
         Usage: help"""
         if ctx.invoked_with.startswith('p'):
-            or_check_perms(ctx, ['bot_admin', 'manage_server', 'manage_messages', 'manage_channels'])
-        try:
-            if ctx.message.server.me:
-                target = ctx.message.server.me
-            else:
-                target = self.bot.user
-        except AttributeError:
-            target = self.bot.user
-        au = target.avatar_url
-        avatar_link = (au if au else target.default_avatar_url)
+            or_check_perms(ctx, ['bot_admin', 'manage_guild', 'manage_messages', 'manage_channels'])
         pages = []
         cog_assign = {}
         fields = {}
         chars = 0
-        emb = discord.Embed(color=random.randint(0, 256**3-1))
+        emb = discord.Embed(color=random.randint(0, 255**3-1))
         emb.title = 'Bot Help'
-        emb.set_author(name=target.display_name, icon_url=avatar_link)
+        emb.set_author(name=ctx.me.display_name, icon_url=ctx.me.avatar_url)
         if not commands_or_cogs:
-            for name, cmd in self.bot.commands.items():
+            for name, cmd in self.bot.all_commands.items():
                 if cmd.cog_name:
                     cog = cmd.cog_name
                 else:
@@ -60,7 +51,7 @@ class Help(Cog):
                 if litem in lcogs:
                     did_names = []
                     field = []
-                    for cmd in self.bot.commands.values():
+                    for cmd in self.bot.all_commands.values():
                         if cmd.cog_name == cog_names[litem]:
                             if cmd.name not in did_names:
                                 if not cmd.hidden:
@@ -68,8 +59,8 @@ class Help(Cog):
                                     did_names.append(cmd.name)
                     fields[cog_names[litem]] = field
                     item_done = True
-                if litem in self.bot.commands:
-                    cmd = self.bot.commands[litem]
+                if litem in self.bot.all_commands:
+                    cmd = self.bot.all_commands[litem]
                     field = '`' + ctx.prefix
                     if cmd.aliases:
                         field += '[' + cmd.name + '|' + '|'.join(cmd.aliases) + ']`'
@@ -98,9 +89,8 @@ class Help(Cog):
                         emb.add_field(name=cog, value=page)
             else:
                 pages.append(emb)
-                emb = discord.Embed(color=random.randint(0, 256**3-1))
-                emb.title = 'Bot Help'
-                emb.set_author(name=target.display_name, icon_url=avatar_link)
+                emb = discord.Embed(color=random.randint(0, 255**3-1))
+                emb.set_author(name=ctx.me.display_name, icon_url=ctx.me.avatar_url)
                 chars = 0
                 if len(content) <= 1024:
                     emb.add_field(name=cog, value=content)
@@ -114,25 +104,24 @@ class Help(Cog):
         self.logger.info('Generated help, ending with ' + str(chars) + ' chars')
         if not pages:
             pages.append(emb)
-        pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
-        destination = ctx.message.author
+        destination = ctx.author
         if chars < 1000:
-            destination = ctx.message.channel
+            destination = ctx.channel
         if len(pages) > 1:
-            destination = ctx.message.author
+            destination = ctx.author
         if ctx.invoked_with.startswith('p'):
-            destination = ctx.message.channel
+            destination = ctx.channel
         if self.bot.selfbot:
-            destination = ctx.message.channel
+            destination = ctx.channel
         for page in pages:
             try:
-                await self.bot.send_message(destination, embed=page)
+                await destination.send(embed=page)
             except discord.HTTPException:
                 self.bot._last_help_embeds = pages
-                await self.bot.send_message(destination, 'Error sending embed. Cogs/Commands: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
-        if destination == ctx.message.author:
-            if not ctx.message.channel.is_private:
-                await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
+                await destination.send('Error sending embed. Cogs/Commands: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
+        if destination == ctx.author:
+            if isinstance(ctx.channel, discord.abc.GuildChannel):
+                await ctx.send(ctx.mention + ' **__I\'ve sent you my help, please check your DMs!__**')
 
 def setup(bot):
     bot.add_cog(Help(bot))

@@ -12,19 +12,20 @@ import math
 import logging
 import async_timeout
 import discord
+import aiohttp
 import util.json as json
-import util.commands as commands
+from discord.ext import commands
 from contextlib import suppress
 from fnmatch import filter
 from datetime import datetime
-from .commands.bot import Context, StringView, CommandError, CommandNotFound
+from discord.ext.commands.bot import StringView, CommandError, CommandNotFound
 from convert_to_old_syntax import cur_dir, rc_files
 from properties import storage_backend
-from util.datastore import DataStore
-from util.const import *
-from util.func import _get_variable
-from util.fake import FakeObject
-from util.token import is_bot
+from .datastore import DataStore
+from .const import *
+from .fake import FakeObject
+from .token import is_bot
+from .ext_context import ExtContext
 import distutils.dir_util
 import util.token as token
 
@@ -42,132 +43,109 @@ except ImportError:
     if sys.platform in ['linux', 'linux2', 'darwin']:
         import resource
 
-class GoldBot(commands.Bot):
+class GoldBot(commands.AutoShardedBot):
     """The brain of the bot, GoldBot."""
 
     def __init__(self, **options):
         self.logger = logging.getLogger('bot')
-        self.is_restart = False
         self.loop = asyncio.get_event_loop()
+        self.cog_http = aiohttp.ClientSession(loop=self.loop)
         self.perm_mask = '1609825363' # 66321741 = full
-        self.game = {
-            'name': 'with you',
-            'type': 0,
-            'url': 'https://www.twitch.tv/'
-        }
-        self.status = 'online'
-        self.presence = {}
-        self.git_rev = 'Couldn\'t fetch'
-        try:
-            self.git_rev = subprocess.check_output(['git', 'describe', '--always']).decode('utf-8')
-        except Exception:
-            pass
         self.start_time = datetime.now()
         self.dir = os.path.dirname(os.path.abspath(sys.modules['__main__'].core_file))
+
         self.storepath = os.path.join(self.dir, 'storage.')
         if storage_backend not in DataStore.exts:
             self.logger.critical('Invalid storage backend specified, quitting!')
+
         self.store = None
         if opath:
             self.store = DataStore(storage_backend, path=opath, join_path=False)
         else:
             self.store = DataStore(storage_backend)
-        self.storage = None
-        if storage_backend == 'leveldb':
-            import plyvel
-            self.storage = plyvel.load()
-        self.modules = sys.modules
-        self.dc_ver = discord.version_info
-        self.lib_version = '.'.join([str(i) for i in self.dc_ver])
+
+        self.lib_version = '.'.join(map(str, discord.version_info))
         self.store_writer = self.loop.create_task(self.store.commit_task())
-        self.have_resource = False
-        if sys.platform in ['linux', 'linux2', 'darwin']:
-            self.have_resource = True
+        self.have_resource = sys.platform in ['linux', 'linux2', 'darwin']
+
         self.loop.create_task(self.update_emote_data())
         self.emotes = {}
-        self.dl_cogs_path = os.path.join(self.dir, 'cogs')
-        self.ex_cogs_path = os.path.join(self.dir, 'cogs.txt')
-        self.dis_cogs_path = os.path.join(self.dir, 'disabled_cogs.txt')
-        self.init_dl_cogs_path = os.path.join(self.dir, 'cogs', '__init__.py')
-        self.data_cogs_path = os.path.join(self.dir, 'data')
-        self.cog_json_cogs_path = os.path.join(self.dir, 'data', 'cogs.json')
-        self.cogs_cog_py_path = os.path.join(self.dir, 'cogs', 'cog.py')
+
+        path_templates = {
+            'dl': ('cogs',),
+            'ex': ('cogs.txt',),
+            'dis': ('disabled_cogs.txt',),
+            'init_dl': ('cogs', '__init__.py'),
+            'data': ('data',),
+            'cog_json': ('data', 'cogs.json'),
+            'cog_py': ('cogs', 'cog.py')
+        }
+        paths = {}
+        for path in path_templates:
+            paths[path] = os.path.join(self.dir, *path_templates[path])
+
         for name in ['dl', 'data']: # Dirs
-            p = getattr(self, name + '_cogs_path')
+            p = paths[name]
             with suppress(OSError):
                 if not os.path.exists(p):
                     os.makedirs(p)
         for name in ['ex', 'dis']: # Files
-            p = getattr(self, name + '_cogs_path')
+            p = paths[name]
             with suppress(OSError):
                 if not os.path.exists(p):
                     f = open(p, 'a')
                     f.close()
         with suppress(OSError):
-            if not os.path.exists(self.init_dl_cogs_path):
-                with open(self.init_dl_cogs_path, 'w+') as f:
+            if not os.path.exists(paths['init_dl']):
+                with open(paths['init_dl'], 'w+') as f:
                     f.write('"""Placeholder to make Python recognize this as a module."""\n')
         with suppress(IOError):
-            if not os.path.exists(self.cogs_cog_py_path):
-                shutil.copy2(os.path.join(self.dir, 'default_cogs', 'cog.py'), self.cogs_cog_py_path)
+            if not os.path.exists(paths['cog_py']):
+                shutil.copy2(os.path.join(self.dir, 'default_cogs', 'cog.py'), paths['cog_py'])
+
         self.disabled_cogs = []
-        with open(self.dis_cogs_path, 'r') as f:
-            self.disabled_cogs = [c.replace('\n', '').replace('\r', '') for c in f.readlines()]
+        with open(paths['dis'], 'r') as f:
+            self.disabled_cogs = [c.rstrip() for c in f.readlines()]
+
         self.enabled_cogs = []
-        with open(self.ex_cogs_path, 'r') as f:
-            self.enabled_cogs = [c.replace('\n', '').replace('\r', '') for c in f.readlines()]
-        if not os.path.exists(self.cog_json_cogs_path):
-            with open(self.cog_json_cogs_path, 'a') as f:
+        with open(paths['ex'], 'r') as f:
+            self.enabled_cogs = [c.rstrip() for c in f.readlines()]
+
+        if not os.path.exists(paths['cog_json']):
+            with open(paths['cog_json'], 'a') as f:
                 f.write('{}')
+
         if 'nobroadcast' not in self.store.store:
-            self.store.store['nobroadcast'] = ['110373943822540800']
+            self.store.store['nobroadcast'] = [110373943822540800]
         if 'owner_messages' not in self.store.store:
             self.store.store['owner_messages'] = []
+
         self.command_calls = {}
         self.app_info = None
         self.owner_user = None
+        self.is_restart = False
         self.selfbot = not is_bot
+
         if 'utils_revision' not in self.store.store:
             self.store['utils_revision'] = 1
         if self.store.store['utils_revision'] < 2:
             distutils.dir_util.copy_tree(os.path.join(cur_dir, 'default_cogs', 'utils'), os.path.join(cur_dir, 'cogs', 'utils') + os.path.sep)
             self.store['utils_revision'] = 2
+
         self.start_reported = False
         super().__init__(**options)
-        self.commands = {}
-
-    async def update_presence(self):
-        """Generate an updated presence and change it."""
-        self.presence = dict(status=discord.Status(self.status))
-        if self.game['name']:
-            self.presence['game'] = discord.Game(**self.game)
-        await self.change_presence(**self.presence)
-
-    async def send(self, *apass, **kwpass):
-        await self.send_message(*apass, **kwpass)
-    async def msend(self, msg, *apass, **kwpass):
-        await self.send_message(msg.channel, *apass, **kwpass)
-    async def csend(self, ctx, *apass, **kwpass):
-        await self.send_message(ctx.message.channel, *apass, **kwpass)
+        self.all_commands = {}
 
     async def on_ready(self):
         """On_ready event for when the bot logs into Discord."""
-        self.logger.info('Bot has logged into Discord, ID ' + self.user.id)
-        if self.selfbot:
-            self.game['name'] = ''
-            self.game['type'] = 0
-            self.game['url'] = ''
-        else:
-            await self.update_presence()
+        self.logger.info('Bot has logged into Discord, ID ' + str(self.user.id))
         if self.user.bot:
             self.app_info = await self.application_info()
             self.owner_user = self.app_info.owner
-            self.store.store['owner_id'] = self.owner_user.id
         else:
-            self.store.store['owner_id'] = self.user.id
             self.owner_user = self.user
-        self.logger.info('Owner information automatically filled.')
-        if not self.selfbot and len(self.servers) >= 75:
+        self.logger.info('Owner information filled.')
+        if not self.selfbot and len(self.guilds) >= 75:
             key = ('Ready event emitted.' if self.start_reported else "I've just started up!")
             await self.send_message(self.owner_user, key + "\nThe time is **%s**." % datetime.now().strftime(absfmt))
             if not self.start_reported:
@@ -175,10 +153,9 @@ class GoldBot(commands.Bot):
 
     async def on_message(self, msg):
         try:
-            myself = msg.server.me
+            myself = msg.guild.me
         except AttributeError:
             myself = self.user
-        bname = myself.display_name
         if self.selfbot:
             try:
                 cmdfix = self.store['properties']['global']['selfbot_prefix']
@@ -190,8 +167,8 @@ class GoldBot(commands.Bot):
             cmdfix = self.store.get_cmdfix(msg)
             prefix_convo = (self.store.get_prop(msg, 'prefix_answer')) in bool_true
             do_logic = msg.author.id != self.user.id
-        prefix_help = (msg.server.id if msg.server else None) != '110373943822540800' # DBots
-        lbname = bname.lower()
+        prefix_help = (msg.guild.id if msg.guild else None) != 110373943822540800 # DBots
+        lname = myself.display_name.lower()
         if do_logic:
             if msg.author.bot:
                 if not self.selfbot:
@@ -203,95 +180,80 @@ class GoldBot(commands.Bot):
                     else:
                         self.dispatch('not_command', msg)
                     return
-                if not msg.channel.is_private:
+                if isinstance(msg.channel, discord.abc.GuildChannel):
                     if not msg.content.startswith(cmdfix):
                         self.dispatch('not_command', msg)
-                if msg.channel.is_private:
+                if isinstance(msg.channel, discord.abc.PrivateChannel):
                     if msg.content.startswith(cmdfix):
                         await self.process_commands(msg, cmdfix)
                     else:
                         self.dispatch('pm', msg)
-                elif msg.content.lower().startswith(lbname + ' ') and prefix_convo:
-                    self.dispatch('prefix_convo', msg, lbname)
+                elif msg.content.lower().startswith(lname + ' ') and prefix_convo:
+                    self.dispatch('prefix_convo', msg, lname)
                 elif (msg.content.lower() in ['prefix', 'prefix?']) and prefix_help:
-                    await self.msend(msg, '**Current server command prefix is: **`' + cmdfix + '`')
+                    await msg.channel.send('**Current guild command prefix is: **`' + cmdfix + '`')
                 else:
                     if msg.content.startswith(cmdfix):
                         await self.process_commands(msg, cmdfix)
                     elif myself.mentioned_in(msg) and ('@everyone' not in msg.content) and ('@here' not in msg.content):
                         self.dispatch('mention', msg)
-        else:
-            self.logger.debug('Didn\'t meet check for main on_message processing')
 
     async def on_error(self, *a, **b):
         await self.cogs['Errors'].on_error(*a, **b)
 
-    async def on_server_join(self, server):
+    async def on_guild_join(self, guild):
         """Send the bot introduction message when invited."""
-        self.logger.info('New server: ' + server.name)
+        self.logger.info('New guild: ' + guild.name)
         if self.selfbot: return
         try:
-            await self.send_message(server.default_channel, join_msg)
+            await self.send_message(guild.default_channel, join_msg)
         except discord.Forbidden:
             satisfied = False
             c_count = 0
-            try_channels = list(server.channels)
+            try_channels = list(guild.channels)
             channel_count = len(try_channels) - 1
             while not satisfied:
                 with suppress(discord.Forbidden, discord.HTTPException):
                     await self.send_message(try_channels[c_count], join_msg)
                     satisfied = True
                 if c_count > channel_count:
-                    self.logger.warning('Couldn\'t announce join to server ' + server.name)
+                    self.logger.warning('Couldn\'t announce join to guild ' + guild.name)
                     satisfied = True
                 c_count += 1
 
-    async def on_server_remove(self, server):
+    async def on_guild_remove(self, guild):
         """Update the stats."""
-        self.logger.info('Lost a server: ' + server.name)
+        self.logger.info('Lost a guild: ' + guild.name)
 
     async def process_commands(self, message, prefix):
         """This function processes the commands that have been registered."""
-        _internal_channel = message.channel
-        _internal_author = message.author
+        await self.invoke(self.get_context(message, prefix))
+
+    def get_context(self, message, prefix):
         view = StringView(message.content)
         view.skip_string(prefix)
-        cmd = view.get_word()
-        tmp = {
-            'bot': self,
-            'invoked_with': cmd,
-            'message': message,
-            'view': view,
-            'prefix': prefix
-        }
-        ctx = Context(**tmp)
-        del tmp
-        cl = cmd.lower().replace('é', 'e').replace('è', 'e') # TODO: Real accent parsing
+        ctx = ExtContext(prefix=prefix, view=view, bot=self, message=message)
 
-        if cl in self.commands:
-            command = self.commands[cl]
-            self.dispatch('command', command, ctx)
+        invoker = view.get_word()
+        ctx.invoked_with = invoker
+        ctx.command = self.all_commands.get(invoker)
+        return ctx
+
+    async def invoke(self, ctx):
+        if ctx.command is not None:
             try:
-                if command.name in self.command_calls:
-                    self.command_calls[command.name] += 1
+                await ctx.command.invoke(ctx)
+                if ctx.command.name in self.command_calls:
+                    self.command_calls[ctx.command.name] += 1
                 else:
-                    self.command_calls[command.name] = 1
-                await command.invoke(ctx)
-            except CommandError as exp:
-                ctx.command.dispatch_error(exp, ctx)
-            else:
-                self.dispatch('command_completion', command, ctx)
-        else:
-            exc = CommandNotFound('Command "{}" is not found'.format(cmd))
-            self.dispatch('command_error', exc, ctx)
+                    self.command_calls[ctx.command.name] = 1
+            except CommandError as e:
+                await ctx.command.dispatch_error(ctx, e)
+        elif ctx.invoked_with:
+            exc = CommandNotFound('Command "{}" is not found'.format(ctx.command))
+            self.dispatch('command_error', ctx, exc)
 
-    async def send_typing(self, destination):
-        """Send a typing status to the destination. """
-        if self.status == 'invisible': return
-        channel_id, guild_id = await self._resolve_destination(destination)
-        await self.http.send_typing(channel_id)
-
-    async def format_uptime(self):
+    def format_uptime(self):
         """Return a human readable uptime."""
         s = lambda n: '' if n == 1 else 's'
         fmt = '{0} day{4} {1} hour{5} {2} minute{6} {3} second{7}'
@@ -303,85 +265,18 @@ class GoldBot(commands.Bot):
                            s(time_days[0]), s(time_days[1]), s(time_hrs[1]), s(time_mins[1]))
         return final
 
-    async def send_message(self, destination, content=None, *, tts=False, embed=None, filter=True):
-        """Sends a message to the destination given with the content given."""
-        channel_id, guild_id = await self._resolve_destination(destination)
-        if content:
-            content = str(content)
-            if filter:
-                if not self.selfbot:
-                    content = content.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')
-            if len(content) > 2000:
-                truncate_msg = '**... (truncated)**'
-                if '```' in content:
-                    truncate_msg = '```' + truncate_msg
-                content = content[:2000 - len(truncate_msg)] + truncate_msg
-            elif len(content) <= 1999:
-                if self.selfbot:
-                    if filter:
-                        content += '\u200b'
-        if embed:
-            embed = embed.to_dict()
-        try:
-            data = await self.http.send_message(channel_id, content, guild_id=guild_id, tts=tts, embed=embed)
-            channel = self.get_channel(data.get('channel_id'))
-            message = self.connection._create_message(channel=channel, **data)
-            return message
-        except discord.HTTPException as e:
-            if embed: # let's try non embed
-                def final_perms():
-                    if isinstance(destination, discord.User):
-                        return ('embed_links',)
-                    elif isinstance(destination, discord.Server):
-                        return [k[0] for k in list(destination.me.permissions_in(destination.default_channel)) if k[1]]
-                    elif isinstance(destination, discord.Channel):
-                        if destination.is_private:
-                            return ('embed_links',)
-                        else:
-                            return [k[0] for k in list(destination.server.me.permissions_in(destination)) if k[1]]
-                    else:
-                        raise e
-                e_text = '```md\n'
-                if 'author' in embed:
-                    e_text += embed['author']['name'] + '\n\n'
-                for kv in embed['fields']:
-                    e_text += kv['name'] + '\n-----------------------------------\n' + kv['value'] + '\n\n'
-                if 'footer' in embed:
-                    e_text += embed['footer']['text']
-                if 'embed_links' in final_perms():
-                    e_text += '```\n⚠ An error occured sending the embed. Contact the bot owner for more help.'
-                else:
-                    e_text += '```\n⚠ I need the **Embed Links** permission to send embeds!'
-                try:
-                    data = await self.http.send_message(channel_id, (content if content else '') + '\n' + e_text, guild_id=guild_id, tts=tts, embed=None)
-                except discord.HTTPException:
-                    raise e
-                channel = self.get_channel(data.get('channel_id'))
-                message = self.connection._create_message(channel=channel, **data)
-                return message
-            elif self.selfbot and destination.id == self.user.id:
-                self.logger.warning('Sending to ourselves. what??')
-                destination = _get_variable('_internal_channel')
-                channel_id, guild_id = await self._resolve_destination(destination)
-                data = await self.http.send_message(channel_id, content, guild_id=guild_id, tts=tts, embed=embed)
-                channel = self.get_channel(data.get('channel_id'))
-                message = self.connection._create_message(channel=channel, **data)
-                return message
-            else:
-                raise e # didn't mean to catch that
-
     async def send_cmd_help(self, ctx):
         """Send command help for a command or subcommand."""
         if ctx.invoked_subcommand:
             pages = self.formatter.format_help_for(ctx, ctx.invoked_subcommand)
             for page in pages:
-                await self.csend(ctx, page)
+                await ctx.send(page)
         else:
             pages = self.formatter.format_help_for(ctx, ctx.command)
             for page in pages:
-                await self.csend(ctx, page)
+                await ctx.send(page)
 
-    async def get_ram(self):
+    def get_ram(self):
         """Get the bot's RAM usage info."""
         if have_psutil: # yay!
             mu = psutil.Process(os.getpid()).memory_info().rss
@@ -427,6 +322,6 @@ class GoldBot(commands.Bot):
     def del_command(self, *names):
         """Remove a command and its aliases."""
         for name in names:
-            for a in self.commands[name].aliases:
-                del self.commands[a]
-            del self.commands[name]
+            for a in self.all_commands[name].aliases:
+                del self.all_commands[a]
+            del self.all_commands[name]

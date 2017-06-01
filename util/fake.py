@@ -8,8 +8,8 @@ class FakeContextMember():
 class FakeMessageMember():
     def __init__(self, member):
         self.author = member
-        self.server = member.server
-        self.channel = list(member.server.channels)[0]
+        self.guild = member.guild
+        self.channel = list(member.guild.channels)[0]
 
 class FakeEmbed():
     def __init__(self, **kwargs):

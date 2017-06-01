@@ -3,7 +3,7 @@ import os
 import sys
 import json
 import aiohttp
-import util.commands as commands
+from discord.ext import commands
 import util.dynaimport as di
 from .cog import Cog
 
@@ -29,7 +29,7 @@ class Web(Cog):
             self.loop.create_task(self.start())
 
     def __unload(self):
-        self.server_task.cancel()
+        self.guild_task.cancel()
 
     async def on_ready(self):
         await self.start()
@@ -41,7 +41,6 @@ class Web(Cog):
         self.app = app
         self.server = app.create_server(host=self.host, port=self.port)
         self.server_task = self.loop.create_task(self.server)
-        self.logger.info('debug ALSO starting japronto 8090 not')
 
     async def init_app(self, app):
         self.logger.info('Initializing app...')

@@ -1,4 +1,4 @@
-"""Teeworlds server/master communication."""
+"""Teeworlds guild/master communication."""
 import socket
 
 MASTERS = ['master%d.teeworlds.com' % i for i in [1, 2, 3, 4]]
@@ -9,7 +9,7 @@ def get_master(host, port):
     conn.settimeout(1)
     conn.connect((host, port))
     conn.send(b'\xff\xff\xff\xff\xff\xff\xff\xff\xff\xffreq2')
-    servers = []
+    guilds = []
     response = conn.recv(1400)
     if response:
         try:
@@ -22,18 +22,18 @@ def get_master(host, port):
                     else:
                         address = '[' + socket.inet_ntop(socket.AF_INET6, response[i:i + 16]) + ']'
                     address += ':' + str((response[i + 16] << 8) + response[i + 17])
-                    servers.append(address)
+                    guilds.append(address)
                     i += 18
                 response = conn.recv(1400)
         except socket.timeout:
             conn.close()
-            return servers
+            return guilds
         finally:
             conn.close()
     else:
         return False
 
-def get_server(host, port):
+def get_guild(host, port):
     conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     conn.settimeout(2)
     conn.connect((host, port))
@@ -47,11 +47,11 @@ def get_server(host, port):
         response = response[14:]
         vitals = response.split(b'\x00')
         info = {'players': []}
-        token, version, server_name, server_map, gametype, flags, num_players, max_players, num_clients, max_clients = [i.decode('utf-8', 'ignore') for i in vitals[:10]]
+        token, version, guild_name, guild_map, gametype, flags, num_players, max_players, num_clients, max_clients = [i.decode('utf-8', 'ignore') for i in vitals[:10]]
         info['token'] = int(token)
         info['version'] = version.strip()
-        info['name'] = server_name.strip()
-        info['map'] = server_map.strip()
+        info['name'] = guild_name.strip()
+        info['map'] = guild_map.strip()
         info['gametype'] = gametype.strip()
         info['flags'] = int(flags)
         info['num_players'] = int(num_players)

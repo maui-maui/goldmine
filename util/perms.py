@@ -1,19 +1,19 @@
 """Permission handling code."""
 import asyncio
-from util.commands.errors import CommandPermissionError, OrCommandPermissionError
+from .commands import CommandPermissionError, OrCommandPermissionError
 
 def check_perms(ctx, perms_required):
     """Check permissions required for an action."""
     perms_satisfied = 0
-    sender = ctx.message.author
+    sender = ctx.author
     sender_id = sender.id
     bot_owner = ctx.bot.owner_user.id
-    dc_perms = ctx.message.author.permissions_in(ctx.message.channel)
+    dc_perms = ctx.author.permissions_in(ctx.channel)
     try:
-        sowner = ctx.message.server.owner
+        sowner = ctx.guild.owner
         sowner_id = sowner.id
     except AttributeError: # if in a DM (PrivateChannel)
-        sowner = ctx.message.channel.owner
+        sowner = ctx.channel.owner
         try:
             sowner_id = sowner.id
         except AttributeError: # if in a non-group DM (PrivateChannel)
@@ -24,7 +24,7 @@ def check_perms(ctx, perms_required):
     elif sender_id == ctx.bot.user.id:
         return True
     for i in perms_required:
-        if (i == 'server_owner') and (sender_id == sowner_id):
+        if (i == 'guild_owner') and (sender_id == sowner_id):
             perms_satisfied += 1
         elif i == 'bot_admin' and sender_id in ctx.bot.store['bot_admins']:
             perms_satisfied += 1

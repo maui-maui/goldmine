@@ -1,5 +1,5 @@
 """Awesome cog."""
-import util.commands as commands
+from discord.ext import commands
 from .cog import Cog
 
 class MyCog(Cog):

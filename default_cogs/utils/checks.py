@@ -1,4 +1,5 @@
-import util.commands as commands
+import discord
+from discord.ext import commands
 import discord.utils
 
 #
@@ -8,7 +9,7 @@ import discord.utils
 #
 
 def is_owner_check(ctx):
-    return ctx.message.author.id == ctx.bot.owner_user.id
+    return ctx.author.id == ctx.bot.owner_user.id
 
 def is_owner():
     return commands.check(is_owner_check)
@@ -29,8 +30,8 @@ def check_permissions(ctx, perms):
     elif not perms:
         return False
 
-    ch = ctx.message.channel
-    author = ctx.message.author
+    ch = ctx.channel
+    author = ctx.author
     resolved = ch.permissions_for(author)
     return all(getattr(resolved, name, None) == value for name, value in perms.items())
 
@@ -38,9 +39,9 @@ def role_or_permissions(ctx, check, **perms):
     if check_permissions(ctx, perms):
         return True
 
-    ch = ctx.message.channel
-    author = ctx.message.author
-    if ch.is_private:
+    ch = ctx.channel
+    author = ctx.author
+    if isinstance(msg.channel, discord.abc.PrivateChannel):
         return False # can't have roles in PMs
 
     role = discord.utils.find(check, author.roles)
@@ -48,36 +49,36 @@ def role_or_permissions(ctx, check, **perms):
 
 def mod_or_permissions(**perms):
     def predicate(ctx):
-        server = ctx.message.server
-        mod_role = settings.get_server_mod(server).lower()
-        admin_role = settings.get_server_admin(server).lower()
+        guild = ctx.guild
+        mod_role = settings.get_guild_mod(guild).lower()
+        admin_role = settings.get_guild_admin(guild).lower()
         return role_or_permissions(ctx, lambda r: r.name.lower() in (mod_role,admin_role), **perms)
 
     return commands.check(predicate)
 
 def admin_or_permissions(**perms):
     def predicate(ctx):
-        server = ctx.message.server
-        admin_role = settings.get_server_admin(server)
+        guild = ctx.guild
+        admin_role = settings.get_guild_admin(guild)
         return role_or_permissions(ctx, lambda r: r.name.lower() == admin_role.lower(), **perms)
 
     return commands.check(predicate)
 
-def serverowner_or_permissions(**perms):
+def guildowner_or_permissions(**perms):
     def predicate(ctx):
-        if ctx.message.server is None:
+        if ctx.guild is None:
             return False
-        server = ctx.message.server
-        owner = server.owner
+        guild = ctx.guild
+        owner = guild.owner
 
-        if ctx.message.author.id == owner.id:
+        if ctx.author.id == owner.id:
             return True
 
         return check_permissions(ctx,perms)
     return commands.check(predicate)
 
-def serverowner():
-    return serverowner_or_permissions()
+def guildowner():
+    return guildowner_or_permissions()
 
 def admin():
     return admin_or_permissions()

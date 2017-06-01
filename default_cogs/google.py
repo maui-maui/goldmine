@@ -1,7 +1,7 @@
 """Google!"""
 import random
 import discord
-import util.commands as commands
+from discord.ext import commands
 from util.google_old import search
 from util.google import GoogleClient
 from .cog import Cog
@@ -28,13 +28,13 @@ class Google(Cog):
         return search(query, num=num)
 
     @commands.command(aliases=['g', 'search', 'query', 'q'])
-    async def google(self, *text: str):
+    async def google(self, ctx, *text: str):
         """Search something on Google.
         Usage: google [search terms]"""
         if text:
             query = ' '.join(text)
         else:
-            await self.bot.reply('you need to specify some search terms!')
+            await ctx.send(ctx.mention + ' You need to specify some search terms!')
             return
         m = ''
         emb = discord.Embed(color=random.randint(1, 255**3-1))
@@ -94,7 +94,7 @@ class Google(Cog):
                 self.bot.store['google_cache'][query] = fql
             else:
                 emb.description = 'Nothing was found.'
-        await self.bot.say(embed=emb)
+        await ctx.send(embed=emb)
 
 def setup(bot):
     if 'google_cache' not in bot.store:

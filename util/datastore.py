@@ -4,7 +4,7 @@ import os
 import sys
 import util.json as json
 import util.dynaimport as di
-from util.commands import CommandInvokeError
+from discord.ext.commands import CommandInvokeError
 from properties import storage_backend
 bson = di.load('bson')
 
@@ -99,21 +99,21 @@ class DataStore():
 
     def get_cmdfix(self, msg):
         """Easy method to retrieve the command prefix."""
-        if msg.server is None:
+        if msg.guild is None:
             return self.store['properties']['global']['command_prefix']
         try:
-            return self.store['properties']['by_server'][msg.server.id]['command_prefix']
+            return self.store['properties']['by_guild'][msg.guild.id]['command_prefix']
         except KeyError:
             return self.store['properties']['global']['command_prefix']
 
     def get_props_s(self, msg):
-        """Get the server properties of a message."""
+        """Get the guild properties of a message."""
         try:
-            return self.store['properties']['by_server'][msg.server.id]
+            return self.store['properties']['by_guild'][msg.guild.id]
         except KeyError:
-            self.store['properties']['by_server'][msg.server.id] = {
-                'name': msg.server.name,
-                'orig_members': len(msg.server.members)
+            self.store['properties']['by_guild'][msg.guild.id] = {
+                'name': msg.guild.name,
+                'orig_members': len(msg.guild.members)
             }
             return {}
 
@@ -128,16 +128,16 @@ class DataStore():
         try:
             t_scope = self.store['properties'][scope]
         except (KeyError, AttributeError):
-            raise AttributeError('Invalid scope specified. Valid scopes are by_user, by_server, and global.')
+            raise AttributeError('Invalid scope specified. Valid scopes are by_user, by_guild, and global.')
         else:
             if scope == 'by_user':
                 t_scope[msg.author.id][prop] = content
-            elif scope == 'by_server':
-                t_scope[msg.server.id][prop] = content
+            elif scope == 'by_guild':
+                t_scope[msg.guild.id][prop] = content
             elif scope == 'global':
                 t_scope[prop] = content
             else:
-                raise AttributeError('Invalid scope specified. Valid scopes are by_user, by_server, and global.')
+                raise AttributeError('Invalid scope specified. Valid scopes are by_user, by_guild, and global.')
             self.store['properties'][scope] = t_scope
 
     def get_prop(self, msg, prop: str, hint=[]):
@@ -145,7 +145,7 @@ class DataStore():
         try: # User
             return self.get_props_u(msg)[prop]
         except (KeyError, AttributeError):
-            try: # Server
+            try: # guild
                 return self.get_props_s(msg)[prop]
             except (KeyError, AttributeError):
                 try:
@@ -155,7 +155,7 @@ class DataStore():
                         thing = self.store['properties']['global']['profile'].copy()
                         if msg.author.id not in self.store['properties']['by_user']:
                             self.store['properties']['by_user'][msg.author.id] = {}
-                        self.store['properties']['by_user'][msg.author.id]['profile_' + msg.server.id] = thing
+                        self.store['properties']['by_user'][msg.author.id]['profile_' + str(msg.guild.id)] = thing
                         return thing
                     else:
                         raise e

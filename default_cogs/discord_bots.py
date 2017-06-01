@@ -1,9 +1,9 @@
-"""Server stats reporting."""
+"""guild stats reporting."""
 import util.json as json
 import aiohttp
 import asyncio
 import async_timeout
-import util.commands as commands
+from discord.ext import commands
 from .cog import Cog
 
 try:
@@ -16,36 +16,28 @@ except ImportError:
     discordlist_token = None
 
 class DiscordBots(Cog):
-    """Reporter of server stats to services like Discord Bots."""
+    """Reporter of guild stats to services like Discord Bots."""
 
     def __init__(self, bot):
-        self.http = None
         super().__init__(bot)
         self.logger = self.logger.getChild('stats')
-        self.loop.create_task(self.init_http())
-
-    def __unload(self):
-        self.http.close()
-
-    async def init_http(self):
-        self.http = aiohttp.ClientSession()
 
     def update(self):
-        """Report the current server count to bot lists."""
+        """Report the current guild count to bot lists."""
         return asyncio.gather(self.update_dbots(), self.update_discordlist(), loop=self.loop)
 
     async def update_dbots(self):
         if not discord_bots_token:
             self.logger.warning('Tried to contact Discord Bots, but no token set!')
             return False
-        data = dict(server_count=len(self.bot.servers))
-        dest = 'https://bots.discord.pw/api/bots/' + self.bot.user.id + '/stats'
+        data = dict(guild_count=len(self.bot.guilds))
+        dest = 'https://bots.discord.pw/api/bots/' + str(self.bot.user.id) + '/stats'
         headers = {
             'Authorization': discord_bots_token,
             'Content-Type': 'application/json'
         }
         with async_timeout.timeout(6):
-            async with self.http.post(dest, data=json.dumps(data), headers=headers) as r:
+            async with self.bot.cog_http.post(dest, data=json.dumps(data), headers=headers) as r:
                 resp_key = f'(got {r.status} {r.reason})'
                 if r.status == 200:
                     self.logger.info('Successfully sent Discord Bots our guild count (got 200 OK)')
@@ -58,12 +50,12 @@ class DiscordBots(Cog):
             return False
         data = {
             'token': discordlist_token,
-            'servers': len(self.bot.servers)
+            'guilds': len(self.bot.guilds)
         }
         dest = 'https://bots.discordlist.net/api'
         headers = {'Content-Type': 'application/json'}
         with async_timeout.timeout(6):
-            async with self.http.post(dest, data=json.dumps(data), headers=headers) as r:
+            async with self.bot.cog_http.post(dest, data=json.dumps(data), headers=headers) as r:
                 resp_key = f'(got {r.status} {r.reason})'
                 if r.status == 200:
                     self.logger.info('Successfully sent DiscordList our guild count! (got 200 OK)')
@@ -72,9 +64,9 @@ class DiscordBots(Cog):
 
     async def on_ready(self):
         return await self.update()
-    async def on_server_join(self, server):
+    async def on_guild_join(self, guild):
         return await self.update()
-    async def on_server_remove(self, server):
+    async def on_guild_remove(self, guild):
         return await self.update()
 
 def setup(bot):

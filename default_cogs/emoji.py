@@ -1,7 +1,7 @@
 """😄 Emoji! 😂"""
 import random
 import math
-import util.commands as commands
+from discord.ext import commands
 from util.perms import echeck_perms
 from util.const import weird_faces
 from .cog import Cog
@@ -10,7 +10,7 @@ class Emoji(Cog):
     """😄 Emoji! 😂"""
 
     @commands.command(aliases=['csay', 'esay', 'coolsay', 'emotesay'])
-    async def emotisay(self, *, text: str):
+    async def emotisay(self, ctx, *, text: str):
         """Repeat a message, in emoji (block) letters.
         Usage: emotisay [your text here]"""
         chars = list(text.lower())
@@ -40,9 +40,9 @@ class Emoji(Cog):
                 chars[i] = ':regional_indicator_' + s + ':'
             if s in cmap:
                 chars[i] = cmap[s]
-        await self.bot.say(str(''.join(chars)), filter=False)
+        await ctx.send(str(''.join(chars)), filter=False)
 
-    @commands.command(pass_context=True, aliases=['wface', 'weirdface', 'weird', 'weird_face', 'mystery', 'neato', 'neat', 'random'])
+    @commands.command(aliases=['wface', 'weirdface', 'weird', 'weird_face', 'mystery', 'neato', 'neat', 'random'])
     async def face(self, ctx, *numbers: int):
         """Give you a random face. Because really, why not?
         Usage: face"""
@@ -52,13 +52,13 @@ class Emoji(Cog):
                 try:
                     fn_face += weird_faces[i - 1] + '\n'
                 except IndexError:
-                    await self.bot.say('**Face #{0} not found!** There are {1} faces total.'.format(str(i), str(len(weird_faces))))
+                    await ctx.send('**Face #{0} not found!** There are {1} faces total.'.format(str(i), str(len(weird_faces))))
         else:
             fn_face = random.choice(weird_faces)
         if fn_face:
-            await self.bot.say(fn_face)
+            await ctx.send(fn_face)
 
-    @commands.command(pass_context=True, hidden=True)
+    @commands.command(hidden=True)
     async def emotispam(self, ctx):
         """Spam some emotes! CRASH WARNING!
         Warning: Instant crash for desktop users.
@@ -68,41 +68,41 @@ class Emoji(Cog):
         _em = emojis
         r = list(range(0, math.ceil(len(emojis) / 2000)))
         for i in r:
-            await self.bot.say(_em[:2000])
+            await ctx.send(_em[:2000])
             _em = _em[2000:]
 
     @commands.command(aliases=['boom', 'bam', 'kaboom', 'explode', 'exploding', 'explosion'])
-    async def bang(self):
+    async def bang(self, ctx):
         """Boom!
         Usage: boom"""
-        await self.bot.say('💥')
+        await ctx.send('💥')
     @commands.command(aliases=['cookies', 'cookie!'])
-    async def cookie(self):
+    async def cookie(self, ctx):
         """Cookie time!
         Usage: cookie"""
-        await self.bot.say('🍪')
+        await ctx.send('🍪')
     @commands.command()
-    async def pleb(self):
+    async def pleb(self, ctx):
         """(╯°□°）╯︵ ┻━┻
         Usage: pleb"""
-        await self.bot.say('You\'re the pleb here!')
+        await ctx.send('You\'re the pleb here!')
     @commands.command(aliases=['tri'])
-    async def triforce(self):
+    async def triforce(self, ctx):
         """Zelda triforce...
         Usage: triforce"""
-        await self.bot.say('''**```fix
+        await ctx.send('''**```fix
  ▲
 ▲ ▲```**''')
     @commands.command(aliases=['triggerd'])
-    async def triggered(self):
+    async def triggered(self, ctx):
         """TRIGGERED!!
         Usage: triggered"""
-        await self.bot.say('***TRIGGERED***')
+        await ctx.send('***TRIGGERED***')
     @commands.command()
-    async def lenny(self):
+    async def lenny(self, ctx):
         """Le Lenny Face.
         Usage: lenny"""
-        await self.bot.say('( ͡° ͜ʖ ͡°)')
+        await ctx.send('( ͡° ͜ʖ ͡°)')
 
 def setup(bot):
     """Set up the cog."""
