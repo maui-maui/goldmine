@@ -9,7 +9,7 @@ class Help(Cog):
     """The essential cog, Help."""
     def __init__(self, bot):
         super().__init__(bot)
-        self.char_limit = 3500
+        self.char_limit = 3600
 
     @commands.command(pass_context=True, aliases=['halp', 'phelp', 'phalp'])
     async def help(self, ctx, *commands_or_cogs: str):
@@ -29,7 +29,6 @@ class Help(Cog):
         pages = []
         cog_assign = {}
         fields = {}
-        chars = 0
         emb = discord.Embed(color=random.randint(0, 256**3-1))
         emb.title = 'Bot Help'
         emb.set_author(name=target.display_name, icon_url=avatar_link)
@@ -76,44 +75,33 @@ class Help(Cog):
                     else:
                         field += cmd.name + '`'
                     field += '\n\n' + (cmd.help if cmd.help else 'I\'m a command.')
-                    fields['\u200b' + item] = (field,)
+                    fields[item] = (field,)
                     item_done = True
                 if not item_done:
-                    fields['\u200b' + item] = ('No such command or cog.',)
-        chars = 0
+                    fields[item] = ('No such command or cog.',)
+        chars = len(target.display_name)
         for cog in fields:
             field = fields[cog]
             content = '\n'.join(field)
             if not content:
                 content = 'No visible commands.'
-            pre_len = sum([len(i) for i in field])
-            if chars + pre_len < self.char_limit:
-                if len(content) <= 1024:
-                    emb.add_field(name=cog, value=content)
-                else:
-                    pager = commands.Paginator(prefix='', suffix='', max_size=1024)
-                    for ln in field:
-                        pager.add_line(ln)
-                    for page in pager.pages:
-                        emb.add_field(name=cog, value=page)
-            else:
+            pre_len = len(content) + len(cog)
+            if chars + pre_len > self.char_limit:
                 pages.append(emb)
                 emb = discord.Embed(color=random.randint(0, 256**3-1))
-                emb.title = 'Bot Help'
                 emb.set_author(name=target.display_name, icon_url=avatar_link)
-                chars = 0
-                if len(content) <= 1024:
-                    emb.add_field(name=cog, value=content)
-                else:
-                    pager = commands.Paginator(prefix='', suffix='', max_size=1024)
-                    for ln in field:
-                        pager.add_line(ln)
-                    for page in pager.pages:
-                        emb.add_field(name=cog, value=page)
+                chars = len(target.display_name)
+            if len(content) <= 1024:
+                emb.add_field(name=cog, value=content)
+            else:
+                pager = commands.Paginator(prefix='', suffix='', max_size=1024)
+                for ln in field:
+                    pager.add_line(ln)
+                for page in pager.pages:
+                    emb.add_field(name=cog, value=page)
             chars += pre_len
         self.logger.info('Generated help, ending with ' + str(chars) + ' chars')
-        if not pages:
-            pages.append(emb)
+        pages.append(emb);
         pages[-1].set_footer(icon_url=avatar_link, text='Enjoy!')
         destination = ctx.message.author
         if chars < 1000:
@@ -132,7 +120,7 @@ class Help(Cog):
                 await self.bot.send_message(destination, 'Error sending embed. Cogs/Commands: ' + ', '.join([f['name'] for f in page.to_dict()['fields']]))
         if destination == ctx.message.author:
             if not ctx.message.channel.is_private:
-                await self.bot.say(ctx.message.author.mention + ' **__I\'ve private messaged you my help, please check your DMs!__**')
+                await self.bot.say(ctx.message.author.mention + ' **__I sent you my help, check your DMs!__**')
 
 def setup(bot):
     bot.add_cog(Help(bot))
