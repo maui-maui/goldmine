@@ -4,7 +4,9 @@
 This is Goldmine, a new bot for Discord that keeps things nice and snug.
 Featuring VOICE (MUSIC), NATURAL LANGUAGE, IMAGES, CUSTOM WIDGETS, RANKS, and more!
 This bot is written in Python 3, and uses discord.py and asyncio for enhanced performance.
-###Warning: Work In Progress!
+### Warning: Work In Progress!
+
+## Note: Goldmine is currently undergoing a big rewrite, in Java. This will not be updated much anymore.
 
 # Features
 - Rich help
