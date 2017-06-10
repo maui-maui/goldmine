@@ -30,7 +30,7 @@ class SelfbotGoodies(Cog):
         self.start_time = datetime.now()
         self.web_render = None
         self.re_cache = {}
-        self.google_re = re.compile(r'[[([a-zA-Z0-9\s]+)]]')
+        self.google_re = re.compile(r'\[\[([a-zA-Z0-9\s]+)\]\]')
         super().__init__(bot)
         self.logger = self.logger.getChild('stuff')
 
