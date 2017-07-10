@@ -20,7 +20,7 @@ This is Goldmine, a Discord bot with many features, including music and cats. Ch
 Just click this link: [Click to add GOLDMINE and CO. to your server](https://discordapp.com/api/oauth2/authorize?client_id=239775420470394897&scope=bot&permissions=66321471 "Click to add GOLDMINE to your server!"), select a server, click **Done**, and you're all set! Easy as pie :)
 
 You might want to set the command prefix for your server.
-To do so, simply make sure you're an admin (Manage Server permission), and type: 
+To do so, simply make sure you're an admin, and type: 
  - `!prefix $` for command prefix, replacing **$** with your desired prefix.
 
 ### Manual (Private Instance) (Selfbot mode available)
