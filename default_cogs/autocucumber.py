@@ -1,12 +1,9 @@
 """Awesome auto cucumber."""
 import os
-import re
 import copy
 import aiohttp
 import async_timeout
 from discord.ext import commands
-from collections import Counter
-from util.autocorrect import Corrector
 from util.perms import echeck_perms
 from .cog import Cog
 
@@ -17,37 +14,6 @@ class AutoCucumber(Cog):
     def __init__(self, bot):
         super().__init__(bot)
         self.enabled = False
-        self.corrections = {}
-        self.corrector = None
-        self.loop.create_task(self.create_corrector())
-        self.load_data()
-        self.emoji_re = re.compile(u'[\U00010000-\U0010ffff\u2615]')
-        self.word_re = re.compile(r"[\w']+|[.,!?;:]")
-
-    def load_data(self, text=None):
-        """Load and parse spelling data."""
-        if text is None:
-            with open(os.path.join(self.bot.dir, 'assets', 'corrections.txt')) as f:
-                text = f.read()
-        items = text.split('\n')
-        raw_pairs = [item.split('->') for item in items]
-        for pair in raw_pairs:
-            self.corrections[pair[0]] = pair[1].split(', ')[0]
-
-    async def init_corrector(self):
-        with async_timeout.timeout(60):
-            async with self.bot.cog_http.get('http://norvig.com/big.txt') as r:
-                text = await r.text()
-        with open(os.path.join(self.bot.dir, 'data', 'autocorrect.txt'), 'a') as f:
-            f.write(text)
-        self.corrector = await self.loop.run_in_executor(None, Corrector)
-
-    async def create_corrector(self):
-        """Create the auto correction engine."""
-        try:
-            self.corrector = await self.loop.run_in_executor(None, Corrector)
-        except FileNotFoundError:
-            await self.init_corrector()
 
     async def on_not_command(self, msg):
         if self.enabled:
