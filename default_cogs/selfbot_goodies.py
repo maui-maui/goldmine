@@ -30,7 +30,7 @@ class SelfbotGoodies(Cog):
         self.start_time = datetime.now()
         self.web_render = None
         self.re_cache = {}
-        self.google_re = re.compile(r'[[[a-zA-Z0-9\s]+]]')
+        self.google_re = re.compile(r'\[\[([a-zA-Z0-9\s]+)\]\]')
         super().__init__(bot)
         self.logger = self.logger.getChild('stuff')
 
@@ -88,7 +88,7 @@ class SelfbotGoodies(Cog):
         if content != msg.content:
             await msg.edit(content=content)
         if 'Google' in self.bot.cogs:
-            g_matched = re.findall(self.google_re, content)
+            g_matched = re.finditer(self.google_re, content)
             if g_matched:
                 for match in g_matched:
                     msg.content = 'Pgoogle ' + match

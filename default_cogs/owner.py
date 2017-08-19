@@ -95,7 +95,7 @@ class Owner(Cog):
         """Commit the current datastore.
         Usage: dcommit"""
         echeck_perms(ctx, ('bot_owner',))
-        await self.bot.store.commit()
+        self.bot.store.commit()
         await ctx.send('**Committed the current copy of the datastore!**')
 
     @commands.command(hidden=True)
@@ -106,7 +106,7 @@ class Owner(Cog):
         await ctx.send('**ARE YOU SURE YOU WANT TO LOAD THE DATASTORE?** *yes, no*')
         resp = await self.bot.wait_for('message', timeout=15, check=lambda m: m.channel == ctx.channel and m.author == ctx.author)
         if resp.content.lower() == 'yes':
-            await self.bot.store.read()
+            self.bot.store.read()
             await ctx.send('**Read the datastore from disk, overwriting current copy!**')
         else:
             await ctx.send('**Didn\'t say yes, aborting.**')

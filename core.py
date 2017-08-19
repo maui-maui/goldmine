@@ -23,18 +23,6 @@ handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-if not discord.opus.is_loaded():
-    # Windows: opus.dll (auto provided)
-    # Linux: CWD/libopus.so
-    # Mac: CWD/libopus.dylib
-    try:
-        discord.opus.load_opus('opus')
-    except OSError:
-        try:
-            discord.opus.load_opus('libopus')
-        except OSError:
-            logger.warning('could not load libopus, voice will NOT be available.')
-
 def login_fail_loop(loop, bot):
     """Handler if I couldn't login to Discord."""
     global bot_token

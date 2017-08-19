@@ -178,7 +178,7 @@ class Utility(Cog):
         r_embed.add_field(name='Custom Emojis', value=len(s.emojis))
         r_embed.add_field(name='Region (Location)', value=str(s.region).replace('-', ' ').title().replace('Eu ', 'EU ').replace('Us ', 'US ').replace('Vip', 'VIP '))
         r_embed.add_field(name='Owner', value=str(s.owner))
-        r_embed.add_field(name='Default Channel', value=f'<#{s.default_channel.id}>\n(#{s.default_channel.name})')
+        r_embed.add_field(name='Default Channel', value=f'<#{s.default_channel.id}>\n(#{s.default_channel.name})' if s.default_channel is not None else 'None (deleted)')
         r_embed.add_field(name='Admins Need 2FA', value=('Yes' if s.mfa_level else 'No'))
         r_embed.add_field(name='Verification Level', value=v_level_map[str(s.verification_level)])
         await ctx.send(embed=r_embed)

@@ -2,6 +2,8 @@
 import asyncio
 import os
 import sys
+import random
+import shutil
 import util.json as json
 import util.dynaimport as di
 from discord.ext.commands import CommandInvokeError
@@ -73,7 +75,7 @@ class DataStore():
     def get(self, *args):
         return self.store.get(*args)
 
-    async def read(self):
+    def read(self):
         """Re-read the datastore from disk, discarding changes."""
         if self.backend == 'json':
             with open(self.path, 'r') as storefile:
@@ -82,20 +84,23 @@ class DataStore():
             with open(self.path, 'rb') as storefile:
                 self.store = bson.loads(storefile.read())
 
-    async def commit(self):
+    def commit(self):
         """Commit the current datastore to disk."""
+        atompath = self.path + '.atom' + str(random.randint(300, 4000))
         if self.backend == 'json':
-            with open(self.path, 'w+') as storefile:
+            with open(atompath, 'w+') as storefile:
                 storefile.write(json.dumps(self.store))
+            shutil.move()
         elif self.backend == 'bson':
-            with open(self.path, 'wb+') as storefile:
+            with open(atompath, 'wb+') as storefile:
                 storefile.write(bson.dumps(self.store))
+        shutil.move(atompath, self.path)
 
     async def commit_task(self):
         """Continous background task for comitting datastore."""
         while True:
             await asyncio.sleep(self.commit_interval * 60)
-            await self.commit()
+            self.commit()
 
     def get_cmdfix(self, msg):
         """Easy method to retrieve the command prefix."""

@@ -397,7 +397,7 @@ home_broadcast = '''**Author\'s Website**: <https://khronodragon.com>
 **Forums**: <https://forums.khronodragon.com>
 **GitHub**: <https://github.com/Armored-Dragon/goldmine>
 **Invite Link**: <https://tiny.cc/goldbot>
-**Support Guild**: https://discord.gg/dwykTHc'''
+**Support Guild**: <https://discord.gg/dwykTHc>'''
 
 lvl_base = 100
 
