@@ -1,5 +1,5 @@
 # Goldmine
-<a href="https://discord.gg/dwykTHc"><img src="https://discordapp.com/api/guilds/239772188649979904/widget.png?" alt="Goldmine Support"></a>
+<a href="https://discord.gg/sYkwfxA"><img src="https://discordapp.com/api/guilds/239772188649979904/widget.png?" alt="Goldmine Support"></a>
 
 This is Goldmine, a Discord bot with many features, including music and cats. Check it out now!
 
