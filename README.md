@@ -3,7 +3,12 @@
 
 This is Goldmine, a Discord bot with many features, including music and cats. Check it out now!
 
-## Goldmine is now written in Java. That version won't be open-sourced. However, this will still work fine.
+# Moved
+Goldmine was rewritten in Java. The new and modern version can be found here: https://github.com/kdrag0n/bluestone
+
+Please note that selfbot mode is **not** supported, and will not be in the rewrite. However, this Python version is now completely unsupported. Use at your own risk.
+
+
 
 # Features
 - Rich help
