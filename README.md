@@ -3,14 +3,14 @@
 
 This is Goldmine, a Discord bot with many features, including music and cats. Check it out now!
 
-# Moved
+# IMPORTANT
 Goldmine was rewritten in Java. The new and modern version can be found here: https://github.com/kdrag0n/bluestone
 
 Please note that selfbot mode is **not** supported, and will not be in the rewrite. However, this Python version is now completely unsupported. Use at your own risk.
 
 
-
-# Features
+# Old Contents
+## Features
 - Rich help
 - Many details
 - Pokemon!
@@ -19,10 +19,10 @@ Please note that selfbot mode is **not** supported, and will not be in the rewri
 - Per-server bot name and command prefix :D
 - Too many more to list.
 
-# Installation
+## Installation
 ### Two-Click (Public Instance)
 #### This is very easy, and offers the best performance and reliability overall.
-Just click this link: [Click to add GOLDMINE and CO. to your server](https://discordapp.com/api/oauth2/authorize?client_id=239775420470394897&scope=bot&permissions=66321471 "Click to add GOLDMINE to your server!"), select a server, click **Done**, and you're all set! Easy as pie :)
+Just click this link: [Click to add GOLDMINE and CO. to your server](https://discordapp.com/api/oauth2/authorize?client_id=239775420470394897&scope=bot&permissions=66321471 "Click to add GOLDMINE to your server!"), select a server, click **Done**, and you're all set!
 
 You might want to set the command prefix for your server.
 To do so, simply make sure you're an admin, and type: 
